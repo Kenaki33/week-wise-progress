@@ -49,6 +49,7 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
           {/* Habit Tracker */}
           <HabitTracker
             weekKey={weekKey}
+            selectedDate={selectedDate}
             userId={user?.id || 'demo-user'}
           />
         </div>

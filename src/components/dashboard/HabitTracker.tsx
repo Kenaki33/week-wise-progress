@@ -6,6 +6,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { format, startOfWeek, addDays } from 'date-fns';
+import { pl } from 'date-fns/locale';
 
 interface HabitData {
   habitName: string;
@@ -15,10 +17,11 @@ interface HabitData {
 
 interface HabitTrackerProps {
   weekKey: string;
+  selectedDate: Date;
   userId?: string;
 }
 
-export const HabitTracker = ({ weekKey, userId }: HabitTrackerProps) => {
+export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProps) => {
   const [habitData, setHabitData] = useState<HabitData>({
     habitName: '',
     days: new Array(7).fill(false),
@@ -122,6 +125,10 @@ export const HabitTracker = ({ weekKey, userId }: HabitTrackerProps) => {
   const completedDays = habitData.days.filter(Boolean).length;
   const completionPercentage = habitData.days.length > 0 ? (completedDays / habitData.days.length) * 100 : 0;
 
+  // Calculate dates for each day of the week
+  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Monday as first day
+  const weekDates = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+
   return (
     <div className="space-y-6">
       {/* Habit Goal */}
@@ -165,14 +172,19 @@ export const HabitTracker = ({ weekKey, userId }: HabitTrackerProps) => {
                   onCheckedChange={() => toggleDay(index)}
                   className="data-[state=checked]:bg-success data-[state=checked]:border-success"
                 />
-                <Label 
-                  htmlFor={`day-${index}`} 
-                  className={`font-medium cursor-pointer ${
-                    habitData.days[index] ? 'text-success' : 'text-foreground'
-                  }`}
-                >
-                  {day}
-                </Label>
+                <div className="flex flex-col flex-1">
+                  <Label 
+                    htmlFor={`day-${index}`} 
+                    className={`font-medium cursor-pointer ${
+                      habitData.days[index] ? 'text-success' : 'text-foreground'
+                    }`}
+                  >
+                    {day}
+                  </Label>
+                  <span className="text-sm text-muted-foreground">
+                    {format(weekDates[index], 'd MMMM', { locale: pl })}
+                  </span>
+                </div>
               </div>
             ))}
           </div>
