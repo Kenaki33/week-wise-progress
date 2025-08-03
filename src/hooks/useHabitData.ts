@@ -72,6 +72,7 @@ export const useHabitData = (userId?: string) => {
     
     // Future weeks - gray
     if (weekStart > today) {
+      console.log('Future week, returning gray');
       return 'bg-gray-300';
     }
 
@@ -82,24 +83,28 @@ export const useHabitData = (userId?: string) => {
       date: format(date, 'yyyy-MM-dd'),
       weekKey,
       habitData,
-      habitsByWeek: Object.keys(habitsByWeek)
+      habitsByWeek: Object.keys(habitsByWeek),
+      allData: habitsByWeek
     });
 
     // No habit data or empty habit name - default gray
     if (!habitData || !habitData.habitName.trim()) {
-      console.log('No habit data, returning gray');
+      console.log('No habit data, returning gray for week:', weekKey);
       return 'bg-gray-300';
     }
 
     const completedDays = habitData.completedDays;
-    console.log('Completed days:', completedDays);
+    console.log('Completed days for week', weekKey, ':', completedDays);
 
     // Color based on completion (0-3 red, 4-6 yellow, 7 green)
     if (completedDays <= 3) {
+      console.log('Returning red for', completedDays, 'completed days');
       return 'bg-red-500'; 
     } else if (completedDays <= 6) {
+      console.log('Returning yellow for', completedDays, 'completed days');
       return 'bg-yellow-500'; 
     } else {
+      console.log('Returning green for', completedDays, 'completed days');
       return 'bg-green-500'; 
     }
   };
