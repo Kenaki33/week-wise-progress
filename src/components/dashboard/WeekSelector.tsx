@@ -63,7 +63,7 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
             w-8 h-8 text-sm rounded-md transition-colors
             ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
             ${isSelected ? 'bg-primary text-primary-foreground font-semibold' : ''}
-            ${isToday && !isSelected ? 'bg-warning text-warning-foreground font-semibold' : ''}
+            ${isToday && !isSelected ? 'bg-green-500 text-white font-semibold' : ''}
             ${!isSelected && !isToday ? 'hover:bg-accent' : ''}
           `}
         >
