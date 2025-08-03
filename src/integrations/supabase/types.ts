@@ -14,7 +14,39 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      habits: {
+        Row: {
+          created_at: string
+          days: boolean[]
+          habit_name: string
+          id: string
+          reflection: string
+          updated_at: string
+          user_id: string
+          week_key: string
+        }
+        Insert: {
+          created_at?: string
+          days?: boolean[]
+          habit_name?: string
+          id?: string
+          reflection?: string
+          updated_at?: string
+          user_id: string
+          week_key: string
+        }
+        Update: {
+          created_at?: string
+          days?: boolean[]
+          habit_name?: string
+          id?: string
+          reflection?: string
+          updated_at?: string
+          user_id?: string
+          week_key?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
