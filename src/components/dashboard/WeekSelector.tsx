@@ -55,8 +55,9 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
       const isSelected = isSameWeek(date, selectedDate, { weekStartsOn: 1 });
       const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
       
-      // Get progress color for this week
-      const progressColor = getWeekProgressColor(date);
+      // Get progress color for this week - only apply to week start days
+      const isWeekStart = date.getDay() === 1; // Monday
+      const progressColor = isWeekStart ? getWeekProgressColor(date) : '';
       
       days.push(
         <button
@@ -65,9 +66,10 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
           className={`
             w-8 h-8 text-sm rounded-md transition-colors relative
             ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
-            ${isSelected ? 'ring-2 ring-primary ring-offset-1' : ''}
-            ${isToday && !isSelected ? 'bg-calendar-today text-foreground font-semibold' : ''}
-            ${!isSelected && !isToday ? `hover:bg-calendar-hover ${progressColor}` : progressColor}
+            ${isSelected ? 'bg-primary text-primary-foreground font-semibold' : ''}
+            ${isToday && !isSelected ? 'bg-warning text-warning-foreground font-semibold' : ''}
+            ${!isSelected && !isToday && !isWeekStart ? 'hover:bg-accent' : ''}
+            ${!isSelected && !isToday && isWeekStart ? progressColor : ''}
           `}
         >
           {format(date, 'd')}

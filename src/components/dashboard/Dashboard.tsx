@@ -64,7 +64,7 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
               href="https://www.facebook.com/groups/188340450824129"
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-gradient inline-flex items-center gap-3 px-6 py-3 rounded-xl font-semibold text-primary-foreground no-underline hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
+              className="btn-facebook inline-flex items-center gap-3 px-6 py-3 rounded-xl font-semibold text-white no-underline hover:scale-105 transition-all duration-300 shadow-lg hover:shadow-xl"
             >
               <svg
                 className="w-6 h-6"

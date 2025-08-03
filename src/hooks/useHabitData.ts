@@ -72,26 +72,35 @@ export const useHabitData = (userId?: string) => {
     
     // Future weeks - gray
     if (weekStart > today) {
-      return 'bg-muted text-muted-foreground';
+      return 'hover:bg-muted/50';
     }
 
     const weekKey = getWeekKey(date);
     const habitData = habitsByWeek[weekKey];
 
-    // No habit data - default
+    console.log('Calendar color check:', {
+      date: format(date, 'yyyy-MM-dd'),
+      weekKey,
+      habitData,
+      habitsByWeek: Object.keys(habitsByWeek)
+    });
+
+    // No habit data or empty habit name - default gray
     if (!habitData || !habitData.habitName.trim()) {
-      return 'bg-muted text-muted-foreground';
+      console.log('No habit data, returning gray');
+      return 'hover:bg-muted/50';
     }
 
     const completedDays = habitData.completedDays;
+    console.log('Completed days:', completedDays);
 
-    // Color based on completion
+    // Color based on completion (0-3 red, 4-6 yellow, 7 green)
     if (completedDays <= 3) {
-      return 'bg-red-500 text-white'; // Red for 0-3 days
+      return 'bg-red-500/80 text-white hover:bg-red-500'; 
     } else if (completedDays <= 6) {
-      return 'bg-yellow-500 text-white'; // Yellow for 4-6 days
+      return 'bg-yellow-500/80 text-white hover:bg-yellow-500'; 
     } else {
-      return 'bg-green-500 text-white'; // Green for 7 days
+      return 'bg-green-500/80 text-white hover:bg-green-500'; 
     }
   };
 

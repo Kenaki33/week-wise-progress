@@ -62,7 +62,7 @@ export const LoginForm = ({ onSwitchToRegister, onSwitchToReset }: LoginFormProp
         />
       </div>
 
-      <Button type="submit" className="w-full" disabled={loading}>
+      <Button type="submit" className="w-full btn-gradient" disabled={loading}>
         {loading ? 'Logowanie...' : 'Zaloguj się'}
       </Button>
 

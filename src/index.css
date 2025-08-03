@@ -276,6 +276,24 @@
     filter: brightness(1.1);
   }
   
+  /* Facebook gradient button */
+  .btn-facebook {
+    background: linear-gradient(135deg, #4267B2, #6A82FB);
+    border: none;
+    color: white;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--radius);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+  }
+  
+  .btn-facebook:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 30px rgba(66, 103, 178, 0.4);
+    background: linear-gradient(135deg, #365899, #5A7BD8);
+    filter: brightness(1.05);
+  }
+  
   /* Progress bar enhancement */
   .progress-enhanced {
     background: hsl(var(--muted));
