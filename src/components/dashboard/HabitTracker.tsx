@@ -130,30 +130,32 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
   const weekDates = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       {/* Habit Goal */}
-      <Card>
+      <Card className="enhanced-card">
         <CardHeader>
-          <CardTitle className="text-header">W tym tygodniu pracuję nad:</CardTitle>
+          <CardTitle className="text-foreground text-xl font-semibold">
+            W tym tygodniu pracuję nad:
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Input
             placeholder="Wpisz nawyk, nad którym chcesz pracować..."
             value={habitData.habitName}
             onChange={(e) => updateHabitName(e.target.value)}
-            className="text-lg"
+            className="text-lg py-3 px-4 border-2 focus:border-primary transition-colors"
           />
         </CardContent>
       </Card>
 
       {/* Daily Tracker */}
-      <Card>
+      <Card className="enhanced-card">
         <CardHeader>
-          <CardTitle className="text-header flex items-center justify-between">
-            <span>Śledzenie tygodniowe</span>
+          <CardTitle className="text-foreground flex items-center justify-between">
+            <span className="text-xl font-semibold">Śledzenie tygodniowe</span>
             <div className="text-sm font-normal">
-              <span className={`px-3 py-1 rounded-full text-white ${
-                completionPercentage >= 70 ? 'bg-success' : 
+              <span className={`px-4 py-2 rounded-full font-medium ${
+                completionPercentage >= 70 ? 'bg-success text-success-foreground' : 
                 completionPercentage >= 40 ? 'bg-warning text-warning-foreground' : 
                 'bg-muted text-muted-foreground'
               }`}>
@@ -163,25 +165,43 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <div className="progress-enhanced mb-6">
+            <div 
+              className="progress-fill"
+              style={{ width: `${completionPercentage}%` }}
+            />
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
             {dayNames.map((day, index) => (
-              <div key={day} className="flex items-center space-x-3 p-3 rounded-lg border border-border hover:bg-muted/50 transition-colors">
+              <div 
+                key={day} 
+                className={`
+                  flex items-center space-x-3 p-4 rounded-xl border-2 
+                  transition-all duration-300 cursor-pointer
+                  ${habitData.days[index] 
+                    ? 'border-success bg-success-light hover:shadow-lg' 
+                    : 'border-border hover:border-primary/50 hover:bg-accent/30'
+                  }
+                `}
+                onClick={() => toggleDay(index)}
+              >
                 <Checkbox
                   id={`day-${index}`}
                   checked={habitData.days[index]}
                   onCheckedChange={() => toggleDay(index)}
-                  className="data-[state=checked]:bg-success data-[state=checked]:border-success"
+                  className="data-[state=checked]:bg-success data-[state=checked]:border-success scale-110"
                 />
                 <div className="flex flex-col flex-1">
                   <Label 
                     htmlFor={`day-${index}`} 
-                    className={`font-medium cursor-pointer ${
+                    className={`font-semibold cursor-pointer transition-colors ${
                       habitData.days[index] ? 'text-success' : 'text-foreground'
                     }`}
                   >
                     {day}
                   </Label>
-                  <span className="text-sm text-muted-foreground">
+                  <span className="text-sm text-muted-foreground font-medium">
                     {format(weekDates[index], 'd MMMM', { locale: pl })}
                   </span>
                 </div>
@@ -192,17 +212,19 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
       </Card>
 
       {/* Weekly Reflection */}
-      <Card>
+      <Card className="enhanced-card">
         <CardHeader>
-          <CardTitle className="text-header">Refleksja tygodniowa</CardTitle>
+          <CardTitle className="text-foreground text-xl font-semibold">
+            Refleksja tygodniowa
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Textarea
             placeholder="Jak poszedł ten tydzień? Jakie były wyzwania? Co chcesz poprawić?"
             value={habitData.reflection}
             onChange={(e) => updateReflection(e.target.value)}
-            rows={4}
-            className="resize-none"
+            rows={5}
+            className="resize-none border-2 focus:border-primary transition-colors"
           />
         </CardContent>
       </Card>

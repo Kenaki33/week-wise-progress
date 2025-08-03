@@ -2,106 +2,134 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Habit Tracker Design System - Modern, Clean, Navy & Green Theme */
+/* Design System inspired by zdrowo-ogarnieci.pl - Elegant Green Theme with Dark/Light Mode */
 
 @layer base {
   :root {
-    /* Primary Navy Theme */
-    --background: 240 20% 98%;
-    --foreground: 220 30% 15%;
-
-    /* Navy Header */
-    --header: 220 40% 25%;
-    --header-foreground: 0 0% 100%;
-
-    /* Cards & Panels */
+    /* Light mode colors inspired by zdrowo-ogarnieci.pl */
+    --background: 251 100% 98%;
+    --foreground: 215 25% 27%;
     --card: 0 0% 100%;
-    --card-foreground: 220 30% 15%;
-
-    /* Interactive Elements */
-    --primary: 220 40% 25%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 220 45% 20%;
-
-    /* Success Green */
-    --success: 140 70% 45%;
-    --success-foreground: 0 0% 100%;
-    --success-light: 140 50% 95%;
-
-    /* Warning Yellow */
-    --warning: 45 95% 60%;
-    --warning-foreground: 220 30% 15%;
-    --warning-light: 45 90% 95%;
-
-    /* Secondary Elements */
-    --secondary: 220 15% 96%;
-    --secondary-foreground: 220 30% 25%;
-
-    /* Muted Elements */
-    --muted: 220 15% 94%;
-    --muted-foreground: 220 20% 50%;
-
-    /* Accent */
-    --accent: 140 50% 50%;
-    --accent-foreground: 0 0% 100%;
-
-    /* Borders & Inputs */
-    --border: 220 15% 90%;
-    --input: 220 15% 96%;
-    --ring: 220 40% 25%;
-
-    /* Calendar Specific */
-    --calendar-selected: 140 70% 45%;
-    --calendar-hover: 220 15% 96%;
-    --calendar-today: 45 95% 60%;
-
-    /* Destructive */
-    --destructive: 0 70% 55%;
-    --destructive-foreground: 0 0% 100%;
-
-    --radius: 0.75rem;
-
-    /* Popover */
+    --card-foreground: 215 25% 27%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 30% 15%;
+    --popover-foreground: 215 25% 27%;
+    
+    /* Primary colors - elegant green theme */
+    --primary: 142 69% 58%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 142 69% 48%;
+    --primary-light: 142 69% 95%;
+    
+    /* Secondary colors */
+    --secondary: 215 25% 97%;
+    --secondary-foreground: 215 25% 27%;
+    
+    /* Muted colors */
+    --muted: 215 25% 97%;
+    --muted-foreground: 215 16% 47%;
+    
+    /* Accent colors */
+    --accent: 220 100% 95%;
+    --accent-foreground: 215 25% 27%;
+    
+    /* Status colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Border and input colors */
+    --border: 215 25% 82%;
+    --input: 215 25% 94%;
+    --ring: 142 69% 58%;
+    --radius: 12px;
+    
+    /* Header Colors */
+    --header: 215 25% 27%;
+    --header-foreground: 0 0% 100%;
+    
+    /* Success & Warning */
+    --success: 142 69% 58%;
+    --success-foreground: 0 0% 100%;
+    --success-light: 142 69% 95%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 100%;
+    --warning-light: 38 92% 95%;
+    
+    /* Calendar Colors */
+    --calendar-selected: 142 69% 58%;
+    --calendar-hover: 142 69% 88%;
+    --calendar-today: 38 92% 50%;
+    
+    /* Quiz-inspired gradients and shadows */
+    --gradient-primary: linear-gradient(135deg, hsl(142 69% 58%), hsl(142 69% 68%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(215 25% 98%));
+    --gradient-hero: linear-gradient(135deg, hsl(142 69% 58%), hsl(160 69% 58%));
+    --shadow-soft: 0 4px 20px hsla(215 25% 27% / 0.08);
+    --shadow-hover: 0 8px 30px hsla(215 25% 27% / 0.12);
+    --shadow-focus: 0 0 0 3px hsla(142 69% 58% / 0.2);
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
-
-    --primary: 210 40% 98%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
-
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 212.7 26.8% 83.9%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Dark mode colors */
+    --background: 215 25% 7%;
+    --foreground: 215 25% 93%;
+    --card: 215 25% 9%;
+    --card-foreground: 215 25% 93%;
+    --popover: 215 25% 9%;
+    --popover-foreground: 215 25% 93%;
+    
+    /* Primary colors in dark mode */
+    --primary: 142 69% 65%;
+    --primary-foreground: 215 25% 7%;
+    --primary-hover: 142 69% 75%;
+    --primary-light: 142 69% 15%;
+    
+    /* Secondary colors */
+    --secondary: 215 25% 12%;
+    --secondary-foreground: 215 25% 93%;
+    
+    /* Muted colors */
+    --muted: 215 25% 12%;
+    --muted-foreground: 215 16% 63%;
+    
+    /* Accent colors */
+    --accent: 215 25% 12%;
+    --accent-foreground: 215 25% 93%;
+    
+    /* Status colors */
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    
+    /* Border and input colors */
+    --border: 215 25% 18%;
+    --input: 215 25% 12%;
+    --ring: 142 69% 65%;
+    
+    /* Header Colors */
+    --header: 215 25% 93%;
+    --header-foreground: 215 25% 7%;
+    
+    /* Success & Warning */
+    --success: 142 69% 65%;
+    --success-foreground: 215 25% 7%;
+    --success-light: 142 69% 15%;
+    
+    --warning: 38 92% 50%;
+    --warning-foreground: 215 25% 7%;
+    --warning-light: 38 92% 15%;
+    
+    /* Calendar Colors */
+    --calendar-selected: 142 69% 65%;
+    --calendar-hover: 142 69% 25%;
+    --calendar-today: 38 92% 50%;
+    
+    /* Dark mode gradients and shadows */
+    --gradient-primary: linear-gradient(135deg, hsl(142 69% 65%), hsl(142 69% 75%));
+    --gradient-card: linear-gradient(135deg, hsl(215 25% 9%), hsl(215 25% 11%));
+    --gradient-hero: linear-gradient(135deg, hsl(142 69% 65%), hsl(160 69% 65%));
+    --shadow-soft: 0 4px 20px hsla(215 25% 7% / 0.5);
+    --shadow-hover: 0 8px 30px hsla(215 25% 7% / 0.7);
+    --shadow-focus: 0 0 0 3px hsla(142 69% 65% / 0.3);
   }
 }
 
@@ -109,8 +137,159 @@
   * {
     @apply border-border;
   }
-
+  
   body {
     @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    transition: background-color 0.3s ease, color 0.3s ease;
+  }
+  
+  /* Beautiful scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-primary/30 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-primary/50;
+  }
+}
+
+@layer components {
+  /* Theme switch inspired by the original */
+  .theme-switch-wrapper {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    margin-bottom: 1rem;
+  }
+  
+  .theme-switch {
+    position: relative;
+    display: inline-block;
+    width: 60px;
+    height: 32px;
+  }
+  
+  .theme-switch input {
+    opacity: 0;
+    width: 0;
+    height: 0;
+  }
+  
+  .theme-slider {
+    position: absolute;
+    cursor: pointer;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: hsl(var(--muted));
+    border: 2px solid hsl(var(--border));
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 6px;
+  }
+  
+  .theme-slider:before {
+    position: absolute;
+    content: "";
+    height: 20px;
+    width: 20px;
+    background: hsl(var(--background));
+    border-radius: 50%;
+    transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: var(--shadow-soft);
+    left: 4px;
+  }
+  
+  input:checked + .theme-slider {
+    background: hsl(var(--primary));
+    border-color: hsl(var(--primary));
+  }
+  
+  input:checked + .theme-slider:before {
+    transform: translateX(28px);
+  }
+  
+  .theme-icon {
+    width: 16px;
+    height: 16px;
+    z-index: 1;
+    transition: opacity 0.3s ease;
+  }
+  
+  .sun-icon {
+    color: hsl(var(--warning));
+  }
+  
+  .moon-icon {
+    color: hsl(var(--muted-foreground));
+  }
+  
+  input:checked + .theme-slider .sun-icon {
+    opacity: 0.3;
+  }
+  
+  input:checked + .theme-slider .moon-icon {
+    opacity: 1;
+    color: hsl(var(--background));
+  }
+  
+  /* Card enhancements */
+  .enhanced-card {
+    background: var(--gradient-card);
+    border: 1px solid hsl(var(--border));
+    box-shadow: var(--shadow-soft);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: calc(var(--radius) + 2px);
+  }
+  
+  .enhanced-card:hover {
+    box-shadow: var(--shadow-hover);
+    transform: translateY(-2px);
+  }
+  
+  /* Button enhancements */
+  .btn-gradient {
+    background: var(--gradient-primary);
+    border: none;
+    color: hsl(var(--primary-foreground));
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--radius);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+  }
+  
+  .btn-gradient:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-hover);
+    filter: brightness(1.1);
+  }
+  
+  /* Progress bar enhancement */
+  .progress-enhanced {
+    background: hsl(var(--muted));
+    border-radius: 12px;
+    overflow: hidden;
+    height: 8px;
+  }
+  
+  .progress-enhanced .progress-fill {
+    background: var(--gradient-primary);
+    transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+    height: 100%;
+    border-radius: 12px;
   }
 }
