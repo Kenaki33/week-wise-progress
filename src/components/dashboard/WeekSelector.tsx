@@ -55,21 +55,16 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
       const isSelected = isSameWeek(date, selectedDate, { weekStartsOn: 1 });
       const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
       
-      // Get progress color for this week - only apply to week start days
-      const isWeekStart = date.getDay() === 1; // Monday
-      const progressColor = isWeekStart ? getWeekProgressColor(date) : '';
-      
       days.push(
         <button
           key={date.toISOString()}
           onClick={() => handleDateClick(date)}
           className={`
-            w-8 h-8 text-sm rounded-md transition-colors relative
+            w-8 h-8 text-sm rounded-md transition-colors
             ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
             ${isSelected ? 'bg-primary text-primary-foreground font-semibold' : ''}
             ${isToday && !isSelected ? 'bg-warning text-warning-foreground font-semibold' : ''}
-            ${!isSelected && !isToday && !isWeekStart ? 'hover:bg-accent' : ''}
-            ${!isSelected && !isToday && isWeekStart ? progressColor : ''}
+            ${!isSelected && !isToday ? 'hover:bg-accent' : ''}
           `}
         >
           {format(date, 'd')}
@@ -79,6 +74,29 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
     }
 
     return days;
+  };
+
+  const renderWeekProgressDots = () => {
+    const dots = [];
+    let currentWeekStart = calendarStart;
+    
+    // Go through each week in the calendar
+    while (currentWeekStart <= calendarEnd) {
+      const weekStart = startOfWeek(currentWeekStart, { weekStartsOn: 1 });
+      const progressColor = getWeekProgressColor(weekStart);
+      
+      dots.push(
+        <div
+          key={weekStart.toISOString()}
+          className={`w-3 h-3 rounded-full ${progressColor}`}
+          title={`Tydzień ${format(weekStart, 'dd.MM')} - ${format(addDays(weekStart, 6), 'dd.MM')}`}
+        />
+      );
+      
+      currentWeekStart = addDays(currentWeekStart, 7);
+    }
+    
+    return dots;
   };
 
   return (
@@ -116,13 +134,23 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
             </Button>
           </div>
 
-          <div className="grid grid-cols-7 gap-1">
-            {['PN', 'WT', 'ŚR', 'CZ', 'PT', 'SB', 'ND'].map((day) => (
-              <div key={day} className="text-center text-sm font-medium text-muted-foreground p-2">
-                {day}
+          <div className="flex gap-3">
+            {/* Calendar Grid */}
+            <div className="flex-1">
+              <div className="grid grid-cols-7 gap-1">
+                {['PN', 'WT', 'ŚR', 'CZ', 'PT', 'SB', 'ND'].map((day) => (
+                  <div key={day} className="text-center text-sm font-medium text-muted-foreground p-2">
+                    {day}
+                  </div>
+                ))}
+                {renderCalendarDays()}
               </div>
-            ))}
-            {renderCalendarDays()}
+            </div>
+            
+            {/* Progress Dots Column */}
+            <div className="flex flex-col items-center gap-1 pt-10">
+              {renderWeekProgressDots()}
+            </div>
           </div>
         </div>
       </DialogContent>

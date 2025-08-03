@@ -72,7 +72,7 @@ export const useHabitData = (userId?: string) => {
     
     // Future weeks - gray
     if (weekStart > today) {
-      return 'hover:bg-muted/50';
+      return 'bg-gray-300';
     }
 
     const weekKey = getWeekKey(date);
@@ -88,7 +88,7 @@ export const useHabitData = (userId?: string) => {
     // No habit data or empty habit name - default gray
     if (!habitData || !habitData.habitName.trim()) {
       console.log('No habit data, returning gray');
-      return 'hover:bg-muted/50';
+      return 'bg-gray-300';
     }
 
     const completedDays = habitData.completedDays;
@@ -96,11 +96,11 @@ export const useHabitData = (userId?: string) => {
 
     // Color based on completion (0-3 red, 4-6 yellow, 7 green)
     if (completedDays <= 3) {
-      return 'bg-red-500/80 text-white hover:bg-red-500'; 
+      return 'bg-red-500'; 
     } else if (completedDays <= 6) {
-      return 'bg-yellow-500/80 text-white hover:bg-yellow-500'; 
+      return 'bg-yellow-500'; 
     } else {
-      return 'bg-green-500/80 text-white hover:bg-green-500'; 
+      return 'bg-green-500'; 
     }
   };
 
