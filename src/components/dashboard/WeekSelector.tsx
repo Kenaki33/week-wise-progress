@@ -15,7 +15,7 @@ interface WeekSelectorProps {
 export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelectorProps) => {
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
-  const { loadHabitData, getWeekProgressColor } = useHabitData(userId);
+  const { loadHabitData } = useHabitData(userId);
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -76,62 +76,6 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
     return days;
   };
 
-  const renderCalendarWithDots = () => {
-    const rows = [];
-    let currentDate = calendarStart;
-    
-    // Calculate how many weeks we have
-    const totalDays = Math.ceil((calendarEnd.getTime() - calendarStart.getTime()) / (1000 * 60 * 60 * 24)) + 1;
-    const totalWeeks = Math.ceil(totalDays / 7);
-    
-    for (let week = 0; week < totalWeeks; week++) {
-      const weekDays = [];
-      const weekStartDate = addDays(calendarStart, week * 7);
-      
-      // Render 7 days for this week
-      for (let day = 0; day < 7 && currentDate <= calendarEnd; day++) {
-        const date = currentDate;
-        const isCurrentMonth = isSameMonth(date, calendarDate);
-        const isSelected = isSameWeek(date, selectedDate, { weekStartsOn: 1 });
-        const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-        
-        weekDays.push(
-          <button
-            key={date.toISOString()}
-            onClick={() => handleDateClick(date)}
-            className={`
-              w-8 h-8 text-sm rounded-md transition-colors
-              ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
-              ${isSelected ? 'bg-primary text-primary-foreground font-semibold' : ''}
-              ${isToday && !isSelected ? 'bg-warning text-warning-foreground font-semibold' : ''}
-              ${!isSelected && !isToday ? 'hover:bg-accent' : ''}
-            `}
-          >
-            {format(date, 'd')}
-          </button>
-        );
-        currentDate = addDays(currentDate, 1);
-      }
-      
-      // Get progress color for this week
-      const progressColor = getWeekProgressColor(weekStartDate);
-      
-      rows.push(
-        <div key={week} className="flex items-center gap-3">
-          <div className="grid grid-cols-7 gap-1 flex-1">
-            {weekDays}
-          </div>
-          <div 
-            className={`w-4 h-4 rounded-full ${progressColor}`}
-            title={`Tydzień ${format(weekStartDate, 'dd.MM')} - ${format(addDays(weekStartDate, 6), 'dd.MM')}`}
-          />
-        </div>
-      );
-    }
-    
-    return rows;
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -169,20 +113,17 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
 
           <div className="space-y-1">
             {/* Calendar Headers */}
-            <div className="flex gap-3">
-              <div className="grid grid-cols-7 gap-1 flex-1">
-                {['PN', 'WT', 'ŚR', 'CZ', 'PT', 'SB', 'ND'].map((day) => (
-                  <div key={day} className="text-center text-sm font-medium text-muted-foreground p-2">
-                    {day}
-                  </div>
-                ))}
-              </div>
-              <div className="w-4" /> {/* Spacer for dots column */}
+            <div className="grid grid-cols-7 gap-1">
+              {['PN', 'WT', 'ŚR', 'CZ', 'PT', 'SB', 'ND'].map((day) => (
+                <div key={day} className="text-center text-sm font-medium text-muted-foreground p-2">
+                  {day}
+                </div>
+              ))}
             </div>
             
-            {/* Calendar Rows with Progress Dots */}
-            <div className="space-y-1">
-              {renderCalendarWithDots()}
+            {/* Calendar Days */}
+            <div className="grid grid-cols-7 gap-1">
+              {renderCalendarDays()}
             </div>
           </div>
         </div>
