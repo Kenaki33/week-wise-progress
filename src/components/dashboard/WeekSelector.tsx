@@ -61,9 +61,11 @@ export const WeekSelector = ({ selectedDate, onDateChange }: WeekSelectorProps) 
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="bg-card border-border hover:bg-muted">
-          <Calendar className="w-4 h-4 mr-2" />
-          Wybierz tydzień: {format(weekStart, 'dd.MM', { locale: pl })} - {format(weekEnd, 'dd.MM', { locale: pl })}
+        <Button variant="outline" className="bg-card border-border hover:bg-muted w-full sm:w-auto text-sm sm:text-base">
+          <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+          <span className="truncate">
+            Wybierz tydzień: {format(weekStart, 'dd.MM', { locale: pl })} - {format(weekEnd, 'dd.MM', { locale: pl })}
+          </span>
         </Button>
       </DialogTrigger>
       
