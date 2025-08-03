@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface LoginFormProps {
   onSwitchToRegister: () => void;
@@ -19,12 +20,18 @@ export const LoginForm = ({ onSwitchToRegister, onSwitchToReset }: LoginFormProp
     e.preventDefault();
     setLoading(true);
 
-    // Placeholder - będzie zaktualizowane gdy pliki Supabase będą dostępne
-    toast({
-      title: "Prawie gotowe!",
-      description: "Integracja Supabase wymaga jeszcze konfiguracji plików",
-      variant: "destructive",
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
+
+    if (error) {
+      toast({
+        title: "Błąd logowania",
+        description: error.message,
+        variant: "destructive",
+      });
+    }
     
     setLoading(false);
   };

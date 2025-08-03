@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ResetPasswordFormProps {
   onSwitchToLogin: () => void;
@@ -18,12 +19,19 @@ export const ResetPasswordForm = ({ onSwitchToLogin }: ResetPasswordFormProps) =
     e.preventDefault();
     setLoading(true);
 
-    // Placeholder for Supabase integration
-    toast({
-      title: "Integracja wymagana",
-      description: "Aby zresetować hasło, aktywuj integrację Supabase klikając zielony przycisk w prawym górnym rogu",
-      variant: "destructive",
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/`,
     });
+
+    if (error) {
+      toast({
+        title: "Błąd",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      setSent(true);
+    }
     
     setLoading(false);
   };

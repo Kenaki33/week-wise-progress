@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ChangePasswordModalProps {
   isOpen: boolean;
@@ -40,12 +41,23 @@ export const ChangePasswordModal = ({ isOpen, onClose }: ChangePasswordModalProp
 
     setLoading(true);
 
-    // Placeholder for Supabase integration
-    toast({
-      title: "Integracja wymagana",
-      description: "Aby zmienić hasło, aktywuj integrację Supabase",
-      variant: "destructive",
+    const { error } = await supabase.auth.updateUser({
+      password: newPassword
     });
+
+    if (error) {
+      toast({
+        title: "Błąd",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Sukces",
+        description: "Hasło zostało zmienione",
+      });
+      handleClose();
+    }
     
     setLoading(false);
   };

@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RegisterFormProps {
   onSwitchToLogin: () => void;
@@ -38,12 +39,28 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
 
     setLoading(true);
 
-    // Placeholder - będzie zaktualizowane gdy pliki Supabase będą dostępne
-    toast({
-      title: "Prawie gotowe!",
-      description: "Integracja Supabase wymaga jeszcze konfiguracji plików",
-      variant: "destructive",
+    const redirectUrl = `${window.location.origin}/`;
+    
+    const { error } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: redirectUrl
+      }
     });
+
+    if (error) {
+      toast({
+        title: "Błąd rejestracji",
+        description: error.message,
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Sprawdź email",
+        description: "Wysłaliśmy link aktywacyjny na Twój adres email",
+      });
+    }
     
     setLoading(false);
   };

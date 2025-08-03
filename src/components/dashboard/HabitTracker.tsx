@@ -4,6 +4,8 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface HabitData {
   habitName: string;
@@ -22,33 +24,82 @@ export const HabitTracker = ({ weekKey, userId }: HabitTrackerProps) => {
     days: new Array(7).fill(false),
     reflection: ''
   });
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
 
-  // Simulate loading data from Supabase (will be replaced when Supabase is connected)
+  // Load data from Supabase
   useEffect(() => {
-    // For now, load from localStorage as a fallback
-    const storageKey = `habit-${userId}-${weekKey}`;
-    const saved = localStorage.getItem(storageKey);
-    if (saved) {
-      try {
-        setHabitData(JSON.parse(saved));
-      } catch (error) {
+    if (!userId) return;
+
+    const loadHabitData = async () => {
+      setLoading(true);
+      
+      const { data, error } = await supabase
+        .from('habits')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('week_key', weekKey)
+        .maybeSingle();
+
+      if (error && error.code !== 'PGRST116') {
         console.error('Error loading habit data:', error);
+        toast({
+          title: "Błąd",
+          description: "Nie udało się załadować danych nawyków",
+          variant: "destructive",
+        });
+      } else if (data) {
+        setHabitData({
+          habitName: data.habit_name || '',
+          days: data.days || new Array(7).fill(false),
+          reflection: data.reflection || ''
+        });
+      } else {
+        // Reset for new week
+        setHabitData({
+          habitName: '',
+          days: new Array(7).fill(false),
+          reflection: ''
+        });
       }
-    } else {
-      // Reset for new week
-      setHabitData({
-        habitName: '',
-        days: new Array(7).fill(false),
-        reflection: ''
-      });
-    }
-  }, [weekKey, userId]);
+      
+      setLoading(false);
+    };
 
-  // Auto-save functionality (will be replaced with Supabase when connected)
+    loadHabitData();
+  }, [weekKey, userId, toast]);
+
+  // Auto-save functionality to Supabase
   useEffect(() => {
-    const storageKey = `habit-${userId}-${weekKey}`;
-    localStorage.setItem(storageKey, JSON.stringify(habitData));
-  }, [habitData, weekKey, userId]);
+    if (!userId || loading) return;
+
+    const saveHabitData = async () => {
+      const { error } = await supabase
+        .from('habits')
+        .upsert({
+          user_id: userId,
+          week_key: weekKey,
+          habit_name: habitData.habitName,
+          days: habitData.days,
+          reflection: habitData.reflection
+        }, {
+          onConflict: 'user_id,week_key'
+        });
+
+      if (error) {
+        console.error('Error saving habit data:', error);
+        toast({
+          title: "Błąd",
+          description: "Nie udało się zapisać danych",
+          variant: "destructive",
+        });
+      }
+    };
+
+    // Debounce the save operation
+    const timeoutId = setTimeout(saveHabitData, 1000);
+    return () => clearTimeout(timeoutId);
+  }, [habitData, weekKey, userId, loading, toast]);
 
   const updateHabitName = (name: string) => {
     setHabitData(prev => ({ ...prev, habitName: name }));
