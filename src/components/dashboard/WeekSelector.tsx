@@ -1,18 +1,21 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
 import { format, startOfWeek, endOfWeek, addDays, startOfMonth, endOfMonth, addMonths, subMonths, isSameMonth, isSameWeek } from 'date-fns';
 import { pl } from 'date-fns/locale';
+import { useHabitData } from '@/hooks/useHabitData';
 
 interface WeekSelectorProps {
   selectedDate: Date;
   onDateChange: (date: Date) => void;
+  userId?: string;
 }
 
-export const WeekSelector = ({ selectedDate, onDateChange }: WeekSelectorProps) => {
+export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelectorProps) => {
   const [calendarDate, setCalendarDate] = useState(new Date());
   const [isOpen, setIsOpen] = useState(false);
+  const { loadHabitData, getWeekProgressColor } = useHabitData(userId);
 
   const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
   const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
@@ -21,6 +24,21 @@ export const WeekSelector = ({ selectedDate, onDateChange }: WeekSelectorProps) 
   const monthEnd = endOfMonth(calendarDate);
   const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
   const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+
+  // Preload habit data for visible weeks when calendar opens
+  useEffect(() => {
+    if (isOpen && userId) {
+      let currentDate = calendarStart;
+      const promises = [];
+      
+      while (currentDate <= calendarEnd) {
+        promises.push(loadHabitData(currentDate));
+        currentDate = addDays(currentDate, 7); // Skip by weeks
+      }
+      
+      Promise.all(promises);
+    }
+  }, [isOpen, calendarStart, calendarEnd, userId, loadHabitData]);
 
   const handleDateClick = (date: Date) => {
     onDateChange(date);
@@ -36,17 +54,20 @@ export const WeekSelector = ({ selectedDate, onDateChange }: WeekSelectorProps) 
       const isCurrentMonth = isSameMonth(date, calendarDate);
       const isSelected = isSameWeek(date, selectedDate, { weekStartsOn: 1 });
       const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
-
+      
+      // Get progress color for this week
+      const progressColor = getWeekProgressColor(date);
+      
       days.push(
         <button
           key={date.toISOString()}
           onClick={() => handleDateClick(date)}
           className={`
-            w-8 h-8 text-sm rounded-md transition-colors
+            w-8 h-8 text-sm rounded-md transition-colors relative
             ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
-            ${isSelected ? 'bg-calendar-selected text-white font-semibold' : ''}
+            ${isSelected ? 'ring-2 ring-primary ring-offset-1' : ''}
             ${isToday && !isSelected ? 'bg-calendar-today text-foreground font-semibold' : ''}
-            ${!isSelected && !isToday ? 'hover:bg-calendar-hover' : ''}
+            ${!isSelected && !isToday ? `hover:bg-calendar-hover ${progressColor}` : progressColor}
           `}
         >
           {format(date, 'd')}
