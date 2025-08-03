@@ -1,0 +1,107 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { useToast } from '@/hooks/use-toast';
+
+interface RegisterFormProps {
+  onSwitchToLogin: () => void;
+}
+
+export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (password !== confirmPassword) {
+      toast({
+        title: "Błąd",
+        description: "Hasła nie są identyczne",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (password.length < 6) {
+      toast({
+        title: "Błąd",
+        description: "Hasło musi mieć co najmniej 6 znaków",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    // Placeholder for Supabase integration
+    toast({
+      title: "Integracja wymagana",
+      description: "Aby się zarejestrować, aktywuj integrację Supabase klikając zielony przycisk w prawym górnym rogu",
+      variant: "destructive",
+    });
+    
+    setLoading(false);
+  };
+
+  return (
+    <form onSubmit={handleRegister} className="space-y-6">
+      <div className="space-y-2">
+        <Label htmlFor="email">Email</Label>
+        <Input
+          id="email"
+          type="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          required
+          placeholder="twoj@email.com"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="password">Hasło</Label>
+        <Input
+          id="password"
+          type="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          required
+          placeholder="••••••••"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword">Potwierdź hasło</Label>
+        <Input
+          id="confirmPassword"
+          type="password"
+          value={confirmPassword}
+          onChange={(e) => setConfirmPassword(e.target.value)}
+          required
+          placeholder="••••••••"
+        />
+      </div>
+
+      <Button type="submit" className="w-full" disabled={loading}>
+        {loading ? 'Rejestrowanie...' : 'Zarejestruj się'}
+      </Button>
+
+      <div className="text-center">
+        <div className="text-sm text-muted-foreground">
+          Masz już konto?{' '}
+          <button
+            type="button"
+            onClick={onSwitchToLogin}
+            className="text-primary hover:underline font-medium"
+          >
+            Zaloguj się
+          </button>
+        </div>
+      </div>
+    </form>
+  );
+};

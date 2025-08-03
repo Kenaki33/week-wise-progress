@@ -1,0 +1,106 @@
+import React, { useState } from 'react';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
+import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
+import { format, startOfWeek, endOfWeek, addDays, startOfMonth, endOfMonth, addMonths, subMonths, isSameMonth, isSameWeek } from 'date-fns';
+import { pl } from 'date-fns/locale';
+
+interface WeekSelectorProps {
+  selectedDate: Date;
+  onDateChange: (date: Date) => void;
+}
+
+export const WeekSelector = ({ selectedDate, onDateChange }: WeekSelectorProps) => {
+  const [calendarDate, setCalendarDate] = useState(new Date());
+  const [isOpen, setIsOpen] = useState(false);
+
+  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
+  const weekEnd = endOfWeek(selectedDate, { weekStartsOn: 1 });
+  
+  const monthStart = startOfMonth(calendarDate);
+  const monthEnd = endOfMonth(calendarDate);
+  const calendarStart = startOfWeek(monthStart, { weekStartsOn: 1 });
+  const calendarEnd = endOfWeek(monthEnd, { weekStartsOn: 1 });
+
+  const handleDateClick = (date: Date) => {
+    onDateChange(date);
+    setIsOpen(false);
+  };
+
+  const renderCalendarDays = () => {
+    const days = [];
+    let currentDate = calendarStart;
+
+    while (currentDate <= calendarEnd) {
+      const date = currentDate;
+      const isCurrentMonth = isSameMonth(date, calendarDate);
+      const isSelected = isSameWeek(date, selectedDate, { weekStartsOn: 1 });
+      const isToday = format(date, 'yyyy-MM-dd') === format(new Date(), 'yyyy-MM-dd');
+
+      days.push(
+        <button
+          key={date.toISOString()}
+          onClick={() => handleDateClick(date)}
+          className={`
+            w-8 h-8 text-sm rounded-md transition-colors
+            ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
+            ${isSelected ? 'bg-calendar-selected text-white font-semibold' : ''}
+            ${isToday && !isSelected ? 'bg-calendar-today text-foreground font-semibold' : ''}
+            ${!isSelected && !isToday ? 'hover:bg-calendar-hover' : ''}
+          `}
+        >
+          {format(date, 'd')}
+        </button>
+      );
+      currentDate = addDays(currentDate, 1);
+    }
+
+    return days;
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
+      <DialogTrigger asChild>
+        <Button variant="outline" className="bg-card border-border hover:bg-muted">
+          <Calendar className="w-4 h-4 mr-2" />
+          Wybierz tydzień: {format(weekStart, 'dd.MM', { locale: pl })} - {format(weekEnd, 'dd.MM', { locale: pl })}
+        </Button>
+      </DialogTrigger>
+      
+      <DialogContent className="max-w-sm">
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCalendarDate(subMonths(calendarDate, 1))}
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            
+            <h3 className="text-lg font-semibold">
+              {format(calendarDate, 'LLLL yyyy', { locale: pl })}
+            </h3>
+            
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setCalendarDate(addMonths(calendarDate, 1))}
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </div>
+
+          <div className="grid grid-cols-7 gap-1">
+            {['PN', 'WT', 'ŚR', 'CZ', 'PT', 'SB', 'ND'].map((day) => (
+              <div key={day} className="text-center text-sm font-medium text-muted-foreground p-2">
+                {day}
+              </div>
+            ))}
+            {renderCalendarDays()}
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+};
