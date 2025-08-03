@@ -6,7 +6,7 @@
 
 @layer base {
   :root {
-    /* Light mode - jak na oryginalnej stronie */
+    /* Light mode - dokładnie jak na screenie */
     --background: 0 0% 98%;
     --foreground: 220 15% 25%;
     --card: 0 0% 100%;
@@ -14,11 +14,11 @@
     --popover: 0 0% 100%;
     --popover-foreground: 220 15% 25%;
     
-    /* Primary - pomarańczowy jak w oryginale */
-    --primary: 24 95% 53%;
+    /* Primary - gradient pomarańczowy jak w oryginale */
+    --primary: 28 100% 52%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 24 95% 45%;
-    --primary-light: 24 95% 95%;
+    --primary-hover: 28 100% 48%;
+    --primary-light: 28 100% 95%;
     
     /* Secondary colors */
     --secondary: 220 15% 96%;
@@ -39,7 +39,7 @@
     /* Border and input colors */
     --border: 220 15% 88%;
     --input: 220 15% 94%;
-    --ring: 24 95% 53%;
+    --ring: 28 100% 52%;
     --radius: 12px;
     
     /* Header Colors */
@@ -51,48 +51,48 @@
     --success-foreground: 0 0% 100%;
     --success-light: 142 69% 95%;
     
-    --warning: 24 95% 53%;
+    --warning: 28 100% 52%;
     --warning-foreground: 0 0% 100%;
-    --warning-light: 24 95% 95%;
+    --warning-light: 28 100% 95%;
     
     /* Calendar Colors */
-    --calendar-selected: 24 95% 53%;
+    --calendar-selected: 28 100% 52%;
     --calendar-hover: 220 15% 92%;
-    --calendar-today: 24 95% 53%;
+    --calendar-today: 28 100% 52%;
     
-    /* Gradients pomarańczowe */
-    --gradient-primary: linear-gradient(135deg, hsl(24 95% 53%), hsl(24 95% 60%));
+    /* Gradient pomarańczowy dokładnie jak w oryginale */
+    --gradient-primary: linear-gradient(135deg, hsl(28 100% 52%), hsl(35 100% 58%));
     --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(220 15% 98%));
     --shadow-soft: 0 4px 20px hsla(220 15% 25% / 0.08);
     --shadow-hover: 0 8px 30px hsla(220 15% 25% / 0.12);
-    --shadow-focus: 0 0 0 3px hsla(24 95% 53% / 0.2);
+    --shadow-focus: 0 0 0 3px hsla(28 100% 52% / 0.2);
   }
 
   .dark {
-    /* Dark mode - niebieskie tło jak w oryginale */
-    --background: 228 39% 23%;
+    /* Dark mode - ciepły fioletowo-niebieski jak na screenie */
+    --background: 248 39% 23%;
     --foreground: 0 0% 95%;
-    --card: 228 39% 26%;
+    --card: 248 39% 27%;
     --card-foreground: 0 0% 95%;
-    --popover: 228 39% 26%;
+    --popover: 248 39% 27%;
     --popover-foreground: 0 0% 95%;
     
-    /* Primary - ten sam pomarańczowy */
-    --primary: 24 95% 53%;
+    /* Primary - ten sam pomarańczowy gradient */
+    --primary: 28 100% 52%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 24 95% 60%;
-    --primary-light: 24 95% 15%;
+    --primary-hover: 28 100% 58%;
+    --primary-light: 28 100% 15%;
     
     /* Secondary colors */
-    --secondary: 228 39% 20%;
+    --secondary: 248 39% 20%;
     --secondary-foreground: 0 0% 95%;
     
     /* Muted colors */
-    --muted: 228 39% 20%;
+    --muted: 248 39% 20%;
     --muted-foreground: 220 10% 70%;
     
     /* Accent colors */
-    --accent: 228 39% 20%;
+    --accent: 248 39% 20%;
     --accent-foreground: 0 0% 95%;
     
     /* Status colors */
@@ -100,34 +100,34 @@
     --destructive-foreground: 0 0% 100%;
     
     /* Border and input colors */
-    --border: 228 39% 30%;
-    --input: 228 39% 20%;
-    --ring: 24 95% 53%;
+    --border: 248 39% 32%;
+    --input: 248 39% 20%;
+    --ring: 28 100% 52%;
     
     /* Header Colors */
     --header: 0 0% 95%;
-    --header-foreground: 228 39% 23%;
+    --header-foreground: 248 39% 23%;
     
     /* Success & Warning */
     --success: 142 69% 58%;
     --success-foreground: 0 0% 100%;
     --success-light: 142 69% 15%;
     
-    --warning: 24 95% 53%;
+    --warning: 28 100% 52%;
     --warning-foreground: 0 0% 100%;
-    --warning-light: 24 95% 15%;
+    --warning-light: 28 100% 15%;
     
     /* Calendar Colors */
-    --calendar-selected: 24 95% 53%;
-    --calendar-hover: 228 39% 30%;
-    --calendar-today: 24 95% 53%;
+    --calendar-selected: 28 100% 52%;
+    --calendar-hover: 248 39% 32%;
+    --calendar-today: 28 100% 52%;
     
-    /* Dark mode gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(24 95% 53%), hsl(24 95% 60%));
-    --gradient-card: linear-gradient(135deg, hsl(228 39% 26%), hsl(228 39% 28%));
-    --shadow-soft: 0 4px 20px hsla(228 39% 10% / 0.5);
-    --shadow-hover: 0 8px 30px hsla(228 39% 10% / 0.7);
-    --shadow-focus: 0 0 0 3px hsla(24 95% 53% / 0.3);
+    /* Dark mode gradients - ciepły fioletowo-niebieski */
+    --gradient-primary: linear-gradient(135deg, hsl(28 100% 52%), hsl(35 100% 58%));
+    --gradient-card: linear-gradient(135deg, hsl(248 39% 27%), hsl(248 39% 29%));
+    --shadow-soft: 0 4px 20px hsla(248 39% 10% / 0.5);
+    --shadow-hover: 0 8px 30px hsla(248 39% 10% / 0.7);
+    --shadow-focus: 0 0 0 3px hsla(28 100% 52% / 0.3);
   }
 }
 
