@@ -60,10 +60,10 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
           key={date.toISOString()}
           onClick={() => handleDateClick(date)}
           className={`
-            w-8 h-8 text-sm rounded-md transition-colors
+            w-8 h-8 text-sm rounded-md transition-colors relative
             ${isCurrentMonth ? 'text-foreground' : 'text-muted-foreground'}
             ${isSelected ? 'bg-primary text-primary-foreground font-semibold' : ''}
-            ${isToday && !isSelected ? 'bg-green-500 text-white font-semibold' : ''}
+            ${isToday && !isSelected ? 'border-2 border-black font-semibold' : ''}
             ${!isSelected && !isToday ? 'hover:bg-accent' : ''}
           `}
         >
