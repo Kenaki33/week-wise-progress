@@ -6,44 +6,44 @@
 
 @layer base {
   :root {
-    /* Light mode colors inspired by zdrowo-ogarnieci.pl */
-    --background: 251 100% 98%;
-    --foreground: 215 25% 27%;
+    /* Light mode - jak na oryginalnej stronie */
+    --background: 0 0% 98%;
+    --foreground: 220 15% 25%;
     --card: 0 0% 100%;
-    --card-foreground: 215 25% 27%;
+    --card-foreground: 220 15% 25%;
     --popover: 0 0% 100%;
-    --popover-foreground: 215 25% 27%;
+    --popover-foreground: 220 15% 25%;
     
-    /* Primary colors - elegant green theme */
-    --primary: 142 69% 58%;
+    /* Primary - pomarańczowy jak w oryginale */
+    --primary: 24 95% 53%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 142 69% 48%;
-    --primary-light: 142 69% 95%;
+    --primary-hover: 24 95% 45%;
+    --primary-light: 24 95% 95%;
     
     /* Secondary colors */
-    --secondary: 215 25% 97%;
-    --secondary-foreground: 215 25% 27%;
+    --secondary: 220 15% 96%;
+    --secondary-foreground: 220 15% 25%;
     
     /* Muted colors */
-    --muted: 215 25% 97%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 15% 95%;
+    --muted-foreground: 220 10% 50%;
     
     /* Accent colors */
-    --accent: 220 100% 95%;
-    --accent-foreground: 215 25% 27%;
+    --accent: 220 15% 94%;
+    --accent-foreground: 220 15% 25%;
     
     /* Status colors */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
     /* Border and input colors */
-    --border: 215 25% 82%;
-    --input: 215 25% 94%;
-    --ring: 142 69% 58%;
+    --border: 220 15% 88%;
+    --input: 220 15% 94%;
+    --ring: 24 95% 53%;
     --radius: 12px;
     
     /* Header Colors */
-    --header: 215 25% 27%;
+    --header: 220 15% 25%;
     --header-foreground: 0 0% 100%;
     
     /* Success & Warning */
@@ -51,85 +51,83 @@
     --success-foreground: 0 0% 100%;
     --success-light: 142 69% 95%;
     
-    --warning: 38 92% 50%;
+    --warning: 24 95% 53%;
     --warning-foreground: 0 0% 100%;
-    --warning-light: 38 92% 95%;
+    --warning-light: 24 95% 95%;
     
     /* Calendar Colors */
-    --calendar-selected: 142 69% 58%;
-    --calendar-hover: 142 69% 88%;
-    --calendar-today: 38 92% 50%;
+    --calendar-selected: 24 95% 53%;
+    --calendar-hover: 220 15% 92%;
+    --calendar-today: 24 95% 53%;
     
-    /* Quiz-inspired gradients and shadows */
-    --gradient-primary: linear-gradient(135deg, hsl(142 69% 58%), hsl(142 69% 68%));
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(215 25% 98%));
-    --gradient-hero: linear-gradient(135deg, hsl(142 69% 58%), hsl(160 69% 58%));
-    --shadow-soft: 0 4px 20px hsla(215 25% 27% / 0.08);
-    --shadow-hover: 0 8px 30px hsla(215 25% 27% / 0.12);
-    --shadow-focus: 0 0 0 3px hsla(142 69% 58% / 0.2);
+    /* Gradients pomarańczowe */
+    --gradient-primary: linear-gradient(135deg, hsl(24 95% 53%), hsl(24 95% 60%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(220 15% 98%));
+    --shadow-soft: 0 4px 20px hsla(220 15% 25% / 0.08);
+    --shadow-hover: 0 8px 30px hsla(220 15% 25% / 0.12);
+    --shadow-focus: 0 0 0 3px hsla(24 95% 53% / 0.2);
   }
 
   .dark {
-    /* Dark mode colors */
-    --background: 215 25% 7%;
-    --foreground: 215 25% 93%;
-    --card: 215 25% 9%;
-    --card-foreground: 215 25% 93%;
-    --popover: 215 25% 9%;
-    --popover-foreground: 215 25% 93%;
+    /* Dark mode - niebieskie tło jak w oryginale */
+    --background: 228 39% 23%;
+    --foreground: 0 0% 95%;
+    --card: 228 39% 26%;
+    --card-foreground: 0 0% 95%;
+    --popover: 228 39% 26%;
+    --popover-foreground: 0 0% 95%;
     
-    /* Primary colors in dark mode */
-    --primary: 142 69% 65%;
-    --primary-foreground: 215 25% 7%;
-    --primary-hover: 142 69% 75%;
-    --primary-light: 142 69% 15%;
+    /* Primary - ten sam pomarańczowy */
+    --primary: 24 95% 53%;
+    --primary-foreground: 0 0% 100%;
+    --primary-hover: 24 95% 60%;
+    --primary-light: 24 95% 15%;
     
     /* Secondary colors */
-    --secondary: 215 25% 12%;
-    --secondary-foreground: 215 25% 93%;
+    --secondary: 228 39% 20%;
+    --secondary-foreground: 0 0% 95%;
     
     /* Muted colors */
-    --muted: 215 25% 12%;
-    --muted-foreground: 215 16% 63%;
+    --muted: 228 39% 20%;
+    --muted-foreground: 220 10% 70%;
     
     /* Accent colors */
-    --accent: 215 25% 12%;
-    --accent-foreground: 215 25% 93%;
+    --accent: 228 39% 20%;
+    --accent-foreground: 0 0% 95%;
     
     /* Status colors */
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
     /* Border and input colors */
-    --border: 215 25% 18%;
-    --input: 215 25% 12%;
-    --ring: 142 69% 65%;
+    --border: 228 39% 30%;
+    --input: 228 39% 20%;
+    --ring: 24 95% 53%;
     
     /* Header Colors */
-    --header: 215 25% 93%;
-    --header-foreground: 215 25% 7%;
+    --header: 0 0% 95%;
+    --header-foreground: 228 39% 23%;
     
     /* Success & Warning */
-    --success: 142 69% 65%;
-    --success-foreground: 215 25% 7%;
+    --success: 142 69% 58%;
+    --success-foreground: 0 0% 100%;
     --success-light: 142 69% 15%;
     
-    --warning: 38 92% 50%;
-    --warning-foreground: 215 25% 7%;
-    --warning-light: 38 92% 15%;
+    --warning: 24 95% 53%;
+    --warning-foreground: 0 0% 100%;
+    --warning-light: 24 95% 15%;
     
     /* Calendar Colors */
-    --calendar-selected: 142 69% 65%;
-    --calendar-hover: 142 69% 25%;
-    --calendar-today: 38 92% 50%;
+    --calendar-selected: 24 95% 53%;
+    --calendar-hover: 228 39% 30%;
+    --calendar-today: 24 95% 53%;
     
-    /* Dark mode gradients and shadows */
-    --gradient-primary: linear-gradient(135deg, hsl(142 69% 65%), hsl(142 69% 75%));
-    --gradient-card: linear-gradient(135deg, hsl(215 25% 9%), hsl(215 25% 11%));
-    --gradient-hero: linear-gradient(135deg, hsl(142 69% 65%), hsl(160 69% 65%));
-    --shadow-soft: 0 4px 20px hsla(215 25% 7% / 0.5);
-    --shadow-hover: 0 8px 30px hsla(215 25% 7% / 0.7);
-    --shadow-focus: 0 0 0 3px hsla(142 69% 65% / 0.3);
+    /* Dark mode gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(24 95% 53%), hsl(24 95% 60%));
+    --gradient-card: linear-gradient(135deg, hsl(228 39% 26%), hsl(228 39% 28%));
+    --shadow-soft: 0 4px 20px hsla(228 39% 10% / 0.5);
+    --shadow-hover: 0 8px 30px hsla(228 39% 10% / 0.7);
+    --shadow-focus: 0 0 0 3px hsla(24 95% 53% / 0.3);
   }
 }
 
