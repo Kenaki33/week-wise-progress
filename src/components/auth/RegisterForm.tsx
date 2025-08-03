@@ -38,10 +38,10 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
 
     setLoading(true);
 
-    // Placeholder for Supabase integration
+    // Placeholder - będzie zaktualizowane gdy pliki Supabase będą dostępne
     toast({
-      title: "Integracja wymagana",
-      description: "Aby się zarejestrować, aktywuj integrację Supabase klikając zielony przycisk w prawym górnym rogu",
+      title: "Prawie gotowe!",
+      description: "Integracja Supabase wymaga jeszcze konfiguracji plików",
       variant: "destructive",
     });
     
