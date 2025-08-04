@@ -48,7 +48,7 @@ export const PointsHistory = ({ userId }: PointsHistoryProps) => {
       // Get all habit data for the user
       const { data: habitsData, error: habitsError } = await supabase
         .from('habits')
-        .select('week_key, days')
+        .select('week_key, days, habit_name')
         .eq('user_id', userId);
 
       if (habitsError) {
@@ -96,15 +96,18 @@ export const PointsHistory = ({ userId }: PointsHistoryProps) => {
               const monthKey = format(dayDate, 'yyyy-MM');
               
               if (monthlyPoints[monthKey]) {
-                if (status === 1) {
-                  // Completed task: +10 points
-                  monthlyPoints[monthKey].points += 10;
-                } else if (status === 2) {
-                  // Not completed task: -10 points
-                  monthlyPoints[monthKey].points -= 10;
-                } else if (status === 0 && (isBefore(dayDate, now) || isToday(dayDate))) {
-                  // Unmarked past day: -15 points (only if account existed)
-                  monthlyPoints[monthKey].points -= 15;
+                // Only calculate points if habit name is defined (not empty)
+                if (record.habit_name && record.habit_name.trim()) {
+                  if (status === 1) {
+                    // Completed task: +10 points
+                    monthlyPoints[monthKey].points += 10;
+                  } else if (status === 2) {
+                    // Not completed task: -10 points
+                    monthlyPoints[monthKey].points -= 10;
+                  } else if (status === 0 && (isBefore(dayDate, now) || isToday(dayDate))) {
+                    // Unmarked past day: -15 points (only if habit is defined)
+                    monthlyPoints[monthKey].points -= 15;
+                  }
                 }
                 // Future days (status 0) contribute 0 points
               }

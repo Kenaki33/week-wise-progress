@@ -78,8 +78,13 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     loadHabitData();
   }, [weekKey, userId, toast]);
 
-  // Calculate weekly score based on task completion
-  const calculateWeeklyScore = (days: number[], weekDates: Date[]) => {
+  // Calculate weekly score based on task completion (only if habit name is set)
+  const calculateWeeklyScore = (days: number[], weekDates: Date[], habitName: string) => {
+    // If no habit name is set, no points are calculated
+    if (!habitName.trim()) {
+      return 0;
+    }
+    
     const today = new Date();
     let score = 0;
 
@@ -93,7 +98,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
         // Not completed task: -10 points
         score -= 10;
       } else if (status === 0 && (isBefore(dayDate, today) || isToday(dayDate))) {
-        // Unmarked past day: -15 points
+        // Unmarked past day: -15 points (only if habit is defined)
         score -= 15;
       }
       // Future days (status 0) contribute 0 points
@@ -111,7 +116,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     if (!userId || loading) return;
 
     const saveHabitData = async () => {
-      const calculatedScore = calculateWeeklyScore(habitData.days, weekDates);
+      const calculatedScore = calculateWeeklyScore(habitData.days, weekDates, habitData.habitName);
       
       const { error } = await supabase
         .from('habits')
@@ -167,7 +172,10 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   
   const completedDays = habitData.days.filter(status => status === 1).length;
   const completionPercentage = habitData.days.length > 0 ? (completedDays / habitData.days.length) * 100 : 0;
-  const currentWeeklyScore = calculateWeeklyScore(habitData.days, weekDates);
+  const currentWeeklyScore = calculateWeeklyScore(habitData.days, weekDates, habitData.habitName);
+  
+  // Check if habit name is defined to enable/disable buttons
+  const isHabitDefined = habitData.habitName.trim().length > 0;
 
   return (
     <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
@@ -185,6 +193,11 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
             onChange={(e) => updateHabitName(e.target.value)}
             className="text-base sm:text-lg py-3 px-4 border-2 focus:border-primary transition-colors"
           />
+          {!isHabitDefined && (
+            <p className="text-sm text-muted-foreground mt-2">
+              Wpisz nazwę nawyku, aby móc go śledzić i zdobywać punkty
+            </p>
+          )}
         </CardContent>
       </Card>
 
@@ -239,6 +252,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                       ? 'border-red-500 bg-red-50 dark:bg-red-950/30'
                       : 'border-border hover:border-primary/50 hover:bg-accent/30'
                     }
+                    ${!isHabitDefined ? 'opacity-50' : ''}
                   `}
                 >
                   <div className="flex flex-col flex-1 min-w-0">
@@ -268,7 +282,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                       size="sm"
                       onClick={() => setDayStatus(index, dayStatus === 1 ? 0 : 1)}
                       className={`${dayStatus === 1 ? 'bg-green-500 hover:bg-green-600 text-white' : 'border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20'}`}
-                      disabled={isFutureDay}
+                      disabled={isFutureDay || !isHabitDefined}
                     >
                       <Check className="w-4 h-4" />
                     </Button>
@@ -278,7 +292,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                       size="sm"
                       onClick={() => setDayStatus(index, dayStatus === 2 ? 0 : 2)}
                       className={`${dayStatus === 2 ? 'bg-red-500 hover:bg-red-600 text-white' : 'border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20'}`}
-                      disabled={isFutureDay}
+                      disabled={isFutureDay || !isHabitDefined}
                     >
                       <X className="w-4 h-4" />
                     </Button>
