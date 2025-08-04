@@ -2,17 +2,16 @@ import React, { useState } from 'react';
 import { Header } from './Header';
 import { WeekSelector } from './WeekSelector';
 import { HabitTracker } from './HabitTracker';
-import { ChangePasswordModal } from './ChangePasswordModal';
 import { format } from 'date-fns';
+import { User } from '@supabase/supabase-js';
 
 interface DashboardProps {
-  user?: any; // Will be typed properly when Supabase is connected
+  user: User;
   onLogout: () => void;
 }
 
 export const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
-  const [isChangePasswordOpen, setIsChangePasswordOpen] = useState(false);
 
   // Generate week key for data storage (format: YYYY-WW)
   const getWeekKey = (date: Date) => {
@@ -32,7 +31,7 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
   return (
     <div className="min-h-screen bg-background">
       <Header
-        onChangePassword={() => setIsChangePasswordOpen(true)}
+        user={user}
         onLogout={handleLogout}
       />
       
@@ -79,11 +78,6 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
           </div>
         </div>
       </div>
-
-      <ChangePasswordModal
-        isOpen={isChangePasswordOpen}
-        onClose={() => setIsChangePasswordOpen(false)}
-      />
     </div>
   );
 };

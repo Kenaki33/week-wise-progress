@@ -12,11 +12,33 @@ interface RegisterFormProps {
 
 export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
   const [email, setEmail] = useState('');
+  const [nickname, setNickname] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [nutritionPersonality, setNutritionPersonality] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  const validateNickname = (nickname: string): string | null => {
+    if (nickname.length < 3 || nickname.length > 20) {
+      return "Nick musi mieć od 3 do 20 znaków";
+    }
+    
+    if (!/^[A-Z]/.test(nickname)) {
+      return "Nick musi zaczynać się z wielkiej litery";
+    }
+    
+    const profanityWords = ['kurwa', 'chuj', 'dupa', 'dziwka', 'sukinsyn', 'pierdol', 'jebac', 'zajebis', 'skurwysyn'];
+    const lowerNickname = nickname.toLowerCase();
+    
+    for (const word of profanityWords) {
+      if (lowerNickname.includes(word)) {
+        return "Nick nie może zawierać wulgarnych słów";
+      }
+    }
+    
+    return null;
+  };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +56,16 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
       toast({
         title: "Błąd",
         description: "Hasło musi mieć co najmniej 6 znaków",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const nicknameError = validateNickname(nickname);
+    if (nicknameError) {
+      toast({
+        title: "Błąd",
+        description: nicknameError,
         variant: "destructive",
       });
       return;
@@ -58,7 +90,8 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
       options: {
         emailRedirectTo: redirectUrl,
         data: {
-          nutrition_personality: nutritionPersonality
+          nutrition_personality: nutritionPersonality,
+          nickname: nickname
         }
       }
     });
@@ -90,6 +123,18 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
           onChange={(e) => setEmail(e.target.value)}
           required
           placeholder="twoj@email.com"
+        />
+      </div>
+      
+      <div className="space-y-2">
+        <Label htmlFor="nickname">Nick</Label>
+        <Input
+          id="nickname"
+          type="text"
+          value={nickname}
+          onChange={(e) => setNickname(e.target.value)}
+          required
+          placeholder="TwójNick"
         />
       </div>
       
