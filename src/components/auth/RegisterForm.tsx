@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -13,6 +14,7 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [nutritionPersonality, setNutritionPersonality] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -32,6 +34,15 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
       toast({
         title: "Błąd",
         description: "Hasło musi mieć co najmniej 6 znaków",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!nutritionPersonality) {
+      toast({
+        title: "Błąd",
+        description: "Wybierz swoją osobowość żywieniową",
         variant: "destructive",
       });
       return;
@@ -101,6 +112,24 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
           required
           placeholder="••••••••"
         />
+      </div>
+
+      <div className="space-y-2">
+        <Label htmlFor="nutritionPersonality">Osobowość żywieniowa</Label>
+        <Select value={nutritionPersonality} onValueChange={setNutritionPersonality}>
+          <SelectTrigger>
+            <SelectValue placeholder="Wybierz swoją osobowość żywieniową" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="ekspresowy_konsument">Ekspresowy Konsument</SelectItem>
+            <SelectItem value="emocjonalny_podjadacz">Emocjonalny Podjadacz</SelectItem>
+            <SelectItem value="beztroski_lasuch">Beztroski Łasuch</SelectItem>
+            <SelectItem value="nieswiadomy_zjadacz">Nieświadomy Zjadacz</SelectItem>
+            <SelectItem value="perfekcjonista_dietetyczny">Perfekcjonista Dietetyczny</SelectItem>
+            <SelectItem value="wieczny_odchudzacz">Wieczny Odchudzacz</SelectItem>
+            <SelectItem value="ogarniety_odzywiacze">Ogarnięty Odżywiacz</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
 
       <Button type="submit" className="w-full" disabled={loading}>
