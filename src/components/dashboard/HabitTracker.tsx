@@ -227,17 +227,6 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
               const isPastOrToday = isBefore(dayDate, today) || isToday(dayDate);
               const isFutureDay = !isPastOrToday;
               
-              // Debug log for August 10th
-              if (format(dayDate, 'dd.MM') === '10.08') {
-                console.log('August 10th debug:', {
-                  dayDate: format(dayDate, 'yyyy-MM-dd'),
-                  dayStatus,
-                  isFutureDay,
-                  isPastOrToday,
-                  today: format(today, 'yyyy-MM-dd HH:mm:ss')
-                });
-              }
-              
               return (
                 <div 
                   key={day} 
