@@ -17,33 +17,36 @@ export type Database = {
       habits: {
         Row: {
           created_at: string
-          days: boolean[]
+          days: number[]
           habit_name: string
           id: string
           reflection: string
           updated_at: string
           user_id: string
           week_key: string
+          weekly_score: number | null
         }
         Insert: {
           created_at?: string
-          days?: boolean[]
+          days?: number[]
           habit_name?: string
           id?: string
           reflection?: string
           updated_at?: string
           user_id: string
           week_key: string
+          weekly_score?: number | null
         }
         Update: {
           created_at?: string
-          days?: boolean[]
+          days?: number[]
           habit_name?: string
           id?: string
           reflection?: string
           updated_at?: string
           user_id?: string
           week_key?: string
+          weekly_score?: number | null
         }
         Relationships: []
       }

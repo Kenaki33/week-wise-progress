@@ -2,17 +2,19 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { format, startOfWeek, addDays } from 'date-fns';
+import { format, startOfWeek, addDays, isBefore, isToday } from 'date-fns';
 import { pl } from 'date-fns/locale';
+import { Check, X } from 'lucide-react';
 
 interface HabitData {
   habitName: string;
-  days: boolean[];
+  days: number[]; // 0 = unmarked, 1 = completed, 2 = not completed
   reflection: string;
+  weeklyScore: number;
 }
 
 interface HabitTrackerProps {
@@ -24,8 +26,9 @@ interface HabitTrackerProps {
 export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProps) => {
   const [habitData, setHabitData] = useState<HabitData>({
     habitName: '',
-    days: new Array(7).fill(false),
-    reflection: ''
+    days: new Array(7).fill(0), // 0 = unmarked, 1 = completed, 2 = not completed
+    reflection: '',
+    weeklyScore: 0
   });
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -54,15 +57,17 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
       } else if (data) {
         setHabitData({
           habitName: data.habit_name || '',
-          days: data.days || new Array(7).fill(false),
-          reflection: data.reflection || ''
+          days: data.days || new Array(7).fill(0),
+          reflection: data.reflection || '',
+          weeklyScore: data.weekly_score || 0
         });
       } else {
         // Reset for new week
         setHabitData({
           habitName: '',
-          days: new Array(7).fill(false),
-          reflection: ''
+          days: new Array(7).fill(0),
+          reflection: '',
+          weeklyScore: 0
         });
       }
       
@@ -72,11 +77,41 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
     loadHabitData();
   }, [weekKey, userId, toast]);
 
+  // Calculate weekly score based on task completion
+  const calculateWeeklyScore = (days: number[], weekDates: Date[]) => {
+    const today = new Date();
+    let score = 0;
+
+    days.forEach((status, index) => {
+      const dayDate = weekDates[index];
+      
+      if (status === 1) {
+        // Completed task: +10 points
+        score += 10;
+      } else if (status === 2) {
+        // Not completed task: -10 points
+        score -= 10;
+      } else if (status === 0 && (isBefore(dayDate, today) || isToday(dayDate))) {
+        // Unmarked past day: -15 points
+        score -= 15;
+      }
+      // Future days (status 0) contribute 0 points
+    });
+
+    return score;
+  };
+
+  // Calculate dates for each day of the week
+  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Monday as first day
+  const weekDates = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+
   // Auto-save functionality to Supabase
   useEffect(() => {
     if (!userId || loading) return;
 
     const saveHabitData = async () => {
+      const calculatedScore = calculateWeeklyScore(habitData.days, weekDates);
+      
       const { error } = await supabase
         .from('habits')
         .upsert({
@@ -84,7 +119,8 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
           week_key: weekKey,
           habit_name: habitData.habitName,
           days: habitData.days,
-          reflection: habitData.reflection
+          reflection: habitData.reflection,
+          weekly_score: calculatedScore
         }, {
           onConflict: 'user_id,week_key'
         });
@@ -96,23 +132,26 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
           description: "Nie udało się zapisać danych",
           variant: "destructive",
         });
+      } else {
+        // Update local state with calculated score
+        setHabitData(prev => ({ ...prev, weeklyScore: calculatedScore }));
       }
     };
 
     // Debounce the save operation
     const timeoutId = setTimeout(saveHabitData, 1000);
     return () => clearTimeout(timeoutId);
-  }, [habitData, weekKey, userId, loading, toast]);
+  }, [habitData.habitName, habitData.days, habitData.reflection, weekKey, userId, loading, toast]);
 
   const updateHabitName = (name: string) => {
     setHabitData(prev => ({ ...prev, habitName: name }));
   };
 
-  const toggleDay = (dayIndex: number) => {
+  const setDayStatus = (dayIndex: number, status: number) => {
     setHabitData(prev => ({
       ...prev,
-      days: prev.days.map((checked, index) => 
-        index === dayIndex ? !checked : checked
+      days: prev.days.map((currentStatus, index) => 
+        index === dayIndex ? status : currentStatus
       )
     }));
   };
@@ -122,12 +161,10 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
   };
 
   const dayNames = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela'];
-  const completedDays = habitData.days.filter(Boolean).length;
+  
+  const completedDays = habitData.days.filter(status => status === 1).length;
   const completionPercentage = habitData.days.length > 0 ? (completedDays / habitData.days.length) * 100 : 0;
-
-  // Calculate dates for each day of the week
-  const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 }); // Monday as first day
-  const weekDates = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+  const currentWeeklyScore = calculateWeeklyScore(habitData.days, weekDates);
 
   return (
     <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
@@ -154,13 +191,18 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
           <CardTitle className="text-foreground">
             <div className="flex flex-col gap-3">
               <span className="text-lg sm:text-xl font-semibold">Śledzenie tygodniowe</span>
-              <div className="flex justify-center">
+              <div className="flex justify-center gap-4">
                 <span className={`px-4 py-2 rounded-full font-semibold text-sm ${
                   completionPercentage >= 70 ? 'bg-success text-success-foreground' : 
                   completionPercentage >= 40 ? 'bg-warning text-warning-foreground' : 
                   'bg-muted text-muted-foreground'
                 }`}>
                   {completedDays}/7 dni ({Math.round(completionPercentage)}%)
+                </span>
+                <span className={`px-4 py-2 rounded-full font-semibold text-sm ${
+                  currentWeeklyScore >= 0 ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                }`}>
+                  {currentWeeklyScore >= 0 ? '+' : ''}{currentWeeklyScore} pkt
                 </span>
               </div>
             </div>
@@ -174,40 +216,72 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
             />
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-            {dayNames.map((day, index) => (
-              <div 
-                key={day} 
-                className={`
-                  flex items-center space-x-3 p-3 sm:p-4 rounded-xl border-2 
-                  transition-all duration-300 cursor-pointer min-h-[80px]
-                  ${habitData.days[index] 
-                    ? 'border-success bg-success-light hover:shadow-lg' 
-                    : 'border-border hover:border-primary/50 hover:bg-accent/30'
-                  }
-                `}
-                onClick={() => toggleDay(index)}
-              >
-                <Checkbox
-                  id={`day-${index}`}
-                  checked={habitData.days[index]}
-                  onCheckedChange={() => toggleDay(index)}
-                  className="data-[state=checked]:bg-success data-[state=checked]:border-success flex-shrink-0"
-                />
-                <div className="flex flex-col flex-1 min-w-0">
-                  <Label 
-                    htmlFor={`day-${index}`} 
-                    className={`font-semibold cursor-pointer transition-colors text-sm sm:text-base ${
-                      habitData.days[index] ? 'text-success' : 'text-foreground'
-                    }`}
-                  >
-                    {day}
-                  </Label>
-                  <span className="text-xs sm:text-sm text-muted-foreground font-medium truncate">
-                    {format(weekDates[index], 'd MMMM', { locale: pl })}
-                  </span>
+            {dayNames.map((day, index) => {
+              const dayStatus = habitData.days[index];
+              const dayDate = weekDates[index];
+              const today = new Date();
+              const isPastDay = isBefore(dayDate, today) || isToday(dayDate);
+              const isFutureDay = !isPastDay;
+              
+              return (
+                <div 
+                  key={day} 
+                  className={`
+                    flex flex-col p-3 sm:p-4 rounded-xl border-2 
+                    transition-all duration-300 min-h-[120px]
+                    ${dayStatus === 1 
+                      ? 'border-green-500 bg-green-50' 
+                      : dayStatus === 2
+                      ? 'border-red-500 bg-red-50'
+                      : 'border-border hover:border-primary/50 hover:bg-accent/30'
+                    }
+                  `}
+                >
+                  <div className="flex flex-col flex-1 min-w-0 mb-3">
+                    <Label className="font-semibold text-sm sm:text-base text-foreground">
+                      {day}
+                    </Label>
+                    <span className="text-xs sm:text-sm text-muted-foreground font-medium truncate">
+                      {format(dayDate, 'd MMMM', { locale: pl })}
+                    </span>
+                    {isFutureDay && (
+                      <span className="text-xs text-muted-foreground mt-1">
+                        ◎ Przyszły dzień (0 pkt)
+                      </span>
+                    )}
+                    {dayStatus === 0 && isPastDay && (
+                      <span className="text-xs text-orange-600 mt-1">
+                        ❔ Nie zaznaczono (-15 pkt)
+                      </span>
+                    )}
+                  </div>
+                  
+                  <div className="flex gap-2 justify-center">
+                    <Button
+                      variant={dayStatus === 1 ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setDayStatus(index, dayStatus === 1 ? 0 : 1)}
+                      className={`flex-1 ${dayStatus === 1 ? 'bg-green-500 hover:bg-green-600 text-white' : 'border-green-500 text-green-600 hover:bg-green-50'}`}
+                      disabled={isFutureDay}
+                    >
+                      <Check className="w-4 h-4 mr-1" />
+                      ✔ (+10)
+                    </Button>
+                    
+                    <Button
+                      variant={dayStatus === 2 ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => setDayStatus(index, dayStatus === 2 ? 0 : 2)}
+                      className={`flex-1 ${dayStatus === 2 ? 'bg-red-500 hover:bg-red-600 text-white' : 'border-red-500 text-red-600 hover:bg-red-50'}`}
+                      disabled={isFutureDay}
+                    >
+                      <X className="w-4 h-4 mr-1" />
+                      ✖ (-10)
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </CardContent>
       </Card>
