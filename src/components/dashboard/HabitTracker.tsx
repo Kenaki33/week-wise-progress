@@ -227,31 +227,43 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
                 <div 
                   key={day} 
                   className={`
-                    flex flex-col p-3 sm:p-4 rounded-xl border-2 
-                    transition-all duration-300 min-h-[120px]
+                    flex items-center justify-between p-3 sm:p-4 rounded-xl border-2 
+                    transition-all duration-300 min-h-[70px]
                     ${dayStatus === 1 
-                      ? 'border-green-500 bg-green-50' 
+                      ? 'border-green-500 bg-green-50 dark:bg-green-950/30' 
                       : dayStatus === 2
-                      ? 'border-red-500 bg-red-50'
+                      ? 'border-red-500 bg-red-50 dark:bg-red-950/30'
                       : 'border-border hover:border-primary/50 hover:bg-accent/30'
                     }
                   `}
                 >
-                  <div className="flex flex-col flex-1 min-w-0 mb-3">
-                    <Label className="font-semibold text-sm sm:text-base text-foreground">
+                  <div className="flex flex-col flex-1 min-w-0">
+                    <Label className={`font-semibold text-sm sm:text-base ${
+                      dayStatus === 1 
+                        ? 'text-green-700 dark:text-green-300' 
+                        : dayStatus === 2
+                        ? 'text-red-700 dark:text-red-300'
+                        : 'text-foreground'
+                    }`}>
                       {day}
                     </Label>
-                    <span className="text-xs sm:text-sm text-muted-foreground font-medium truncate">
+                    <span className={`text-xs sm:text-sm font-medium truncate ${
+                      dayStatus === 1 
+                        ? 'text-green-600 dark:text-green-400' 
+                        : dayStatus === 2
+                        ? 'text-red-600 dark:text-red-400'
+                        : 'text-muted-foreground'
+                    }`}>
                       {format(dayDate, 'd MMMM', { locale: pl })}
                     </span>
                   </div>
                   
-                  <div className="flex gap-2 justify-center">
+                  <div className="flex gap-2 ml-3">
                     <Button
                       variant={dayStatus === 1 ? "default" : "outline"}
                       size="sm"
                       onClick={() => setDayStatus(index, dayStatus === 1 ? 0 : 1)}
-                      className={`flex-1 ${dayStatus === 1 ? 'bg-green-500 hover:bg-green-600 text-white' : 'border-green-500 text-green-600 hover:bg-green-50'}`}
+                      className={`${dayStatus === 1 ? 'bg-green-500 hover:bg-green-600 text-white' : 'border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20'}`}
                       disabled={isFutureDay}
                     >
                       <Check className="w-4 h-4" />
@@ -261,7 +273,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
                       variant={dayStatus === 2 ? "default" : "outline"}
                       size="sm"
                       onClick={() => setDayStatus(index, dayStatus === 2 ? 0 : 2)}
-                      className={`flex-1 ${dayStatus === 2 ? 'bg-red-500 hover:bg-red-600 text-white' : 'border-red-500 text-red-600 hover:bg-red-50'}`}
+                      className={`${dayStatus === 2 ? 'bg-red-500 hover:bg-red-600 text-white' : 'border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20'}`}
                       disabled={isFutureDay}
                     >
                       <X className="w-4 h-4" />
