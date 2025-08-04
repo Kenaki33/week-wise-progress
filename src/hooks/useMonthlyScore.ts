@@ -52,9 +52,11 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
               // Check each day of the week
               record.days.forEach((status: number, dayIndex: number) => {
                 const dayDate = addDays(weekStartDate, dayIndex);
+                const dayMonth = format(dayDate, 'yyyy-MM');
+                const targetMonth = format(selectedDate, 'yyyy-MM');
                 
-                // Only count days that are within the current month AND after account creation
-                if (isWithinInterval(dayDate, { start: monthStart, end: monthEnd }) && 
+                // Only count days that are within the TARGET MONTH AND after account creation
+                if (dayMonth === targetMonth && 
                     (!userCreatedAt || !isBefore(dayDate, userCreatedAt))) {
                   
                   // Debug for this specific user
