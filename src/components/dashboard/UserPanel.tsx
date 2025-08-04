@@ -99,6 +99,7 @@ export const UserPanel = ({ user }: UserPanelProps) => {
   };
 
   const updateNickname = async () => {
+    console.log('updateNickname called', { newNickname, profile, canChangeNickname: canChangeNickname() });
     if (!newNickname || !profile) return;
 
     const validationError = validateNickname(newNickname);
