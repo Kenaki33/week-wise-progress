@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { startOfMonth, endOfMonth, format, startOfWeek, addDays, isBefore, isToday, isWithinInterval } from 'date-fns';
 
-export const useMonthlyScore = (userId?: string, selectedDate?: Date) => {
+export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTrigger?: number) => {
   const [monthlyScore, setMonthlyScore] = useState<number>(0);
   const [loading, setLoading] = useState(false);
 
@@ -69,7 +69,7 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date) => {
     };
 
     fetchMonthlyScore();
-  }, [userId, selectedDate]);
+  }, [userId, selectedDate, refreshTrigger]);
 
   return { monthlyScore, loading };
 };

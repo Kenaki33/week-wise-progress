@@ -21,9 +21,10 @@ interface HabitTrackerProps {
   weekKey: string;
   selectedDate: Date;
   userId?: string;
+  onDataChange?: () => void;
 }
 
-export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProps) => {
+export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: HabitTrackerProps) => {
   const [habitData, setHabitData] = useState<HabitData>({
     habitName: '',
     days: new Array(7).fill(0), // 0 = unmarked, 1 = completed, 2 = not completed
@@ -135,6 +136,8 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
       } else {
         // Update local state with calculated score
         setHabitData(prev => ({ ...prev, weeklyScore: calculatedScore }));
+        // Trigger monthly score refresh
+        onDataChange?.();
       }
     };
 

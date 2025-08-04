@@ -12,10 +12,11 @@ interface HeaderProps {
   user: User;
   onLogout: () => void;
   selectedDate?: Date;
+  refreshTrigger?: number;
 }
 
-export const Header = ({ user, onLogout, selectedDate }: HeaderProps) => {
-  const { monthlyScore, loading } = useMonthlyScore(user.id, selectedDate);
+export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderProps) => {
+  const { monthlyScore, loading } = useMonthlyScore(user.id, selectedDate, refreshTrigger);
   return (
     <header className="bg-header text-header-foreground shadow-lg">
       <div className="container mx-auto px-4 sm:px-6 py-3 sm:py-4">

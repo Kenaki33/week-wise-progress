@@ -12,6 +12,7 @@ interface DashboardProps {
 
 export const Dashboard = ({ user, onLogout }: DashboardProps) => {
   const [selectedDate, setSelectedDate] = useState(new Date());
+  const [refreshTrigger, setRefreshTrigger] = useState(0);
 
   // Generate week key for data storage (format: YYYY-WW)
   const getWeekKey = (date: Date) => {
@@ -34,6 +35,7 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
         user={user}
         onLogout={handleLogout}
         selectedDate={selectedDate}
+        refreshTrigger={refreshTrigger}
       />
       
       <main className="container mx-auto px-4 sm:px-6 py-4 sm:py-8">
@@ -52,6 +54,7 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
             weekKey={weekKey}
             selectedDate={selectedDate}
             userId={user?.id || 'demo-user'}
+            onDataChange={() => setRefreshTrigger(prev => prev + 1)}
           />
         </div>
       </main>
