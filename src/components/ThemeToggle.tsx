@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Sun, Moon } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export const ThemeToggle = () => {
   const [isDark, setIsDark] = useState(false);
@@ -32,23 +33,26 @@ export const ThemeToggle = () => {
   };
 
   return (
-    <div className="theme-switch-wrapper">
-      <label className="theme-switch" htmlFor="theme-checkbox" title="Zmień motyw">
-        <input 
-          type="checkbox" 
-          id="theme-checkbox" 
-          checked={isDark}
-          onChange={toggleTheme}
-        />
-        <div className="theme-slider">
-          <div className="theme-icon sun-icon">
-            <Sun size={16} />
-          </div>
-          <div className="theme-icon moon-icon">
-            <Moon size={16} />
-          </div>
-        </div>
-      </label>
-    </div>
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={toggleTheme}
+      className="bg-transparent border-header-foreground/20 text-header-foreground hover:bg-header-foreground/10 p-2 min-w-[80px]"
+      title="Zmień motyw"
+    >
+      <div className="flex items-center space-x-2">
+        {isDark ? (
+          <>
+            <Moon className="w-4 h-4" />
+            <span className="hidden sm:inline text-xs">Noc</span>
+          </>
+        ) : (
+          <>
+            <Sun className="w-4 h-4" />
+            <span className="hidden sm:inline text-xs">Dzień</span>
+          </>
+        )}
+      </div>
+    </Button>
   );
 };
