@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { Settings } from 'lucide-react';
+import { PointsHistory } from './PointsHistory';
 
 interface UserPanelProps {
   user: User;
@@ -269,11 +270,16 @@ export const UserPanel = ({ user }: UserPanelProps) => {
           <DialogTitle>Panel Użytkownika</DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue="profile" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
+        <Tabs defaultValue="history" className="w-full">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="history">Historia punktacji</TabsTrigger>
             <TabsTrigger value="profile">Profil</TabsTrigger>
             <TabsTrigger value="password">Zmiana hasła</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="history" className="space-y-4">
+            <PointsHistory userId={user.id} />
+          </TabsContent>
           
           <TabsContent value="profile" className="space-y-4">
             <Card>

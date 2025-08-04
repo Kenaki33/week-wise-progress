@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfMonth, endOfMonth, format, startOfWeek, addDays, isBefore, isToday, isWithinInterval } from 'date-fns';
+import { startOfMonth, endOfMonth, format, startOfWeek, addDays, isBefore, isToday, isWithinInterval, parseISO } from 'date-fns';
 
 export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTrigger?: number) => {
   const [monthlyScore, setMonthlyScore] = useState<number>(0);
@@ -15,6 +15,10 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
       try {
         const monthStart = startOfMonth(selectedDate);
         const monthEnd = endOfMonth(selectedDate);
+        
+        // Get user creation date
+        const { data: { user } } = await supabase.auth.getUser();
+        const userCreatedAt = user?.created_at ? parseISO(user.created_at) : null;
         
         // Get all habit records that have weeks overlapping with the current month
         const { data, error } = await supabase
@@ -40,8 +44,9 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
               record.days.forEach((status: number, dayIndex: number) => {
                 const dayDate = addDays(weekStartDate, dayIndex);
                 
-                // Only count days that are within the current month
-                if (isWithinInterval(dayDate, { start: monthStart, end: monthEnd })) {
+                // Only count days that are within the current month AND after account creation
+                if (isWithinInterval(dayDate, { start: monthStart, end: monthEnd }) && 
+                    (!userCreatedAt || !isBefore(dayDate, userCreatedAt))) {
                   if (status === 1) {
                     // Completed task: +10 points
                     totalScore += 10;
@@ -49,7 +54,7 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
                     // Not completed task: -10 points
                     totalScore -= 10;
                   } else if (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) {
-                    // Unmarked past day: -15 points
+                    // Unmarked past day: -15 points (only if account existed)
                     totalScore -= 15;
                   }
                   // Future days (status 0) contribute 0 points
