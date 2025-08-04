@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog';
 import { Calendar, ChevronLeft, ChevronRight } from 'lucide-react';
-import { format, startOfWeek, endOfWeek, addDays, startOfMonth, endOfMonth, addMonths, subMonths, isSameMonth, isSameWeek } from 'date-fns';
+import { format, startOfWeek, endOfWeek, addDays, startOfMonth, endOfMonth, addMonths, subMonths, isSameMonth, isSameWeek, addWeeks, subWeeks } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { useHabitData } from '@/hooks/useHabitData';
 
@@ -45,6 +45,14 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
     setIsOpen(false);
   };
 
+  const goToPreviousWeek = () => {
+    onDateChange(subWeeks(selectedDate, 1));
+  };
+
+  const goToNextWeek = () => {
+    onDateChange(addWeeks(selectedDate, 1));
+  };
+
   const renderCalendarDays = () => {
     const days = [];
     let currentDate = calendarStart;
@@ -77,15 +85,25 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" className="bg-card border-border hover:bg-muted w-full sm:w-auto text-sm sm:text-base">
-          <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
-          <span className="truncate">
-            Wybierz tydzień: {format(weekStart, 'dd.MM', { locale: pl })} - {format(weekEnd, 'dd.MM', { locale: pl })}
-          </span>
-        </Button>
-      </DialogTrigger>
+    <div className="flex items-center gap-2 w-full sm:w-auto">
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={goToPreviousWeek}
+        className="flex-shrink-0 p-2"
+      >
+        <ChevronLeft className="w-4 h-4" />
+      </Button>
+      
+      <Dialog open={isOpen} onOpenChange={setIsOpen}>
+        <DialogTrigger asChild>
+          <Button variant="outline" className="bg-card border-border hover:bg-muted flex-1 sm:flex-none text-sm sm:text-base">
+            <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+            <span className="truncate">
+              Wybierz tydzień: {format(weekStart, 'dd.MM', { locale: pl })} - {format(weekEnd, 'dd.MM', { locale: pl })}
+            </span>
+          </Button>
+        </DialogTrigger>
       
       <DialogContent className="max-w-sm">
         <div className="space-y-4">
@@ -129,5 +147,15 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
         </div>
       </DialogContent>
     </Dialog>
+    
+    <Button
+      variant="outline"
+      size="sm"
+      onClick={goToNextWeek}
+      className="flex-shrink-0 p-2"
+    >
+      <ChevronRight className="w-4 h-4" />
+    </Button>
+  </div>
   );
 };

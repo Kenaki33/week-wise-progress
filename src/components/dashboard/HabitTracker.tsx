@@ -223,6 +223,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
               const dayStatus = habitData.days[index];
               const dayDate = weekDates[index];
               const today = new Date();
+              today.setHours(23, 59, 59, 999); // Set to end of today for proper comparison
               const isPastDay = isBefore(dayDate, today) || isToday(dayDate);
               const isFutureDay = !isPastDay;
               
