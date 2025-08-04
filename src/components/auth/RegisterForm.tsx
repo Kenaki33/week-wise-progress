@@ -56,7 +56,10 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
       email,
       password,
       options: {
-        emailRedirectTo: redirectUrl
+        emailRedirectTo: redirectUrl,
+        data: {
+          nutrition_personality: nutritionPersonality
+        }
       }
     });
 
