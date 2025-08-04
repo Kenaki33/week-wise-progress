@@ -40,6 +40,15 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
               const yearStart = new Date(parseInt(year), 0, 1);
               const weekStartDate = startOfWeek(addDays(yearStart, (parseInt(week) - 1) * 7), { weekStartsOn: 1 });
               
+              // Debug for this specific user
+              if (userId === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
+                console.log('Processing week:', {
+                  week_key: record.week_key,
+                  weekStartDate: format(weekStartDate, 'yyyy-MM-dd'),
+                  days: record.days
+                });
+              }
+              
               // Check each day of the week
               record.days.forEach((status: number, dayIndex: number) => {
                 const dayDate = addDays(weekStartDate, dayIndex);
@@ -47,6 +56,16 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
                 // Only count days that are within the current month AND after account creation
                 if (isWithinInterval(dayDate, { start: monthStart, end: monthEnd }) && 
                     (!userCreatedAt || !isBefore(dayDate, userCreatedAt))) {
+                  
+                  // Debug for this specific user
+                  if (userId === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
+                    console.log('Processing day:', {
+                      dayDate: format(dayDate, 'yyyy-MM-dd'),
+                      status,
+                      points: status === 1 ? 10 : status === 2 ? -10 : (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) ? -15 : 0
+                    });
+                  }
+                  
                   if (status === 1) {
                     // Completed task: +10 points
                     totalScore += 10;
