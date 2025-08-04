@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { startOfMonth, endOfMonth, format, startOfWeek, addDays, isBefore, isToday, isWithinInterval, parseISO } from 'date-fns';
+import { startOfMonth, endOfMonth, format, startOfWeek, addDays, isBefore, isToday, isWithinInterval, parseISO, startOfDay } from 'date-fns';
 
 export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTrigger?: number) => {
   const [monthlyScore, setMonthlyScore] = useState<number>(0);
@@ -55,15 +55,19 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
                 const dayMonth = format(dayDate, 'yyyy-MM');
                 const targetMonth = format(selectedDate, 'yyyy-MM');
                 
-                // Only count days that are within the TARGET MONTH AND after account creation
+                // Only count days that are within the TARGET MONTH AND from account creation date onwards
                 if (dayMonth === targetMonth && 
-                    (!userCreatedAt || !isBefore(dayDate, userCreatedAt))) {
+                    (!userCreatedAt || !isBefore(dayDate, startOfDay(userCreatedAt)))) {
                   
                   // Debug for this specific user
                   if (userId === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
-                    console.log('Processing day:', {
+                    console.log('Processing day (FIXED):', {
                       dayDate: format(dayDate, 'yyyy-MM-dd'),
+                      dayMonth,
+                      targetMonth,
                       status,
+                      userCreatedAt: userCreatedAt ? format(userCreatedAt, 'yyyy-MM-dd HH:mm') : 'null',
+                      isIncluded: !userCreatedAt || !isBefore(dayDate, startOfDay(userCreatedAt)),
                       points: status === 1 ? 10 : status === 2 ? -10 : (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) ? -15 : 0
                     });
                   }
