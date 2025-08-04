@@ -55,6 +55,12 @@
     --warning-foreground: 0 0% 100%;
     --warning-light: 28 100% 95%;
     
+    /* Points display colors - light mode */
+    --points-positive: 142 70% 45%;
+    --points-positive-bg: 142 70% 95%;
+    --points-negative: 0 70% 50%;
+    --points-negative-bg: 0 70% 95%;
+    
     /* Calendar Colors */
     --calendar-selected: 28 100% 52%;
     --calendar-hover: 220 15% 92%;
@@ -116,6 +122,12 @@
     --warning: 28 100% 52%;
     --warning-foreground: 0 0% 100%;
     --warning-light: 28 100% 15%;
+    
+    /* Points display colors - high contrast for dark mode */
+    --points-positive: 142 100% 70%;
+    --points-positive-bg: 142 100% 15%;
+    --points-negative: 0 100% 75%;
+    --points-negative-bg: 0 100% 15%;
     
     /* Calendar Colors */
     --calendar-selected: 28 100% 52%;

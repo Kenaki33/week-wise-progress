@@ -79,6 +79,14 @@ export default {
 					selected: 'hsl(var(--calendar-selected))',
 					hover: 'hsl(var(--calendar-hover))',
 					today: 'hsl(var(--calendar-today))'
+				},
+				
+				/* Points display colors */
+				points: {
+					positive: 'hsl(var(--points-positive))',
+					'positive-bg': 'hsl(var(--points-positive-bg))',
+					negative: 'hsl(var(--points-negative))',
+					'negative-bg': 'hsl(var(--points-negative-bg))'
 				}
 			},
 			borderRadius: {

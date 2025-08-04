@@ -30,8 +30,8 @@ export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderP
                 </span>
                 <span className={`text-sm font-semibold px-2 py-1 rounded ${
                   monthlyScore >= 0 
-                    ? 'bg-success/20 text-success-foreground' 
-                    : 'bg-destructive/20 text-destructive-foreground'
+                    ? 'bg-points-positive-bg text-points-positive' 
+                    : 'bg-points-negative-bg text-points-negative'
                 }`}>
                   {loading ? '...' : `${monthlyScore >= 0 ? '+' : ''}${monthlyScore} pkt`}
                 </span>
