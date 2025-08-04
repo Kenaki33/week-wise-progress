@@ -55,7 +55,7 @@ export const UserPanel = ({ user }: UserPanelProps) => {
       .from('profiles')
       .select('nickname, nutrition_personality, last_nickname_change')
       .eq('user_id', user.id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       toast({
@@ -63,10 +63,31 @@ export const UserPanel = ({ user }: UserPanelProps) => {
         description: "Nie udało się pobrać danych profilu",
         variant: "destructive",
       });
-    } else {
+    } else if (data) {
       setProfile(data);
       setNewPersonality(data.nutrition_personality);
       setNewNickname(data.nickname);
+    } else {
+      // Brak profilu - utwórz nowy
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({
+          user_id: user.id,
+          nickname: `User_${user.id.slice(0, 8)}`,
+          nutrition_personality: 'ekspresowy_konsument',
+          last_nickname_change: new Date().toISOString()
+        });
+      
+      if (insertError) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się utworzyć profilu",
+          variant: "destructive",
+        });
+      } else {
+        // Pobierz utworzony profil
+        fetchProfile();
+      }
     }
   };
 
