@@ -224,8 +224,19 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
               const dayDate = weekDates[index];
               const today = new Date();
               today.setHours(23, 59, 59, 999); // Set to end of today for proper comparison
-              const isPastDay = isBefore(dayDate, today) || isToday(dayDate);
-              const isFutureDay = !isPastDay;
+              const isPastOrToday = isBefore(dayDate, today) || isToday(dayDate);
+              const isFutureDay = !isPastOrToday;
+              
+              // Debug log for August 10th
+              if (format(dayDate, 'dd.MM') === '10.08') {
+                console.log('August 10th debug:', {
+                  dayDate: format(dayDate, 'yyyy-MM-dd'),
+                  dayStatus,
+                  isFutureDay,
+                  isPastOrToday,
+                  today: format(today, 'yyyy-MM-dd HH:mm:ss')
+                });
+              }
               
               return (
                 <div 
@@ -261,7 +272,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                       {format(dayDate, 'd MMMM', { locale: pl })}
                     </span>
                   </div>
-                  
+                   
                   <div className="flex gap-2 ml-3">
                     <Button
                       variant={dayStatus === 1 ? "default" : "outline"}
