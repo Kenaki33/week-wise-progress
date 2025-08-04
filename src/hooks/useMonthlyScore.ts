@@ -31,9 +31,10 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date) => {
           // Process each week's data to calculate points for days within the current month
           data?.forEach(record => {
             if (record.days && Array.isArray(record.days)) {
-              // Parse week_key to get the week start date
-              const [year, week] = record.week_key.split('-W');
-              const weekStartDate = startOfWeek(new Date(parseInt(year), 0, 1 + (parseInt(week) - 1) * 7), { weekStartsOn: 1 });
+              // Parse week_key to get the week start date (format: YYYY-WW)
+              const [year, week] = record.week_key.split('-');
+              const yearStart = new Date(parseInt(year), 0, 1);
+              const weekStartDate = startOfWeek(addDays(yearStart, (parseInt(week) - 1) * 7), { weekStartsOn: 1 });
               
               // Check each day of the week
               record.days.forEach((status: number, dayIndex: number) => {
