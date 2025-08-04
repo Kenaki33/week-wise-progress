@@ -244,16 +244,6 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
                     <span className="text-xs sm:text-sm text-muted-foreground font-medium truncate">
                       {format(dayDate, 'd MMMM', { locale: pl })}
                     </span>
-                    {isFutureDay && (
-                      <span className="text-xs text-muted-foreground mt-1">
-                        ◎ Przyszły dzień (0 pkt)
-                      </span>
-                    )}
-                    {dayStatus === 0 && isPastDay && (
-                      <span className="text-xs text-orange-600 mt-1">
-                        ❔ Nie zaznaczono (-15 pkt)
-                      </span>
-                    )}
                   </div>
                   
                   <div className="flex gap-2 justify-center">
@@ -264,8 +254,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
                       className={`flex-1 ${dayStatus === 1 ? 'bg-green-500 hover:bg-green-600 text-white' : 'border-green-500 text-green-600 hover:bg-green-50'}`}
                       disabled={isFutureDay}
                     >
-                      <Check className="w-4 h-4 mr-1" />
-                      ✔ (+10)
+                      <Check className="w-4 h-4" />
                     </Button>
                     
                     <Button
@@ -275,8 +264,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId }: HabitTrackerProp
                       className={`flex-1 ${dayStatus === 2 ? 'bg-red-500 hover:bg-red-600 text-white' : 'border-red-500 text-red-600 hover:bg-red-50'}`}
                       disabled={isFutureDay}
                     >
-                      <X className="w-4 h-4 mr-1" />
-                      ✖ (-10)
+                      <X className="w-4 h-4" />
                     </Button>
                   </div>
                 </div>
