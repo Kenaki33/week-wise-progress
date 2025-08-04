@@ -51,6 +51,7 @@ export type Database = {
         Row: {
           created_at: string
           id: string
+          last_nickname_change: string | null
           nickname: string
           nutrition_personality: Database["public"]["Enums"]["nutrition_personality"]
           updated_at: string
@@ -59,6 +60,7 @@ export type Database = {
         Insert: {
           created_at?: string
           id?: string
+          last_nickname_change?: string | null
           nickname?: string
           nutrition_personality: Database["public"]["Enums"]["nutrition_personality"]
           updated_at?: string
@@ -67,6 +69,7 @@ export type Database = {
         Update: {
           created_at?: string
           id?: string
+          last_nickname_change?: string | null
           nickname?: string
           nutrition_personality?: Database["public"]["Enums"]["nutrition_personality"]
           updated_at?: string

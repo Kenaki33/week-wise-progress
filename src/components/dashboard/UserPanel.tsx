@@ -20,6 +20,7 @@ type NutritionPersonality = 'ekspresowy_konsument' | 'emocjonalny_podjadacz' | '
 interface UserProfile {
   nickname: string;
   nutrition_personality: NutritionPersonality;
+  last_nickname_change: string;
 }
 
 const personalityLabels = {
@@ -36,6 +37,7 @@ export const UserPanel = ({ user }: UserPanelProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [newPersonality, setNewPersonality] = useState<NutritionPersonality>('ekspresowy_konsument');
+  const [newNickname, setNewNickname] = useState('');
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -51,7 +53,7 @@ export const UserPanel = ({ user }: UserPanelProps) => {
   const fetchProfile = async () => {
     const { data, error } = await supabase
       .from('profiles')
-      .select('nickname, nutrition_personality')
+      .select('nickname, nutrition_personality, last_nickname_change')
       .eq('user_id', user.id)
       .single();
 
@@ -64,7 +66,97 @@ export const UserPanel = ({ user }: UserPanelProps) => {
     } else {
       setProfile(data);
       setNewPersonality(data.nutrition_personality);
+      setNewNickname(data.nickname);
     }
+  };
+
+  const validateNickname = (nickname: string): string | null => {
+    if (nickname.length < 3 || nickname.length > 20) {
+      return "Nick musi mieć od 3 do 20 znaków";
+    }
+    
+    if (!/^[A-ZĄĆĘŁŃÓŚŹŻ]/.test(nickname)) {
+      return "Nick musi zaczynać się od wielkiej litery";
+    }
+    
+    const profanityWords = ['kurwa', 'chuj', 'dupa', 'pierdol', 'jebać', 'sukinsyn'];
+    const lowerNickname = nickname.toLowerCase();
+    if (profanityWords.some(word => lowerNickname.includes(word))) {
+      return "Nick nie może zawierać wulgaryzmów";
+    }
+    
+    return null;
+  };
+
+  const canChangeNickname = (): boolean => {
+    if (!profile?.last_nickname_change) return true;
+    
+    const lastChange = new Date(profile.last_nickname_change);
+    const twoWeeksAgo = new Date();
+    twoWeeksAgo.setDate(twoWeeksAgo.getDate() - 14);
+    
+    return lastChange <= twoWeeksAgo;
+  };
+
+  const updateNickname = async () => {
+    if (!newNickname || !profile) return;
+
+    const validationError = validateNickname(newNickname);
+    if (validationError) {
+      toast({
+        title: "Błąd",
+        description: validationError,
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!canChangeNickname()) {
+      toast({
+        title: "Błąd",
+        description: "Nick można zmienić tylko raz na 2 tygodnie",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    const { error } = await supabase
+      .from('profiles')
+      .update({ 
+        nickname: newNickname,
+        last_nickname_change: new Date().toISOString()
+      })
+      .eq('user_id', user.id);
+
+    if (error) {
+      if (error.code === '23505') { // unique constraint violation
+        toast({
+          title: "Błąd",
+          description: "Ten nick jest już zajęty",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się zaktualizować nicku",
+          variant: "destructive",
+        });
+      }
+    } else {
+      setProfile({ 
+        ...profile, 
+        nickname: newNickname,
+        last_nickname_change: new Date().toISOString()
+      });
+      toast({
+        title: "Sukces",
+        description: "Nick został zaktualizowany",
+      });
+    }
+
+    setLoading(false);
   };
 
   const updatePersonality = async () => {
@@ -168,9 +260,27 @@ export const UserPanel = ({ user }: UserPanelProps) => {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label>Nick</Label>
-                  <Input value={profile?.nickname || ''} disabled />
+                  <Label>Nick (obecny: {profile?.nickname})</Label>
+                  <Input 
+                    value={newNickname} 
+                    onChange={(e) => setNewNickname(e.target.value)}
+                    placeholder="Nowy nick"
+                    disabled={!canChangeNickname()}
+                  />
+                  {!canChangeNickname() && (
+                    <p className="text-sm text-muted-foreground">
+                      Nick można zmienić ponownie za {Math.ceil(14 - Math.floor((Date.now() - new Date(profile?.last_nickname_change || '').getTime()) / (1000 * 60 * 60 * 24)))} dni
+                    </p>
+                  )}
                 </div>
+
+                <Button 
+                  onClick={updateNickname} 
+                  disabled={loading || !newNickname || newNickname === profile?.nickname || !canChangeNickname()}
+                  className="w-full mb-4"
+                >
+                  {loading ? 'Zapisywanie...' : 'Zmień nick'}
+                </Button>
                 
                 <div className="space-y-2">
                   <Label>Adres email</Label>
