@@ -141,9 +141,13 @@ export const UserPanel = ({ user }: UserPanelProps) => {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button 
+          variant="outline" 
+          size="sm"
+          className="bg-transparent border-header-foreground/20 text-header-foreground hover:bg-header-foreground/10"
+        >
           <Settings className="h-4 w-4 mr-2" />
-          Panel Użytkownika
+          <span className="hidden sm:inline">Panel Użytkownika</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-2xl">
