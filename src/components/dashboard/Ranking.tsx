@@ -94,7 +94,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
               const dayDate = addDays(weekStartDate, dayIndex);
               const dayMonth = format(dayDate, 'yyyy-MM');
               
-              // Only count days from account creation date onwards
+              // Only count days from account creation date onwards AND calculate points
               if (!isBefore(dayDate, startOfDay(userCreatedAt))) {
                 // Only calculate points if habit name is defined (not empty)
                 if (habit.habit_name && habit.habit_name.trim()) {
@@ -112,7 +112,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
                   
                   totalScore += dayScore;
                   
-                  // Punkty za bieżący miesiąc
+                  // Punkty za bieżący miesiąc - sprawdź TYLKO dla dni które już przeszły sprawdzenie daty utworzenia
                   if (dayMonth === currentMonth) {
                     monthlyScore += dayScore;
                   }
