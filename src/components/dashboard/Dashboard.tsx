@@ -30,7 +30,7 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background page-transition">
       <Header
         user={user}
         onLogout={handleLogout}

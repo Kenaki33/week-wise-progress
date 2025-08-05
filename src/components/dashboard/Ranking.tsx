@@ -216,7 +216,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
 
   if (loading) {
     return (
-      <Card>
+    <Card className="glass-card hover-lift animate-fade-in">
         <CardContent className="pt-6">
           <div className="text-center">Ładowanie rankingu...</div>
         </CardContent>
@@ -225,9 +225,9 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
   }
 
   return (
-    <Card>
+    <Card className="glass-card hover-lift animate-fade-in">
       <CardHeader>
-        <CardTitle>Ranking użytkowników</CardTitle>
+        <CardTitle className="gradient-text text-xl font-bold">Ranking użytkowników</CardTitle>
         <div className="flex items-center gap-2">
           <label htmlFor="personality-filter" className="text-sm font-medium">
             Filtruj po osobowości:
@@ -252,7 +252,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <Table>
+            <Table className="modern-table">{/* Nowoczesny styl tabeli */}
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-16">Miejsce</TableHead>

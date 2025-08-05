@@ -218,7 +218,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   if (isWeekBeforeAccountCreation) {
     return (
       <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
-        <Card className="enhanced-card">
+        <Card className="glass-card hover-lift animate-fade-in">
           <CardContent className="pt-6">
             <div className="text-center py-8">
               <p className="text-muted-foreground text-lg">
@@ -240,9 +240,9 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   return (
     <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
       {/* Habit Goal */}
-      <Card className="enhanced-card">
+      <Card className="glass-card hover-lift animate-scale-in">
         <CardHeader className="pb-4">
-          <CardTitle className="text-foreground text-lg sm:text-xl font-semibold">
+          <CardTitle className="text-foreground text-lg sm:text-xl font-semibold gradient-text">
             W tym tygodniu pracuję nad:
           </CardTitle>
         </CardHeader>
@@ -251,10 +251,10 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
             placeholder="Wpisz nawyk, nad którym chcesz pracować..."
             value={habitData.habitName}
             onChange={(e) => updateHabitName(e.target.value)}
-            className="text-base sm:text-lg py-3 px-4 border-2 focus:border-primary transition-colors"
+            className="modern-input text-base sm:text-lg py-3 px-4"
           />
           {!isHabitDefined && (
-            <p className="text-sm text-muted-foreground mt-2">
+            <p className="text-sm text-muted-foreground mt-2 animate-fade-in">
               Wpisz nazwę nawyku, aby móc go śledzić i zdobywać punkty
             </p>
           )}
@@ -262,7 +262,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
       </Card>
 
       {/* Daily Tracker */}
-      <Card className="enhanced-card">
+      <Card className="glass-card hover-lift animate-scale-in">
         <CardHeader className="pb-4">
           <CardTitle className="text-foreground">
             <div className="flex flex-col gap-3">
@@ -365,9 +365,9 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
       </Card>
 
       {/* Weekly Reflection */}
-      <Card className="enhanced-card">
+      <Card className="glass-card hover-lift animate-scale-in">
         <CardHeader className="pb-4">
-          <CardTitle className="text-foreground text-lg sm:text-xl font-semibold">
+          <CardTitle className="text-foreground text-lg sm:text-xl font-semibold gradient-text">
             Refleksja tygodniowa
           </CardTitle>
         </CardHeader>
@@ -377,7 +377,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
             value={habitData.reflection}
             onChange={(e) => updateReflection(e.target.value)}
             rows={4}
-            className="resize-none border-2 focus:border-primary transition-colors text-sm sm:text-base"
+            className="modern-input resize-none text-sm sm:text-base"
           />
         </CardContent>
       </Card>
