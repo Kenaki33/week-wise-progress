@@ -94,28 +94,29 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
               const dayDate = addDays(weekStartDate, dayIndex);
               const dayMonth = format(dayDate, 'yyyy-MM');
               
-              // Only count days from account creation date onwards AND calculate points
-              if (!isBefore(dayDate, startOfDay(userCreatedAt))) {
-                // Only calculate points if habit name is defined (not empty)
-                if (habit.habit_name && habit.habit_name.trim()) {
-                  let dayScore = 0;
-                  if (status === 1) {
-                    // Completed task: +10 points
-                    dayScore = 10;
-                  } else if (status === 2) {
-                    // Not completed task: -10 points
-                    dayScore = -10;
-                  } else if (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) {
-                    // Unmarked past day: -15 points (only if habit is defined)
-                    dayScore = -15;
-                  }
-                  
+              // Only calculate points if habit name is defined (not empty)
+              if (habit.habit_name && habit.habit_name.trim()) {
+                let dayScore = 0;
+                if (status === 1) {
+                  // Completed task: +10 points
+                  dayScore = 10;
+                } else if (status === 2) {
+                  // Not completed task: -10 points
+                  dayScore = -10;
+                } else if (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) {
+                  // Unmarked past day: -15 points (only if habit is defined)
+                  dayScore = -15;
+                }
+                
+                // TOTAL SCORE: Count ALL days from account creation date onwards
+                if (!isBefore(dayDate, startOfDay(userCreatedAt))) {
                   totalScore += dayScore;
-                  
-                  // Punkty za bieżący miesiąc - sprawdź TYLKO dla dni które już przeszły sprawdzenie daty utworzenia
-                  if (dayMonth === currentMonth) {
-                    monthlyScore += dayScore;
-                  }
+                }
+                
+                // MONTHLY SCORE: Only count days that are in current month AND from account creation date onwards (same logic as useMonthlyScore)
+                if (dayMonth === currentMonth && 
+                    !isBefore(dayDate, startOfDay(userCreatedAt))) {
+                  monthlyScore += dayScore;
                 }
               }
             });
