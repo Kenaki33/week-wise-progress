@@ -50,6 +50,10 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
     setLoading(true);
     
     try {
+      // Pobierz datę utworzenia konta z auth.users (tak samo jak w PointsHistory)
+      const { data: { user } } = await supabase.auth.getUser();
+      const userCreatedAt = user?.created_at ? parseISO(user.created_at) : null;
+      
       // Pobierz wszystkie profile użytkowników
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
@@ -70,7 +74,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
 
       if (habitsError) throw habitsError;
 
-      // Oblicz punkty dla każdego użytkownika - użyj DOKŁADNIE tej samej logiki co useMonthlyScore
+      // Oblicz punkty dla każdego użytkownika - użyj DOKŁADNIE tej samej logiki co PointsHistory
       const currentDate = new Date();
       const currentMonth = format(currentDate, 'yyyy-MM');
 
@@ -80,7 +84,10 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
         let monthlyScore = 0;
         let totalScore = 0;
         
-        const userCreatedAt = parseISO(profile.created_at);
+        // Dla bieżącego użytkownika użyj daty z auth.users, dla innych z profiles
+        const profileCreatedAt = profile.user_id === currentUserId && userCreatedAt 
+          ? userCreatedAt 
+          : parseISO(profile.created_at);
 
         userHabits.forEach(habit => {
           if (habit.days && Array.isArray(habit.days)) {
@@ -92,42 +99,34 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
             // Check each day of the week
             habit.days.forEach((status: number, dayIndex: number) => {
               const dayDate = addDays(weekStartDate, dayIndex);
-              const dayMonth = format(dayDate, 'yyyy-MM');
               
-              // MONTHLY SCORE: Only count days that are within the CURRENT MONTH AND from account creation date onwards
-              if (dayMonth === currentMonth && 
-                  !isBefore(dayDate, startOfDay(userCreatedAt))) {
+              // Only count days from account creation date onwards (identyczna logika jak PointsHistory)
+              if (!isBefore(dayDate, startOfDay(profileCreatedAt))) {
+                const dayMonth = format(dayDate, 'yyyy-MM');
                 
                 // Only calculate points if habit name is defined (not empty)
                 if (habit.habit_name && habit.habit_name.trim()) {
+                  let dayScore = 0;
                   if (status === 1) {
                     // Completed task: +10 points
-                    monthlyScore += 10;
+                    dayScore = 10;
                   } else if (status === 2) {
                     // Not completed task: -10 points
-                    monthlyScore -= 10;
+                    dayScore = -10;
                   } else if (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) {
                     // Unmarked past day: -15 points (only if habit is defined)
-                    monthlyScore -= 15;
+                    dayScore = -15;
+                  }
+                  
+                  // TOTAL SCORE: wszystkie punkty od założenia konta
+                  totalScore += dayScore;
+                  
+                  // MONTHLY SCORE: tylko punkty z bieżącego miesiąca
+                  if (dayMonth === currentMonth) {
+                    monthlyScore += dayScore;
                   }
                 }
-              }
-              
-              // TOTAL SCORE: Count ALL days from account creation date onwards
-              if (!isBefore(dayDate, startOfDay(userCreatedAt))) {
-                // Only calculate points if habit name is defined (not empty)
-                if (habit.habit_name && habit.habit_name.trim()) {
-                  if (status === 1) {
-                    // Completed task: +10 points
-                    totalScore += 10;
-                  } else if (status === 2) {
-                    // Not completed task: -10 points
-                    totalScore -= 10;
-                  } else if (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) {
-                    // Unmarked past day: -15 points (only if habit is defined)
-                    totalScore -= 15;
-                  }
-                }
+                // Future days (status 0) contribute 0 points
               }
             });
           }
