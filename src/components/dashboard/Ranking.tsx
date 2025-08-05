@@ -41,8 +41,16 @@ const UserScores = ({ userId, onScoreUpdate }: {
   const { monthlyScore, loading: monthlyLoading } = useMonthlyScore(userId, currentDate);
   const { totalScore, loading: totalLoading } = useTotalScore(userId);
 
+  console.log('UserScores for', userId, {
+    monthlyScore,
+    totalScore,
+    monthlyLoading,
+    totalLoading
+  });
+
   useEffect(() => {
     if (!monthlyLoading && !totalLoading) {
+      console.log('Updating scores for', userId, { monthlyScore, totalScore });
       onScoreUpdate(userId, monthlyScore, totalScore);
     }
   }, [userId, monthlyScore, totalScore, monthlyLoading, totalLoading, onScoreUpdate]);
@@ -68,6 +76,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
   }, [users, selectedPersonality]);
 
   const fetchProfiles = async () => {
+    console.log('fetchProfiles called');
     setLoading(true);
     
     try {
@@ -76,14 +85,18 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
         .from('profiles')
         .select('user_id, nickname, nutrition_personality, created_at');
 
+      console.log('Profiles data received:', profilesData);
+
       if (profilesError) throw profilesError;
 
       if (!profilesData || profilesData.length === 0) {
+        console.log('No profiles found');
         setUsers([]);
         setLoading(false);
         return;
       }
 
+      console.log('Setting profiles:', profilesData);
       setProfiles(profilesData);
       
       // Inicjalizuj users z podstawowymi danymi
@@ -109,6 +122,8 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
   };
 
   const handleScoreUpdate = (userId: string, monthlyScore: number, totalScore: number) => {
+    console.log('handleScoreUpdate called for', userId, { monthlyScore, totalScore });
+    
     setUsers(prevUsers => {
       const updatedUsers = prevUsers.map(user => 
         user.user_id === userId 
@@ -124,8 +139,11 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
       const newSet = new Set(prev);
       newSet.add(userId);
       
+      console.log('Scores loaded so far:', newSet.size, 'out of', profiles.length);
+      
       // Sprawdź czy wszystkie punkty zostały załadowane
       if (newSet.size === profiles.length) {
+        console.log('All scores loaded, setting loading to false');
         setLoading(false);
       }
       
