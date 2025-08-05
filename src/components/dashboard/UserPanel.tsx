@@ -266,17 +266,17 @@ export const UserPanel = ({ user }: UserPanelProps) => {
           <span className="hidden sm:inline">Panel Użytkownika</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl w-[95vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Panel Użytkownika</DialogTitle>
         </DialogHeader>
         
         <Tabs defaultValue="ranking" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="ranking">Ranking</TabsTrigger>
-            <TabsTrigger value="history">Historia punktacji</TabsTrigger>
-            <TabsTrigger value="profile">Profil</TabsTrigger>
-            <TabsTrigger value="password">Zmiana hasła</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1">
+            <TabsTrigger value="ranking" className="text-xs sm:text-sm px-2 sm:px-4">Ranking</TabsTrigger>
+            <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-4">Historia punktacji</TabsTrigger>
+            <TabsTrigger value="profile" className="text-xs sm:text-sm px-2 sm:px-4">Profil</TabsTrigger>
+            <TabsTrigger value="password" className="text-xs sm:text-sm px-2 sm:px-4">Zmiana hasła</TabsTrigger>
           </TabsList>
           
           <TabsContent value="ranking" className="space-y-4">
