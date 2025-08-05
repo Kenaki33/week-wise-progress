@@ -31,9 +31,14 @@ export const PointsHistory = ({ userId }: PointsHistoryProps) => {
     setLoading(true);
     
     try {
-      // Get user creation date from auth.users
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user?.created_at) {
+      // Get user creation date from profiles (same source as Ranking and useMonthlyScore)
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('created_at')
+        .eq('user_id', userId)
+        .single();
+      
+      if (profileError || !profile?.created_at) {
         toast({
           title: "Błąd",
           description: "Nie udało się pobrać daty utworzenia konta",
@@ -42,7 +47,7 @@ export const PointsHistory = ({ userId }: PointsHistoryProps) => {
         return;
       }
       
-      const createdAt = parseISO(user.created_at);
+      const createdAt = parseISO(profile.created_at);
       setUserCreatedAt(createdAt);
       
       // Get all habit data for the user
