@@ -50,10 +50,6 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
     setLoading(true);
     
     try {
-      // Pobierz datę utworzenia konta z auth.users (tak samo jak w PointsHistory)
-      const { data: { user } } = await supabase.auth.getUser();
-      const userCreatedAt = user?.created_at ? parseISO(user.created_at) : null;
-      
       // Pobierz wszystkie profile użytkowników
       const { data: profiles, error: profilesError } = await supabase
         .from('profiles')
@@ -74,7 +70,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
 
       if (habitsError) throw habitsError;
 
-      // Oblicz punkty dla każdego użytkownika - użyj DOKŁADNIE tej samej logiki co PointsHistory
+      // Oblicz punkty dla każdego użytkownika - użyj ZAWSZE daty z profiles dla wszystkich użytkowników
       const currentDate = new Date();
       const currentMonth = format(currentDate, 'yyyy-MM');
 
@@ -84,10 +80,8 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
         let monthlyScore = 0;
         let totalScore = 0;
         
-        // Dla bieżącego użytkownika użyj daty z auth.users, dla innych z profiles
-        const profileCreatedAt = profile.user_id === currentUserId && userCreatedAt 
-          ? userCreatedAt 
-          : parseISO(profile.created_at);
+        // Używaj ZAWSZE daty z profiles dla WSZYSTKICH użytkowników (spójność)
+        const profileCreatedAt = parseISO(profile.created_at);
 
         userHabits.forEach(habit => {
           if (habit.days && Array.isArray(habit.days)) {
