@@ -28,7 +28,7 @@ export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderP
                 <span className="text-xs sm:text-sm text-header-foreground/70 truncate">
                   {format(selectedDate, 'LLLL yyyy', { locale: pl })}:
                 </span>
-                <span className={`text-xs sm:text-sm font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded inline-block ${
+                <span className={`text-xs sm:text-sm font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded w-fit ${
                   monthlyScore >= 0 
                     ? 'bg-points-positive-bg text-points-positive' 
                     : 'bg-points-negative-bg text-points-negative'
