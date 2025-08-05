@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Search, User, RotateCcw } from 'lucide-react';
+import { User, RotateCcw } from 'lucide-react';
 import { format, startOfWeek, addDays, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
 
 type NutritionPersonality = 'ekspresowy_konsument' | 'emocjonalny_podjadacz' | 'beztroski_lasuch' | 'nieswiadomy_zjadacz' | 'perfekcjonista_dietetyczny' | 'wieczny_odchudzacz' | 'ogarniety_odzywiacze';
@@ -38,8 +37,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
   const [users, setUsers] = useState<RankingUser[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<RankingUser[]>([]);
   const [selectedPersonality, setSelectedPersonality] = useState<string>('all');
-  const [searchTerm, setSearchTerm] = useState<string>('');
-  const [showMode, setShowMode] = useState<'top50' | 'search' | 'showMe'>('top50');
+  const [showMode, setShowMode] = useState<'top50' | 'showMe'>('top50');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -49,7 +47,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
 
   useEffect(() => {
     filterAndDisplayUsers();
-  }, [users, selectedPersonality, searchTerm, showMode]);
+  }, [users, selectedPersonality, showMode]);
 
   const fetchRanking = async () => {
     setLoading(true);
@@ -209,11 +207,6 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
     if (showMode === 'top50') {
       // Show only top 50
       displayUsers = personalityFiltered.slice(0, 50);
-    } else if (showMode === 'search' && searchTerm.trim()) {
-      // Show users matching search term
-      displayUsers = personalityFiltered.filter(user => 
-        user.nickname.toLowerCase().includes(searchTerm.toLowerCase())
-      );
     } else if (showMode === 'showMe') {
       // Show current user (even if not in top 50)
       const currentUser = personalityFiltered.find(user => user.user_id === currentUserId);
@@ -223,23 +216,12 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
     setFilteredUsers(displayUsers);
   };
 
-  const handleSearch = (term: string) => {
-    setSearchTerm(term);
-    if (term.trim()) {
-      setShowMode('search');
-    } else {
-      setShowMode('top50');
-    }
-  };
-
   const handleShowMe = () => {
     setShowMode('showMe');
-    setSearchTerm('');
   };
 
   const handleBackToTop = () => {
     setShowMode('top50');
-    setSearchTerm('');
   };
 
   const getRealPosition = (userId: string) => {
@@ -279,23 +261,32 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
         <CardTitle className="gradient-text text-lg sm:text-xl font-bold">
           Ranking użytkowników
           {showMode === 'top50' && ` (Top 50)`}
-          {showMode === 'search' && searchTerm && ` - Wyszukiwanie: "${searchTerm}"`}
           {showMode === 'showMe' && ` - Twoja pozycja`}
         </CardTitle>
         
         {/* Controls */}
         <div className="space-y-3">
-          {/* Search and buttons */}
-          <div className="flex flex-col sm:flex-row gap-2">
-            <div className="relative flex-1">
-              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Szukaj po nicku..."
-                value={searchTerm}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="pl-8"
-              />
+          {/* Button and personality filter */}
+          <div className="flex flex-col sm:flex-row gap-2 sm:items-center justify-between">
+            {/* Personality filter */}
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+              <label htmlFor="personality-filter" className="text-xs sm:text-sm font-medium">
+                Filtruj po osobowości:
+              </label>
+              <Select value={selectedPersonality} onValueChange={setSelectedPersonality}>
+                <SelectTrigger className="w-full sm:w-64 text-xs sm:text-sm">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent className="bg-popover border z-50">
+                  <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
+                  {Object.entries(personalityLabels).map(([value, label]) => (
+                    <SelectItem key={value} value={value}>{label}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
+            
+            {/* Action buttons */}
             <div className="flex gap-2">
               <Button
                 variant="outline"
@@ -306,7 +297,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
                 <User className="h-4 w-4" />
                 <span className="hidden sm:inline">Znajdź mnie</span>
               </Button>
-              {(showMode !== 'top50' || searchTerm) && (
+              {showMode !== 'top50' && (
                 <Button
                   variant="outline"
                   size="sm"
@@ -318,24 +309,6 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
                 </Button>
               )}
             </div>
-          </div>
-          
-          {/* Personality filter */}
-          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-            <label htmlFor="personality-filter" className="text-xs sm:text-sm font-medium">
-              Filtruj po osobowości:
-            </label>
-            <Select value={selectedPersonality} onValueChange={setSelectedPersonality}>
-              <SelectTrigger className="w-full sm:w-64 text-xs sm:text-sm">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent className="bg-popover border z-50">
-                <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
-                {Object.entries(personalityLabels).map(([value, label]) => (
-                  <SelectItem key={value} value={value}>{label}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
         </div>
       </CardHeader>
