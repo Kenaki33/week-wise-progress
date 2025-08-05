@@ -65,7 +65,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
       // Pobierz wszystkie habits dla wszystkich użytkowników
       const { data: habits, error: habitsError } = await supabase
         .from('habits')
-        .select('user_id, days, created_at');
+        .select('user_id, days, week_key, created_at');
 
       if (habitsError) throw habitsError;
 
@@ -83,11 +83,14 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
         const userCreatedDate = new Date(profile.created_at);
 
         userHabits.forEach(habit => {
-          const habitDate = new Date(habit.created_at);
           const daysArray = habit.days as number[];
           
+          // Parsuj week_key do daty (format: YYYY-MM-DD)
+          const [year, month, day] = habit.week_key.split('-').map(Number);
+          const weekStartDate = new Date(year, month - 1, day); // month - 1 bo miesiące w JS są 0-indexed
+          
           daysArray.forEach((dayStatus, index) => {
-            const dayDate = new Date(habitDate);
+            const dayDate = new Date(weekStartDate);
             dayDate.setDate(dayDate.getDate() + index);
             
             // Nie liczyć punktów za dni przed rejestracją
@@ -105,7 +108,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
             } else if (dayStatus === 0 && dayDate < today) {
               dayScore = -1; // Nie wykonane w przeszłości
             }
-            // dayStatus === 0 && dayDate >= today = nie liczymy punktów
+            // dayStatus === 0 && dayDate >= today = nie liczymy punktów (przyszłość lub dziś bez zaznaczenia)
 
             totalScore += dayScore;
             
