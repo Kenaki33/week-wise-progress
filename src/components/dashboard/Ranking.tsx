@@ -70,7 +70,22 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
 
       if (habitsError) throw habitsError;
 
-      // Oblicz punkty dla każdego użytkownika - użyj ZAWSZE daty z profiles dla wszystkich użytkowników
+      // Pobierz daty utworzenia kont z auth.users dla każdego użytkownika
+      const userCreationDates = new Map();
+      for (const profile of profiles) {
+        try {
+          // Dla każdego użytkownika sprawdź jego datę z auth.users
+          const { data: userData } = await supabase.auth.admin.getUserById(profile.user_id);
+          if (userData.user?.created_at) {
+            userCreationDates.set(profile.user_id, parseISO(userData.user.created_at));
+          }
+        } catch (error) {
+          // Jeśli nie można pobrać z auth.users, użyj z profiles jako fallback
+          userCreationDates.set(profile.user_id, parseISO(profile.created_at));
+        }
+      }
+
+      // Oblicz punkty dla każdego użytkownika - używaj dokładnie tej samej logiki co useMonthlyScore
       const currentDate = new Date();
       const currentMonth = format(currentDate, 'yyyy-MM');
 
@@ -80,8 +95,8 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
         let monthlyScore = 0;
         let totalScore = 0;
         
-        // Używaj ZAWSZE daty z profiles dla WSZYSTKICH użytkowników (spójność)
-        const profileCreatedAt = parseISO(profile.created_at);
+        // Użyj daty z auth.users (tak samo jak useMonthlyScore) lub fallback z profiles
+        const userCreatedAt = userCreationDates.get(profile.user_id) || parseISO(profile.created_at);
 
         userHabits.forEach(habit => {
           if (habit.days && Array.isArray(habit.days)) {
@@ -94,8 +109,8 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
             habit.days.forEach((status: number, dayIndex: number) => {
               const dayDate = addDays(weekStartDate, dayIndex);
               
-              // Only count days from account creation date onwards (identyczna logika jak PointsHistory)
-              if (!isBefore(dayDate, startOfDay(profileCreatedAt))) {
+              // Only count days from account creation date onwards (identyczna logika jak useMonthlyScore)
+              if (!isBefore(dayDate, startOfDay(userCreatedAt))) {
                 const dayMonth = format(dayDate, 'yyyy-MM');
                 
                 // Only calculate points if habit name is defined (not empty)
