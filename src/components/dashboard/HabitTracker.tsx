@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { format, startOfWeek, addDays, isBefore, isToday } from 'date-fns';
+import { format, startOfWeek, addDays, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { Check, X } from 'lucide-react';
 
@@ -32,7 +32,26 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     weeklyScore: 0
   });
   const [loading, setLoading] = useState(true);
+  const [userCreatedAt, setUserCreatedAt] = useState<Date | null>(null);
   const { toast } = useToast();
+
+  // Load user creation date
+  useEffect(() => {
+    if (!userId) return;
+
+    const loadUserCreationDate = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user?.created_at) {
+          setUserCreatedAt(parseISO(user.created_at));
+        }
+      } catch (error) {
+        console.error('Error loading user creation date:', error);
+      }
+    };
+
+    loadUserCreationDate();
+  }, [userId]);
 
   // Load data from Supabase
   useEffect(() => {
@@ -90,6 +109,11 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
 
     days.forEach((status, index) => {
       const dayDate = weekDates[index];
+      
+      // Only count days from account creation date onwards
+      if (userCreatedAt && isBefore(dayDate, startOfDay(userCreatedAt))) {
+        return; // Skip days before account creation
+      }
       
       if (status === 1) {
         // Completed task: +10 points
