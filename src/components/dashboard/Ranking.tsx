@@ -85,9 +85,15 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
         userHabits.forEach(habit => {
           const daysArray = habit.days as number[];
           
-          // Parsuj week_key do daty (format: YYYY-MM-DD)
-          const [year, month, day] = habit.week_key.split('-').map(Number);
-          const weekStartDate = new Date(year, month - 1, day); // month - 1 bo miesiące w JS są 0-indexed
+          // Parsuj week_key (format: YYYY-WW)
+          const [yearStr, weekStr] = habit.week_key.split('-');
+          const year = parseInt(yearStr);
+          const week = parseInt(weekStr);
+          
+          // Oblicz datę początku tygodnia (poniedziałek)
+          const jan4 = new Date(year, 0, 4); // 4 stycznia
+          const weekStartDate = new Date(jan4);
+          weekStartDate.setDate(jan4.getDate() + (week - 1) * 7 - jan4.getDay() + 1);
           
           daysArray.forEach((dayStatus, index) => {
             const dayDate = new Date(weekStartDate);
@@ -109,6 +115,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
               dayScore = -1; // Nie wykonane w przeszłości
             }
             // dayStatus === 0 && dayDate >= today = nie liczymy punktów (przyszłość lub dziś bez zaznaczenia)
+            // dayStatus === 2 = nie liczymy punktów (niedziela lub dzień wolny)
 
             totalScore += dayScore;
             
