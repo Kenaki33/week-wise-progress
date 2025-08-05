@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format, startOfMonth, endOfMonth, addDays, startOfWeek, isBefore, isToday, isWithinInterval, parseISO, isAfter } from 'date-fns';
+import { format, startOfMonth, endOfMonth, addDays, startOfWeek, isBefore, isToday, isWithinInterval, parseISO, isAfter, startOfDay } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
 
@@ -91,8 +91,8 @@ export const PointsHistory = ({ userId }: PointsHistoryProps) => {
           record.days.forEach((status: number, dayIndex: number) => {
             const dayDate = addDays(weekStartDate, dayIndex);
             
-            // Only count days from account creation date onwards
-            if (!isBefore(dayDate, createdAt)) {
+            // Only count days from account creation date onwards (using startOfDay like useMonthlyScore)
+            if (!isBefore(dayDate, startOfDay(createdAt))) {
               const monthKey = format(dayDate, 'yyyy-MM');
               
               if (monthlyPoints[monthKey]) {
