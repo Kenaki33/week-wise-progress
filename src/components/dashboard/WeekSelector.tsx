@@ -85,22 +85,23 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
   };
 
   return (
-    <div className="flex items-center gap-2 w-full sm:w-auto">
+    <div className="flex items-center gap-1 sm:gap-2 w-full">
       <Button
         variant="outline"
         size="sm"
         onClick={goToPreviousWeek}
-        className="flex-shrink-0 p-2"
+        className="flex-shrink-0 p-1.5 sm:p-2"
       >
-        <ChevronLeft className="w-4 h-4" />
+        <ChevronLeft className="w-3 h-3 sm:w-4 sm:h-4" />
       </Button>
       
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
         <DialogTrigger asChild>
-          <Button variant="outline" className="bg-card border-border hover:bg-muted flex-1 sm:flex-none text-sm sm:text-base">
-            <Calendar className="w-4 h-4 mr-2 flex-shrink-0" />
+          <Button variant="outline" className="bg-card border-border hover:bg-muted flex-1 text-xs sm:text-base px-2 sm:px-4">
+            <Calendar className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-2 flex-shrink-0" />
             <span className="truncate">
-              Wybierz tydzień: {format(weekStart, 'dd.MM', { locale: pl })} - {format(weekEnd, 'dd.MM', { locale: pl })}
+              <span className="hidden sm:inline">Wybierz tydzień: </span>
+              {format(weekStart, 'dd.MM', { locale: pl })} - {format(weekEnd, 'dd.MM', { locale: pl })}
             </span>
           </Button>
         </DialogTrigger>
@@ -152,9 +153,9 @@ export const WeekSelector = ({ selectedDate, onDateChange, userId }: WeekSelecto
       variant="outline"
       size="sm"
       onClick={goToNextWeek}
-      className="flex-shrink-0 p-2"
+      className="flex-shrink-0 p-1.5 sm:p-2"
     >
-      <ChevronRight className="w-4 h-4" />
+      <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4" />
     </Button>
   </div>
   );
