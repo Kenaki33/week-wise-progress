@@ -254,42 +254,42 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
           <div className="overflow-x-auto -mx-2 sm:mx-0">
             <div className="min-w-full">
               {/* Mobile view - stacked cards */}
-              <div className="block sm:hidden space-y-2">
+              <div className="block sm:hidden space-y-1.5">
                 {filteredUsers.map((user, index) => (
                   <div 
                     key={user.user_id}
-                    className={`p-3 rounded-lg border ${
+                    className={`p-2 rounded-lg border ${
                       isCurrentUser(user.user_id) ? 'bg-accent/50 border-primary/30' : 'bg-card border-border'
                     }`}
                   >
-                    <div className="flex justify-between items-start mb-2">
-                      <div className="flex items-center gap-2">
-                        <span className="text-lg font-bold text-primary">#{getPositionDisplay(index)}</span>
-                        <div>
-                          <div className="font-medium text-sm">
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        <span className="text-sm font-bold text-primary flex-shrink-0">#{getPositionDisplay(index)}</span>
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium text-xs truncate">
                             {user.nickname}
                             {isCurrentUser(user.user_id) && (
-                              <span className="ml-1 text-xs text-primary">(Ty)</span>
+                              <span className="ml-1 text-[10px] text-primary">(Ty)</span>
                             )}
                           </div>
-                          <div className="text-xs text-muted-foreground truncate">
+                          <div className="text-[10px] text-muted-foreground truncate">
                             {personalityLabels[user.nutrition_personality]}
                           </div>
                         </div>
                       </div>
-                    </div>
-                    <div className="flex justify-between text-xs">
-                      <div>
-                        <span className="text-muted-foreground">Ten miesiąc:</span>
-                        <span className={`ml-1 font-semibold ${getScoreColor(user.monthly_score)}`}>
-                          {user.monthly_score >= 0 ? '+' : ''}{user.monthly_score}
-                        </span>
-                      </div>
-                      <div>
-                        <span className="text-muted-foreground">Łącznie:</span>
-                        <span className={`ml-1 font-semibold ${getScoreColor(user.total_score)}`}>
-                          {user.total_score >= 0 ? '+' : ''}{user.total_score}
-                        </span>
+                      <div className="flex gap-3 text-[10px] flex-shrink-0">
+                        <div className="text-center">
+                          <div className="text-muted-foreground">Miesiąc</div>
+                          <div className={`font-semibold ${getScoreColor(user.monthly_score)}`}>
+                            {user.monthly_score >= 0 ? '+' : ''}{user.monthly_score}
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <div className="text-muted-foreground">Łącznie</div>
+                          <div className={`font-semibold ${getScoreColor(user.total_score)}`}>
+                            {user.total_score >= 0 ? '+' : ''}{user.total_score}
+                          </div>
+                        </div>
                       </div>
                     </div>
                   </div>
