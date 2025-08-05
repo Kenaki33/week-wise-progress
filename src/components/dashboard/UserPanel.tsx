@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
 import { Settings } from 'lucide-react';
 import { PointsHistory } from './PointsHistory';
+import { Ranking } from './Ranking';
 
 interface UserPanelProps {
   user: User;
@@ -270,12 +271,17 @@ export const UserPanel = ({ user }: UserPanelProps) => {
           <DialogTitle>Panel Użytkownika</DialogTitle>
         </DialogHeader>
         
-        <Tabs defaultValue="history" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+        <Tabs defaultValue="ranking" className="w-full">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="ranking">Ranking</TabsTrigger>
             <TabsTrigger value="history">Historia punktacji</TabsTrigger>
             <TabsTrigger value="profile">Profil</TabsTrigger>
             <TabsTrigger value="password">Zmiana hasła</TabsTrigger>
           </TabsList>
+          
+          <TabsContent value="ranking" className="space-y-4">
+            <Ranking currentUserId={user.id} />
+          </TabsContent>
           
           <TabsContent value="history" className="space-y-4">
             <PointsHistory userId={user.id} />
