@@ -70,22 +70,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
 
       if (habitsError) throw habitsError;
 
-      // Pobierz daty utworzenia kont z auth.users dla każdego użytkownika
-      const userCreationDates = new Map();
-      for (const profile of profiles) {
-        try {
-          // Dla każdego użytkownika sprawdź jego datę z auth.users
-          const { data: userData } = await supabase.auth.admin.getUserById(profile.user_id);
-          if (userData.user?.created_at) {
-            userCreationDates.set(profile.user_id, parseISO(userData.user.created_at));
-          }
-        } catch (error) {
-          // Jeśli nie można pobrać z auth.users, użyj z profiles jako fallback
-          userCreationDates.set(profile.user_id, parseISO(profile.created_at));
-        }
-      }
-
-      // Oblicz punkty dla każdego użytkownika - używaj dokładnie tej samej logiki co useMonthlyScore
+      // Pobierz daty utworzenia kont - użyj zawsze profiles.created_at dla spójności
       const currentDate = new Date();
       const currentMonth = format(currentDate, 'yyyy-MM');
 
@@ -95,8 +80,17 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
         let monthlyScore = 0;
         let totalScore = 0;
         
-        // Użyj daty z auth.users (tak samo jak useMonthlyScore) lub fallback z profiles
-        const userCreatedAt = userCreationDates.get(profile.user_id) || parseISO(profile.created_at);
+        // Użyj zawsze daty z profiles dla spójności (tak samo dla wszystkich użytkowników)
+        const userCreatedAt = parseISO(profile.created_at);
+
+        // Debug dla User_6e823a2b
+        if (profile.user_id === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
+          console.log('RANKING - Processing user:', {
+            nickname: profile.nickname,
+            userCreatedAt: format(userCreatedAt, 'yyyy-MM-dd HH:mm'),
+            totalHabits: userHabits.length
+          });
+        }
 
         userHabits.forEach(habit => {
           if (habit.days && Array.isArray(habit.days)) {
@@ -104,6 +98,16 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
             const [year, week] = habit.week_key.split('-');
             const yearStart = new Date(parseInt(year), 0, 1);
             const weekStartDate = startOfWeek(addDays(yearStart, (parseInt(week) - 1) * 7), { weekStartsOn: 1 });
+            
+            // Debug dla User_6e823a2b
+            if (profile.user_id === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
+              console.log('RANKING - Processing week:', {
+                week_key: habit.week_key,
+                weekStartDate: format(weekStartDate, 'yyyy-MM-dd'),
+                days: habit.days,
+                habit_name: habit.habit_name
+              });
+            }
             
             // Check each day of the week
             habit.days.forEach((status: number, dayIndex: number) => {
@@ -127,12 +131,33 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
                     dayScore = -15;
                   }
                   
+                  // Debug dla User_6e823a2b - loguj każdy dzień
+                  if (profile.user_id === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
+                    console.log('RANKING - Processing day:', {
+                      dayDate: format(dayDate, 'yyyy-MM-dd'),
+                      dayMonth,
+                      currentMonth,
+                      status,
+                      dayScore,
+                      habit_name: habit.habit_name
+                    });
+                  }
+                  
                   // TOTAL SCORE: wszystkie punkty od założenia konta
                   totalScore += dayScore;
                   
                   // MONTHLY SCORE: tylko punkty z bieżącego miesiąca
                   if (dayMonth === currentMonth) {
                     monthlyScore += dayScore;
+                    
+                    // Debug dla User_6e823a2b - loguj miesięczne punkty
+                    if (profile.user_id === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
+                      console.log('RANKING - Monthly point added:', {
+                        dayDate: format(dayDate, 'yyyy-MM-dd'),
+                        dayScore,
+                        monthlyScore
+                      });
+                    }
                   }
                 }
                 // Future days (status 0) contribute 0 points
