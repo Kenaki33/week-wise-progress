@@ -16,9 +16,21 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
         const monthStart = startOfMonth(selectedDate);
         const monthEnd = endOfMonth(selectedDate);
         
-        // Get user creation date
-        const { data: { user } } = await supabase.auth.getUser();
-        const userCreatedAt = user?.created_at ? parseISO(user.created_at) : null;
+        // Get user creation date from profiles (same source as Ranking)
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('created_at')
+          .eq('user_id', userId)
+          .single();
+
+        if (profileError) {
+          console.error('Error fetching user profile:', profileError);
+          setMonthlyScore(0);
+          setLoading(false);
+          return;
+        }
+
+        const userCreatedAt = profile?.created_at ? parseISO(profile.created_at) : null;
         
         // Get all habit records that have weeks overlapping with the current month
         const { data, error } = await supabase
