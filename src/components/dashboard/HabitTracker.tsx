@@ -41,9 +41,20 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
 
     const loadUserCreationDate = async () => {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user?.created_at) {
-          setUserCreatedAt(parseISO(user.created_at));
+        // Use profiles.created_at for consistency with ranking and monthly score
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('created_at')
+          .eq('user_id', userId)
+          .single();
+          
+        if (error) {
+          console.error('Error loading user profile:', error);
+          return;
+        }
+        
+        if (profile?.created_at) {
+          setUserCreatedAt(parseISO(profile.created_at));
         }
       } catch (error) {
         console.error('Error loading user creation date:', error);
@@ -200,6 +211,31 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   
   // Check if habit name is defined to enable/disable buttons
   const isHabitDefined = habitData.habitName.trim().length > 0;
+  
+  // Check if current week is before account creation date
+  const isWeekBeforeAccountCreation = userCreatedAt && isBefore(weekStart, startOfDay(userCreatedAt));
+
+  if (isWeekBeforeAccountCreation) {
+    return (
+      <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
+        <Card className="enhanced-card">
+          <CardContent className="pt-6">
+            <div className="text-center py-8">
+              <p className="text-muted-foreground text-lg">
+                Ten tydzień jest sprzed założenia Twojego konta
+              </p>
+              <p className="text-sm text-muted-foreground mt-2">
+                Konto założone: {userCreatedAt ? format(userCreatedAt, 'dd.MM.yyyy', { locale: pl }) : 'Nieznana data'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Nie możesz dodawać nawyków w poprzednich tygodniach
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 sm:space-y-8 px-4 sm:px-0">
