@@ -258,56 +258,64 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
   return (
     <Card className="glass-card hover-lift animate-fade-in">
       <CardHeader className="pb-3">
-        <CardTitle className="gradient-text text-lg sm:text-xl font-bold">
-          Ranking użytkowników
-          {showMode === 'top50' && ` (Top 50)`}
-          {showMode === 'showMe' && ` - Twoja pozycja`}
-        </CardTitle>
+        <div>
+          <div className="gradient-text text-lg sm:text-xl font-bold">
+            Ranking użytkowników
+            <span className="hidden sm:inline">
+              {showMode === 'top50' && ` (Top 50)`}
+              {showMode === 'showMe' && ` - Twoja pozycja`}
+            </span>
+          </div>
+          {/* Mobile subtitle */}
+          <div className="block sm:hidden text-sm text-muted-foreground mt-1">
+            {showMode === 'top50' && `(Top 50)`}
+            {showMode === 'showMe' && `Twoja pozycja`}
+          </div>
+        </div>
         
         {/* Controls */}
         <div className="space-y-3">
-          {/* Button and personality filter */}
           <div className="flex flex-col sm:flex-row gap-2 sm:items-center justify-between">
             {/* Personality filter */}
-            <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 flex-1">
               <label htmlFor="personality-filter" className="text-xs sm:text-sm font-medium">
                 Filtruj po osobowości:
               </label>
-              <Select value={selectedPersonality} onValueChange={setSelectedPersonality}>
-                <SelectTrigger className="w-full sm:w-64 text-xs sm:text-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-popover border z-50">
-                  <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
-                  {Object.entries(personalityLabels).map(([value, label]) => (
-                    <SelectItem key={value} value={value}>{label}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {/* Action buttons */}
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={handleShowMe}
-                className="flex items-center gap-1"
-              >
-                <User className="h-4 w-4" />
-                <span className="hidden sm:inline">Znajdź mnie</span>
-              </Button>
-              {showMode !== 'top50' && (
+              <div className="flex gap-2">
+                <Select value={selectedPersonality} onValueChange={setSelectedPersonality}>
+                  <SelectTrigger className="flex-1 sm:w-64 text-xs sm:text-sm">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-popover border z-50">
+                    <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
+                    {Object.entries(personalityLabels).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                
+                {/* Action buttons - mobile: same line as filter */}
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleBackToTop}
-                  className="flex items-center gap-1"
+                  onClick={handleShowMe}
+                  className="flex items-center gap-1 flex-shrink-0"
                 >
-                  <RotateCcw className="h-4 w-4" />
-                  <span className="hidden sm:inline">Top 50</span>
+                  <User className="h-4 w-4" />
+                  <span className="hidden sm:inline">Znajdź mnie</span>
                 </Button>
-              )}
+                {showMode !== 'top50' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleBackToTop}
+                    className="flex items-center gap-1 flex-shrink-0"
+                  >
+                    <RotateCcw className="h-4 w-4" />
+                    <span className="hidden sm:inline">Top 50</span>
+                  </Button>
+                )}
+              </div>
             </div>
           </div>
         </div>
