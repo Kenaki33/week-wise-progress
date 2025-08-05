@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Search, User, RotateCcw } from 'lucide-react';
 import { format, startOfWeek, addDays, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
 
 type NutritionPersonality = 'ekspresowy_konsument' | 'emocjonalny_podjadacz' | 'beztroski_lasuch' | 'nieswiadomy_zjadacz' | 'perfekcjonista_dietetyczny' | 'wieczny_odchudzacz' | 'ogarniety_odzywiacze';
@@ -35,6 +38,8 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
   const [users, setUsers] = useState<RankingUser[]>([]);
   const [filteredUsers, setFilteredUsers] = useState<RankingUser[]>([]);
   const [selectedPersonality, setSelectedPersonality] = useState<string>('all');
+  const [searchTerm, setSearchTerm] = useState<string>('');
+  const [showMode, setShowMode] = useState<'top50' | 'search' | 'showMe'>('top50');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -43,8 +48,8 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
   }, []);
 
   useEffect(() => {
-    filterUsers();
-  }, [users, selectedPersonality]);
+    filterAndDisplayUsers();
+  }, [users, selectedPersonality, searchTerm, showMode]);
 
   const fetchRanking = async () => {
     setLoading(true);
@@ -191,17 +196,61 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
     }
   };
 
-  const filterUsers = () => {
-    if (selectedPersonality === 'all') {
-      setFilteredUsers(users);
+  const filterAndDisplayUsers = () => {
+    // First filter by personality
+    let personalityFiltered = users;
+    if (selectedPersonality !== 'all') {
+      personalityFiltered = users.filter(user => user.nutrition_personality === selectedPersonality);
+    }
+
+    // Then apply display logic based on mode
+    let displayUsers = personalityFiltered;
+    
+    if (showMode === 'top50') {
+      // Show only top 50
+      displayUsers = personalityFiltered.slice(0, 50);
+    } else if (showMode === 'search' && searchTerm.trim()) {
+      // Show users matching search term
+      displayUsers = personalityFiltered.filter(user => 
+        user.nickname.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    } else if (showMode === 'showMe') {
+      // Show current user (even if not in top 50)
+      const currentUser = personalityFiltered.find(user => user.user_id === currentUserId);
+      displayUsers = currentUser ? [currentUser] : [];
+    }
+    
+    setFilteredUsers(displayUsers);
+  };
+
+  const handleSearch = (term: string) => {
+    setSearchTerm(term);
+    if (term.trim()) {
+      setShowMode('search');
     } else {
-      const filtered = users.filter(user => user.nutrition_personality === selectedPersonality);
-      setFilteredUsers(filtered);
+      setShowMode('top50');
     }
   };
 
-  const getPositionDisplay = (index: number) => {
-    return index + 1;
+  const handleShowMe = () => {
+    setShowMode('showMe');
+    setSearchTerm('');
+  };
+
+  const handleBackToTop = () => {
+    setShowMode('top50');
+    setSearchTerm('');
+  };
+
+  const getRealPosition = (userId: string) => {
+    // Get real position in full ranking (filtered by personality if selected)
+    let personalityFiltered = users;
+    if (selectedPersonality !== 'all') {
+      personalityFiltered = users.filter(user => user.nutrition_personality === selectedPersonality);
+    }
+    
+    const userIndex = personalityFiltered.findIndex(user => user.user_id === userId);
+    return userIndex >= 0 ? userIndex + 1 : -1;
   };
 
   const getScoreColor = (score: number) => {
@@ -227,22 +276,67 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
   return (
     <Card className="glass-card hover-lift animate-fade-in">
       <CardHeader className="pb-3">
-        <CardTitle className="gradient-text text-lg sm:text-xl font-bold">Ranking użytkowników</CardTitle>
-        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-          <label htmlFor="personality-filter" className="text-xs sm:text-sm font-medium">
-            Filtruj po osobowości:
-          </label>
-          <Select value={selectedPersonality} onValueChange={setSelectedPersonality}>
-            <SelectTrigger className="w-full sm:w-64 text-xs sm:text-sm">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent className="bg-popover border z-50">
-              <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
-              {Object.entries(personalityLabels).map(([value, label]) => (
-                <SelectItem key={value} value={value}>{label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+        <CardTitle className="gradient-text text-lg sm:text-xl font-bold">
+          Ranking użytkowników
+          {showMode === 'top50' && ` (Top 50)`}
+          {showMode === 'search' && searchTerm && ` - Wyszukiwanie: "${searchTerm}"`}
+          {showMode === 'showMe' && ` - Twoja pozycja`}
+        </CardTitle>
+        
+        {/* Controls */}
+        <div className="space-y-3">
+          {/* Search and buttons */}
+          <div className="flex flex-col sm:flex-row gap-2">
+            <div className="relative flex-1">
+              <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Szukaj po nicku..."
+                value={searchTerm}
+                onChange={(e) => handleSearch(e.target.value)}
+                className="pl-8"
+              />
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleShowMe}
+                className="flex items-center gap-1"
+              >
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Znajdź mnie</span>
+              </Button>
+              {(showMode !== 'top50' || searchTerm) && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleBackToTop}
+                  className="flex items-center gap-1"
+                >
+                  <RotateCcw className="h-4 w-4" />
+                  <span className="hidden sm:inline">Top 50</span>
+                </Button>
+              )}
+            </div>
+          </div>
+          
+          {/* Personality filter */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+            <label htmlFor="personality-filter" className="text-xs sm:text-sm font-medium">
+              Filtruj po osobowości:
+            </label>
+            <Select value={selectedPersonality} onValueChange={setSelectedPersonality}>
+              <SelectTrigger className="w-full sm:w-64 text-xs sm:text-sm">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent className="bg-popover border z-50">
+                <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
+                {Object.entries(personalityLabels).map(([value, label]) => (
+                  <SelectItem key={value} value={value}>{label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
       </CardHeader>
       <CardContent className="p-2 sm:p-6">
@@ -264,7 +358,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
                   >
                     <div className="flex justify-between items-center">
                       <div className="flex items-center gap-2 flex-1 min-w-0">
-                        <span className="text-sm font-bold text-primary flex-shrink-0">#{getPositionDisplay(index)}</span>
+                        <span className="text-sm font-bold text-primary flex-shrink-0">#{getRealPosition(user.user_id)}</span>
                         <div className="min-w-0 flex-1">
                           <div className="font-medium text-xs truncate">
                             {user.nickname}
@@ -314,7 +408,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
                       className={isCurrentUser(user.user_id) ? 'bg-accent/50' : ''}
                     >
                       <TableCell className="font-medium">
-                        {getPositionDisplay(index)}
+                        {getRealPosition(user.user_id)}
                       </TableCell>
                       <TableCell className="font-medium">
                         {user.nickname}
