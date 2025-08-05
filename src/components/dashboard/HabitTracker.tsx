@@ -213,7 +213,9 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   const isHabitDefined = habitData.habitName.trim().length > 0;
   
   // Check if current week is before account creation date
-  const isWeekBeforeAccountCreation = userCreatedAt && isBefore(weekStart, startOfDay(userCreatedAt));
+  // Allow the week if account was created during this week
+  const weekEnd = addDays(weekStart, 6);
+  const isWeekBeforeAccountCreation = userCreatedAt && isBefore(weekEnd, startOfDay(userCreatedAt));
 
   if (isWeekBeforeAccountCreation) {
     return (
