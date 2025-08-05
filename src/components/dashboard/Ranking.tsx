@@ -226,17 +226,17 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
 
   return (
     <Card className="glass-card hover-lift animate-fade-in">
-      <CardHeader>
-        <CardTitle className="gradient-text text-xl font-bold">Ranking użytkowników</CardTitle>
-        <div className="flex items-center gap-2">
-          <label htmlFor="personality-filter" className="text-sm font-medium">
+      <CardHeader className="pb-3">
+        <CardTitle className="gradient-text text-lg sm:text-xl font-bold">Ranking użytkowników</CardTitle>
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2">
+          <label htmlFor="personality-filter" className="text-xs sm:text-sm font-medium">
             Filtruj po osobowości:
           </label>
           <Select value={selectedPersonality} onValueChange={setSelectedPersonality}>
-            <SelectTrigger className="w-64">
+            <SelectTrigger className="w-full sm:w-64 text-xs sm:text-sm">
               <SelectValue />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-popover border z-50">
               <SelectItem value="all">Wszyscy użytkownicy</SelectItem>
               {Object.entries(personalityLabels).map(([value, label]) => (
                 <SelectItem key={value} value={value}>{label}</SelectItem>
@@ -245,51 +245,97 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
           </Select>
         </div>
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-2 sm:p-6">
         {filteredUsers.length === 0 ? (
-          <div className="text-center py-8">
-            <p className="text-muted-foreground">Brak użytkowników do wyświetlenia</p>
+          <div className="text-center py-4 sm:py-8">
+            <p className="text-muted-foreground text-sm">Brak użytkowników do wyświetlenia</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
-            <Table className="modern-table">{/* Nowoczesny styl tabeli */}
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-16">Miejsce</TableHead>
-                  <TableHead>Nick</TableHead>
-                  <TableHead className="text-right">Punkty w tym miesiącu</TableHead>
-                  <TableHead className="text-right">Łączne punkty</TableHead>
-                  <TableHead>Osobowość żywieniowa</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
+          <div className="overflow-x-auto -mx-2 sm:mx-0">
+            <div className="min-w-full">
+              {/* Mobile view - stacked cards */}
+              <div className="block sm:hidden space-y-2">
                 {filteredUsers.map((user, index) => (
-                  <TableRow 
+                  <div 
                     key={user.user_id}
-                    className={isCurrentUser(user.user_id) ? 'bg-accent/50' : ''}
+                    className={`p-3 rounded-lg border ${
+                      isCurrentUser(user.user_id) ? 'bg-accent/50 border-primary/30' : 'bg-card border-border'
+                    }`}
                   >
-                    <TableCell className="font-medium">
-                      {getPositionDisplay(index)}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {user.nickname}
-                      {isCurrentUser(user.user_id) && (
-                        <span className="ml-2 text-xs text-primary">(Ty)</span>
-                      )}
-                    </TableCell>
-                    <TableCell className={`text-right font-semibold ${getScoreColor(user.monthly_score)}`}>
-                      {user.monthly_score >= 0 ? '+' : ''}{user.monthly_score}
-                    </TableCell>
-                    <TableCell className={`text-right font-semibold ${getScoreColor(user.total_score)}`}>
-                      {user.total_score >= 0 ? '+' : ''}{user.total_score}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {personalityLabels[user.nutrition_personality]}
-                    </TableCell>
-                  </TableRow>
+                    <div className="flex justify-between items-start mb-2">
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg font-bold text-primary">#{getPositionDisplay(index)}</span>
+                        <div>
+                          <div className="font-medium text-sm">
+                            {user.nickname}
+                            {isCurrentUser(user.user_id) && (
+                              <span className="ml-1 text-xs text-primary">(Ty)</span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted-foreground truncate">
+                            {personalityLabels[user.nutrition_personality]}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-xs">
+                      <div>
+                        <span className="text-muted-foreground">Ten miesiąc:</span>
+                        <span className={`ml-1 font-semibold ${getScoreColor(user.monthly_score)}`}>
+                          {user.monthly_score >= 0 ? '+' : ''}{user.monthly_score}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Łącznie:</span>
+                        <span className={`ml-1 font-semibold ${getScoreColor(user.total_score)}`}>
+                          {user.total_score >= 0 ? '+' : ''}{user.total_score}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </TableBody>
-            </Table>
+              </div>
+              
+              {/* Desktop view - table */}
+              <Table className="modern-table hidden sm:table">
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-16">Miejsce</TableHead>
+                    <TableHead>Nick</TableHead>
+                    <TableHead className="text-right">Punkty w tym miesiącu</TableHead>
+                    <TableHead className="text-right">Łączne punkty</TableHead>
+                    <TableHead>Osobowość żywieniowa</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredUsers.map((user, index) => (
+                    <TableRow 
+                      key={user.user_id}
+                      className={isCurrentUser(user.user_id) ? 'bg-accent/50' : ''}
+                    >
+                      <TableCell className="font-medium">
+                        {getPositionDisplay(index)}
+                      </TableCell>
+                      <TableCell className="font-medium">
+                        {user.nickname}
+                        {isCurrentUser(user.user_id) && (
+                          <span className="ml-2 text-xs text-primary">(Ty)</span>
+                        )}
+                      </TableCell>
+                      <TableCell className={`text-right font-semibold ${getScoreColor(user.monthly_score)}`}>
+                        {user.monthly_score >= 0 ? '+' : ''}{user.monthly_score}
+                      </TableCell>
+                      <TableCell className={`text-right font-semibold ${getScoreColor(user.total_score)}`}>
+                        {user.total_score >= 0 ? '+' : ''}{user.total_score}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {personalityLabels[user.nutrition_personality]}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         )}
       </CardContent>

@@ -272,11 +272,11 @@ export const UserPanel = ({ user }: UserPanelProps) => {
         </DialogHeader>
         
         <Tabs defaultValue="ranking" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 gap-1">
-            <TabsTrigger value="ranking" className="text-xs sm:text-sm px-2 sm:px-4">Ranking</TabsTrigger>
-            <TabsTrigger value="history" className="text-xs sm:text-sm px-2 sm:px-4">Historia punktacji</TabsTrigger>
-            <TabsTrigger value="profile" className="text-xs sm:text-sm px-2 sm:px-4">Profil</TabsTrigger>
-            <TabsTrigger value="password" className="text-xs sm:text-sm px-2 sm:px-4">Zmiana hasła</TabsTrigger>
+          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+            <TabsTrigger value="ranking" className="text-[10px] sm:text-sm px-1 sm:px-4 py-2 whitespace-nowrap">Ranking</TabsTrigger>
+            <TabsTrigger value="history" className="text-[10px] sm:text-sm px-1 sm:px-4 py-2 whitespace-nowrap">Historia</TabsTrigger>
+            <TabsTrigger value="profile" className="text-[10px] sm:text-sm px-1 sm:px-4 py-2 whitespace-nowrap">Profil</TabsTrigger>
+            <TabsTrigger value="password" className="text-[10px] sm:text-sm px-1 sm:px-4 py-2 whitespace-nowrap">Hasło</TabsTrigger>
           </TabsList>
           
           <TabsContent value="ranking" className="space-y-4">
