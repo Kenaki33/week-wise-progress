@@ -4,6 +4,7 @@ const config: CapacitorConfig = {
   appId: 'app.lovable.61266bf095104b0e83eae855bcfd8430',
   appName: 'week-wise-progress',
   webDir: 'dist',
+  version: '1.0.0',
   server: {
     url: 'https://61266bf0-9510-4b0e-83ea-e855bcfd8430.lovableproject.com?forceHideBadge=true',
     cleartext: true
