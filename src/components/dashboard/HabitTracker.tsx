@@ -151,6 +151,10 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     if (!userId || loading) return;
 
     const saveHabitData = async () => {
+      // Calculate dates for the week inside useEffect to avoid dependency issues
+      const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
+      const weekDates = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
+      
       const calculatedScore = calculateWeeklyScore(habitData.days, weekDates, habitData.habitName);
       
       console.log('SAVING HABIT DATA:', {
@@ -193,7 +197,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     // Debounce the save operation
     const timeoutId = setTimeout(saveHabitData, 1000);
     return () => clearTimeout(timeoutId);
-  }, [habitData.habitName, habitData.days, habitData.reflection, weekKey, userId, loading, toast, onDataChange, weekDates]);
+  }, [habitData.habitName, habitData.days, habitData.reflection, weekKey, userId, loading, selectedDate, userCreatedAt, toast, onDataChange]);
 
   const updateHabitName = (name: string) => {
     setHabitData(prev => ({ ...prev, habitName: name }));
