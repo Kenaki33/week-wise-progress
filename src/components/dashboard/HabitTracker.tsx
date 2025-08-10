@@ -157,14 +157,6 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
       
       const calculatedScore = calculateWeeklyScore(habitData.days, weekDates, habitData.habitName);
       
-      console.log('SAVING HABIT DATA:', {
-        user_id: userId,
-        week_key: weekKey,
-        habit_name: habitData.habitName,
-        days: habitData.days,
-        weekly_score: calculatedScore
-      });
-      
       const { error } = await supabase
         .from('habits')
         .upsert({
@@ -186,16 +178,18 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
           variant: "destructive",
         });
       } else {
-        console.log('HABIT DATA SAVED SUCCESSFULLY');
-        // Update local state with calculated score
-        setHabitData(prev => ({ ...prev, weeklyScore: calculatedScore }));
-        // Trigger monthly score refresh
-        onDataChange?.();
+        // Update local state with calculated score only if it changed
+        setHabitData(prev => {
+          if (prev.weeklyScore !== calculatedScore) {
+            onDataChange?.(); // Trigger monthly score refresh only on score change
+          }
+          return { ...prev, weeklyScore: calculatedScore };
+        });
       }
     };
 
-    // Debounce the save operation
-    const timeoutId = setTimeout(saveHabitData, 1000);
+    // Faster debounce for more responsive feel
+    const timeoutId = setTimeout(saveHabitData, 200);
     return () => clearTimeout(timeoutId);
   }, [habitData.habitName, habitData.days, habitData.reflection, weekKey, userId, loading, selectedDate, userCreatedAt, toast, onDataChange]);
 
