@@ -52,15 +52,6 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
               const yearStart = new Date(parseInt(year), 0, 1);
               const weekStartDate = startOfWeek(addDays(yearStart, (parseInt(week) - 1) * 7), { weekStartsOn: 1 });
               
-              // Debug for this specific user
-              if (userId === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
-                console.log('Processing week:', {
-                  week_key: record.week_key,
-                  weekStartDate: format(weekStartDate, 'yyyy-MM-dd'),
-                  days: record.days
-                });
-              }
-              
               // Check each day of the week
               record.days.forEach((status: number, dayIndex: number) => {
                 const dayDate = addDays(weekStartDate, dayIndex);
@@ -71,33 +62,24 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
                 if (dayMonth === targetMonth && 
                     (!userCreatedAt || !isBefore(dayDate, startOfDay(userCreatedAt)))) {
                   
-                  // Debug for this specific user
-                  if (userId === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
-                    console.log('Processing day (FIXED):', {
-                      dayDate: format(dayDate, 'yyyy-MM-dd'),
-                      dayMonth,
-                      targetMonth,
-                      status,
-                      userCreatedAt: userCreatedAt ? format(userCreatedAt, 'yyyy-MM-dd HH:mm') : 'null',
-                      isIncluded: !userCreatedAt || !isBefore(dayDate, startOfDay(userCreatedAt)),
-                      points: status === 1 ? 10 : status === 2 ? -10 : (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) ? -15 : 0
-                    });
-                  }
-                  
                   // Only calculate points if habit name is defined (not empty)
                   if (record.habit_name && record.habit_name.trim()) {
+                    let dayScore = 0;
+                    
                     if (status === 1) {
                       // Completed task: +10 points
-                      totalScore += 10;
+                      dayScore = 10;
                     } else if (status === 2) {
                       // Not completed task: -10 points
-                      totalScore -= 10;
+                      dayScore = -10;
                     } else if (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) {
                       // Unmarked past day: -15 points (only if habit is defined)
-                      totalScore -= 15;
+                      dayScore = -15;
                     }
+                    // Future days (status 0) contribute 0 points
+                    
+                    totalScore += dayScore;
                   }
-                  // Future days (status 0) contribute 0 points
                 }
               });
             }
