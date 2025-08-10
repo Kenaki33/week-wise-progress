@@ -35,7 +35,7 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
         // Get all habit records that have weeks overlapping with the current month
         const { data, error } = await supabase
           .from('habits')
-          .select('week_key, days, habit_name')
+          .select('week_key, days, habit_name, weekly_score')
           .eq('user_id', userId);
 
         if (error) {
@@ -44,7 +44,7 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
         } else {
           let totalScore = 0;
           
-          // Process each week's data to calculate points for days within the current month
+          // Process each week's data - use the calculated weekly_score for weeks that overlap with target month
           data?.forEach(record => {
             if (record.days && Array.isArray(record.days)) {
               // Parse week_key to get the week start date (format: YYYY-WW)
@@ -52,36 +52,24 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
               const yearStart = new Date(parseInt(year), 0, 1);
               const weekStartDate = startOfWeek(addDays(yearStart, (parseInt(week) - 1) * 7), { weekStartsOn: 1 });
               
-              // Check each day of the week
-              record.days.forEach((status: number, dayIndex: number) => {
+              // Check if this week has any days in the target month
+              let hasTargetMonthDays = false;
+              for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
                 const dayDate = addDays(weekStartDate, dayIndex);
                 const dayMonth = format(dayDate, 'yyyy-MM');
                 const targetMonth = format(selectedDate, 'yyyy-MM');
                 
-                // Only count days that are within the TARGET MONTH AND from account creation date onwards
                 if (dayMonth === targetMonth && 
                     (!userCreatedAt || !isBefore(dayDate, startOfDay(userCreatedAt)))) {
-                  
-                  // Only calculate points if habit name is defined (not empty)
-                  if (record.habit_name && record.habit_name.trim()) {
-                    let dayScore = 0;
-                    
-                    if (status === 1) {
-                      // Completed task: +10 points
-                      dayScore = 10;
-                    } else if (status === 2) {
-                      // Not completed task: -10 points
-                      dayScore = -10;
-                    } else if (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) {
-                      // Unmarked past day: -15 points (only if habit is defined)
-                      dayScore = -15;
-                    }
-                    // Future days (status 0) contribute 0 points
-                    
-                    totalScore += dayScore;
-                  }
+                  hasTargetMonthDays = true;
+                  break;
                 }
-              });
+              }
+              
+              // If this week has days in target month and has a habit name, use the weekly_score
+              if (hasTargetMonthDays && record.habit_name && record.habit_name.trim()) {
+                totalScore += record.weekly_score || 0;
+              }
             }
           });
           
