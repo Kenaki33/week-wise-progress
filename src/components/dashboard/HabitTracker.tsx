@@ -153,6 +153,14 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     const saveHabitData = async () => {
       const calculatedScore = calculateWeeklyScore(habitData.days, weekDates, habitData.habitName);
       
+      console.log('SAVING HABIT DATA:', {
+        user_id: userId,
+        week_key: weekKey,
+        habit_name: habitData.habitName,
+        days: habitData.days,
+        weekly_score: calculatedScore
+      });
+      
       const { error } = await supabase
         .from('habits')
         .upsert({
@@ -174,6 +182,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
           variant: "destructive",
         });
       } else {
+        console.log('HABIT DATA SAVED SUCCESSFULLY');
         // Update local state with calculated score
         setHabitData(prev => ({ ...prev, weeklyScore: calculatedScore }));
         // Trigger monthly score refresh
@@ -184,7 +193,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     // Debounce the save operation
     const timeoutId = setTimeout(saveHabitData, 1000);
     return () => clearTimeout(timeoutId);
-  }, [habitData.habitName, habitData.days, habitData.reflection, weekKey, userId, loading, toast]);
+  }, [habitData.habitName, habitData.days, habitData.reflection, weekKey, userId, loading, toast, onDataChange, weekDates]);
 
   const updateHabitName = (name: string) => {
     setHabitData(prev => ({ ...prev, habitName: name }));
