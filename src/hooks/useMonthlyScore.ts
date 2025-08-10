@@ -44,19 +44,44 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
         } else {
           let totalScore = 0;
           
+          console.log('=== MONTHLY SCORE DEBUG ===');
+          console.log('Target month:', format(selectedDate, 'yyyy-MM'));
+          console.log('User created at:', userCreatedAt ? format(userCreatedAt, 'yyyy-MM-dd') : 'null');
+          console.log('Total habit records found:', data?.length);
+          
           // Process each week's data to calculate points for days within the current month
           data?.forEach(record => {
+            console.log('Processing record:', {
+              week_key: record.week_key,
+              habit_name: record.habit_name,
+              days: record.days
+            });
+            
             if (record.days && Array.isArray(record.days)) {
               // Parse week_key to get the week start date (format: YYYY-WW)
               const [year, week] = record.week_key.split('-');
               const yearStart = new Date(parseInt(year), 0, 1);
               const weekStartDate = startOfWeek(addDays(yearStart, (parseInt(week) - 1) * 7), { weekStartsOn: 1 });
               
+              console.log('Week start date calculated:', format(weekStartDate, 'yyyy-MM-dd'));
+              
+              let weekScore = 0;
+              
               // Check each day of the week
               record.days.forEach((status: number, dayIndex: number) => {
                 const dayDate = addDays(weekStartDate, dayIndex);
                 const dayMonth = format(dayDate, 'yyyy-MM');
                 const targetMonth = format(selectedDate, 'yyyy-MM');
+                
+                console.log(`Day ${dayIndex}:`, {
+                  dayDate: format(dayDate, 'yyyy-MM-dd'),
+                  dayMonth,
+                  targetMonth,
+                  status,
+                  isInTargetMonth: dayMonth === targetMonth,
+                  isAfterAccountCreation: !userCreatedAt || !isBefore(dayDate, startOfDay(userCreatedAt)),
+                  habitNameDefined: !!(record.habit_name && record.habit_name.trim())
+                });
                 
                 // Only count days that are within the TARGET MONTH AND from account creation date onwards
                 if (dayMonth === targetMonth && 
@@ -78,13 +103,23 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
                     }
                     // Future days (status 0) contribute 0 points
                     
+                    weekScore += dayScore;
                     totalScore += dayScore;
+                    
+                    console.log(`  -> Day score: ${dayScore}, Week total: ${weekScore}, Monthly total: ${totalScore}`);
+                  } else {
+                    console.log('  -> Skipped (no habit name)');
                   }
+                } else {
+                  console.log('  -> Skipped (wrong month or before account creation)');
                 }
               });
+              
+              console.log(`Week ${record.week_key} total score: ${weekScore}`);
             }
           });
           
+          console.log('=== FINAL MONTHLY SCORE:', totalScore, '===');
           setMonthlyScore(totalScore);
         }
       } catch (error) {
