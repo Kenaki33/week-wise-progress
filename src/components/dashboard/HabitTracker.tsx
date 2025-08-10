@@ -117,6 +117,8 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     
     const today = new Date();
     let score = 0;
+    let completedDays = 0;
+    let validDaysCount = 0; // Days that count towards completion (not before account creation)
 
     days.forEach((status, index) => {
       const dayDate = weekDates[index];
@@ -126,9 +128,12 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
         return; // Skip days before account creation
       }
       
+      validDaysCount++; // This day counts towards completion
+      
       if (status === 1) {
         // Completed task: +10 points
         score += 10;
+        completedDays++;
       } else if (status === 2) {
         // Not completed task: -10 points
         score -= 10;
@@ -138,6 +143,11 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
       }
       // Future days (status 0) contribute 0 points
     });
+
+    // Bonus for completing ALL valid days in the week
+    if (validDaysCount > 0 && completedDays === validDaysCount) {
+      score += 10; // Perfect week bonus!
+    }
 
     return score;
   };
