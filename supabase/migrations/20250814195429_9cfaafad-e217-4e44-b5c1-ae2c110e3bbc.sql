@@ -1,0 +1,1 @@
+UPDATE habits SET days = ARRAY[0,0,0,0,0,0,0], weekly_score = 0 WHERE week_key = '2025-33' AND user_id = '6d18383f-7b4b-4c30-92f5-9bc3908dc815';
