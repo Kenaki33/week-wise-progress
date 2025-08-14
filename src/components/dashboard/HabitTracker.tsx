@@ -159,6 +159,12 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   // Auto-save functionality to Supabase
   useEffect(() => {
     if (!userId || loading) return;
+    
+    // Don't auto-save if we don't have a habit name or any marked days
+    // This prevents saving empty/default state when switching weeks
+    if (!habitData.habitName.trim() && habitData.days.every(day => day === 0)) {
+      return;
+    }
 
     const saveHabitData = async () => {
       // Calculate dates for the week inside useEffect to avoid dependency issues
