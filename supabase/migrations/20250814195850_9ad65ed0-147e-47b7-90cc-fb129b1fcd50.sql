@@ -1,0 +1,1 @@
+UPDATE habits SET days = ARRAY[0,0,0,0,0,0,0], weekly_score = 0;
