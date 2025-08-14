@@ -33,6 +33,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   });
   const [loading, setLoading] = useState(true);
   const [userCreatedAt, setUserCreatedAt] = useState<Date | null>(null);
+  const [hasUserInteracted, setHasUserInteracted] = useState(false);
   const { toast } = useToast();
 
   // Load user creation date
@@ -107,6 +108,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
       }
       
       setLoading(false);
+      setHasUserInteracted(false); // Reset interaction flag after loading
     };
 
     loadHabitData();
@@ -162,7 +164,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
 
   // Auto-save functionality to Supabase
   useEffect(() => {
-    if (!userId || loading) return;
+    if (!userId || loading || !hasUserInteracted) return;
     
     // Don't auto-save if we don't have a habit name or any marked days
     // This prevents saving empty/default state when switching weeks
@@ -214,10 +216,12 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   }, [habitData.habitName, habitData.days, habitData.reflection, weekKey, userId, loading, selectedDate, userCreatedAt, toast, onDataChange]);
 
   const updateHabitName = (name: string) => {
+    setHasUserInteracted(true);
     setHabitData(prev => ({ ...prev, habitName: name }));
   };
 
   const setDayStatus = (dayIndex: number, status: number) => {
+    setHasUserInteracted(true);
     setHabitData(prev => ({
       ...prev,
       days: prev.days.map((currentStatus, index) => 
@@ -227,6 +231,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   };
 
   const updateReflection = (reflection: string) => {
+    setHasUserInteracted(true);
     setHabitData(prev => ({ ...prev, reflection }));
   };
 
