@@ -71,6 +71,8 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     const loadHabitData = async () => {
       setLoading(true);
       
+      console.log('Loading habit data for week:', weekKey, 'user:', userId);
+      
       const { data, error } = await supabase
         .from('habits')
         .select('*')
@@ -86,6 +88,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
           variant: "destructive",
         });
       } else if (data) {
+        console.log('Found existing habit data:', data);
         setHabitData({
           habitName: data.habit_name || '',
           days: data.days || new Array(7).fill(0),
@@ -93,6 +96,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
           weeklyScore: data.weekly_score || 0
         });
       } else {
+        console.log('No existing data found, creating fresh week');
         // Reset for new week
         setHabitData({
           habitName: '',
