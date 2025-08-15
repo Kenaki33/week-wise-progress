@@ -411,7 +411,6 @@ export const UserPanel = ({ user }: UserPanelProps) => {
 
                 {/* Delete Account Section */}
                 <div className="mt-8 pt-6 border-t border-destructive/20">
-                  <h3 className="text-sm font-medium text-destructive mb-4">Strefa niebezpieczna</h3>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="destructive" className="w-full">
