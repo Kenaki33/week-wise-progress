@@ -6,10 +6,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { User } from '@supabase/supabase-js';
-import { Settings } from 'lucide-react';
+import { Settings, Trash2 } from 'lucide-react';
 import { PointsHistory } from './PointsHistory';
 import { Ranking } from './Ranking';
 
@@ -43,6 +44,7 @@ export const UserPanel = ({ user }: UserPanelProps) => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [deleteConfirmation, setDeleteConfirmation] = useState('');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
 
@@ -254,6 +256,66 @@ export const UserPanel = ({ user }: UserPanelProps) => {
     setLoading(false);
   };
 
+  const deleteAccount = async () => {
+    if (deleteConfirmation !== 'usuń') {
+      toast({
+        title: "Błąd",
+        description: "Wpisz słowo 'usuń' aby potwierdzić usunięcie konta",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Delete user's profile data first
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (profileError) {
+        console.error('Error deleting profile:', profileError);
+      }
+
+      // Delete user's habits data
+      const { error: habitsError } = await supabase
+        .from('habits')
+        .delete()
+        .eq('user_id', user.id);
+
+      if (habitsError) {
+        console.error('Error deleting habits:', habitsError);
+      }
+
+      // Delete the user account
+      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+
+      if (authError) {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się usunąć konta. Spróbuj ponownie później.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Sukces",
+          description: "Konto zostało usunięte",
+        });
+        // User will be automatically logged out
+      }
+    } catch (error) {
+      toast({
+        title: "Błąd",
+        description: "Wystąpił błąd podczas usuwania konta",
+        variant: "destructive",
+      });
+    }
+
+    setLoading(false);
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
@@ -346,6 +408,48 @@ export const UserPanel = ({ user }: UserPanelProps) => {
                 >
                   {loading ? 'Zapisywanie...' : 'Zapisz zmiany'}
                 </Button>
+
+                {/* Delete Account Section */}
+                <div className="mt-8 pt-6 border-t border-destructive/20">
+                  <h3 className="text-sm font-medium text-destructive mb-4">Strefa niebezpieczna</h3>
+                  <AlertDialog>
+                    <AlertDialogTrigger asChild>
+                      <Button variant="destructive" className="w-full">
+                        <Trash2 className="h-4 w-4 mr-2" />
+                        Usuń konto
+                      </Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>Czy na pewno chcesz usunąć konto?</AlertDialogTitle>
+                        <AlertDialogDescription>
+                          Ta akcja jest nieodwracalna. Wszystkie Twoje dane, w tym nawyki i punkty, zostaną trwale usunięte.
+                          <br /><br />
+                          Aby potwierdzić, wpisz słowo <strong>"usuń"</strong> w polu poniżej:
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <div className="my-4">
+                        <Input
+                          placeholder="Wpisz: usuń"
+                          value={deleteConfirmation}
+                          onChange={(e) => setDeleteConfirmation(e.target.value)}
+                        />
+                      </div>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setDeleteConfirmation('')}>
+                          Anuluj
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          onClick={deleteAccount}
+                          disabled={loading || deleteConfirmation !== 'usuń'}
+                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                        >
+                          {loading ? 'Usuwanie...' : 'Usuń konto'}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>
