@@ -149,8 +149,8 @@ export const calculateMonthlyScores = (
       userCreatedAt
     );
     
-    // Distribute daily points to months
-    weekScore.weekStartDate && record.days.forEach((status: number, dayIndex: number) => {
+    // First, ensure all months for this week exist in monthlyScores
+    for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
       const dayDate = addDays(weekScore.weekStartDate, dayIndex);
       
       // Only count days from account creation onwards
@@ -164,6 +164,16 @@ export const calculateMonthlyScores = (
             weeks: []
           };
         }
+      }
+    }
+    
+    // Then distribute daily points to months
+    record.days.forEach((status: number, dayIndex: number) => {
+      const dayDate = addDays(weekScore.weekStartDate, dayIndex);
+      
+      // Only count days from account creation onwards
+      if (!userCreatedAt || !isBefore(dayDate, startOfDay(userCreatedAt))) {
+        const monthKey = format(dayDate, 'yyyy-MM');
         
         const dayPoints = calculateDayPoints(
           status,
@@ -176,7 +186,7 @@ export const calculateMonthlyScores = (
       }
     });
     
-    // Add perfect week bonus to the appropriate month
+    // Finally, add perfect week bonus to the appropriate month
     if (weekScore.perfectWeekBonus > 0) {
       const bonusMonth = getMonthForPerfectWeekBonus(weekScore.weekStartDate, userCreatedAt);
       if (bonusMonth && monthlyScores[bonusMonth]) {
