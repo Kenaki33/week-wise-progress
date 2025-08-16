@@ -77,6 +77,9 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
       const currentDate = new Date();
       const currentMonth = format(currentDate, 'yyyy-MM');
 
+      // Import scoring functions
+      const { calculateTotalScore, calculateMonthlyScores } = await import('@/hooks/useScoring');
+
       const usersWithScores = profiles.map(profile => {
         const userHabits = habits?.filter(habit => habit.user_id === profile.user_id) || [];
         
@@ -95,69 +98,11 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
           });
         }
 
-        userHabits.forEach(habit => {
-          if (habit.days && Array.isArray(habit.days) && habit.habit_name && habit.habit_name.trim()) {
-            // Parse week_key to get the week start date (format: YYYY-WW)
-            const [year, week] = habit.week_key.split('-');
-            const yearStart = new Date(parseInt(year), 0, 1);
-            const weekStartDate = startOfWeek(addDays(yearStart, (parseInt(week) - 1) * 7), { weekStartsOn: 1 });
-            
-            let weekScore = 0;
-            let weeklyCompletedDays = 0;
-            let weeklyValidDaysCount = 0;
-            let weeklyMonthlyScore = 0;
-            
-            // Check each day of the week
-            habit.days.forEach((status: number, dayIndex: number) => {
-              const dayDate = addDays(weekStartDate, dayIndex);
-              
-              // Only count days from account creation date onwards
-              if (!isBefore(dayDate, startOfDay(userCreatedAt))) {
-                weeklyValidDaysCount++;
-                const dayMonth = format(dayDate, 'yyyy-MM');
-                
-                let dayScore = 0;
-                if (status === 1) {
-                  // Completed task: +10 points
-                  dayScore = 10;
-                  weeklyCompletedDays++;
-                } else if (status === 2) {
-                  // Not completed task: -10 points
-                  dayScore = -10;
-                } else if (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) {
-                  // Unmarked past day: -15 points
-                  dayScore = -15;
-                }
-                
-                weekScore += dayScore;
-                
-                // Monthly score: only current month days
-                if (dayMonth === currentMonth) {
-                  weeklyMonthlyScore += dayScore;
-                }
-              }
-            });
-            
-            // Add perfect week bonus (+10) if all valid days completed
-            if (weeklyValidDaysCount > 0 && weeklyCompletedDays === weeklyValidDaysCount) {
-              weekScore += 10;
-              
-              // Check if this week contributes to current month for bonus
-              const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStartDate, i));
-              const hasCurrentMonthDays = weekDates.some(date => 
-                format(date, 'yyyy-MM') === currentMonth && 
-                !isBefore(date, startOfDay(userCreatedAt))
-              );
-              
-              if (hasCurrentMonthDays) {
-                weeklyMonthlyScore += 10;
-              }
-            }
-            
-            totalScore += weekScore;
-            monthlyScore += weeklyMonthlyScore;
-          }
-        });
+        // Use the unified scoring system
+        totalScore = calculateTotalScore(userHabits, userCreatedAt);
+        
+        const monthlyScores = calculateMonthlyScores(userHabits, userCreatedAt);
+        monthlyScore = monthlyScores[currentMonth]?.points || 0;
 
         return {
           user_id: profile.user_id,
