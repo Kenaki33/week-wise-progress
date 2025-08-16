@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, RotateCcw } from 'lucide-react';
-import { format, startOfWeek, addDays, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
+import { useUnifiedScoring } from '@/hooks/useUnifiedScoring';
 
 type NutritionPersonality = 'ekspresowy_konsument' | 'emocjonalny_podjadacz' | 'beztroski_lasuch' | 'nieswiadomy_zjadacz' | 'perfekcjonista_dietetyczny' | 'wieczny_odchudzacz' | 'ogarniety_odzywiacze';
 
@@ -40,6 +40,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
   const [showMode, setShowMode] = useState<'top50' | 'showMe'>('top50');
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { calculateUserScores } = useUnifiedScoring();
 
   useEffect(() => {
     fetchRanking();
@@ -66,112 +67,7 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
         return;
       }
 
-      // Pobierz wszystkie habits dla wszystkich użytkowników
-      const { data: habits, error: habitsError } = await supabase
-        .from('habits')
-        .select('user_id, days, week_key, habit_name');
-
-      if (habitsError) throw habitsError;
-
-      // Pobierz daty utworzenia kont - użyj zawsze profiles.created_at dla spójności
-      const currentDate = new Date();
-      const currentMonth = format(currentDate, 'yyyy-MM');
-
-      const usersWithScores = profiles.map(profile => {
-        const userHabits = habits?.filter(habit => habit.user_id === profile.user_id) || [];
-        
-        let monthlyScore = 0;
-        let totalScore = 0;
-        
-        // Użyj zawsze daty z profiles dla spójności (tak samo dla wszystkich użytkowników)
-        const userCreatedAt = parseISO(profile.created_at);
-
-        // Debug dla User_6e823a2b
-        if (profile.user_id === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
-          console.log('RANKING - Processing user:', {
-            nickname: profile.nickname,
-            userCreatedAt: format(userCreatedAt, 'yyyy-MM-dd HH:mm'),
-            totalHabits: userHabits.length
-          });
-        }
-
-        userHabits.forEach(habit => {
-          if (habit.days && Array.isArray(habit.days) && habit.habit_name && habit.habit_name.trim()) {
-            // Parse week_key to get the week start date (format: YYYY-WW)
-            const [year, week] = habit.week_key.split('-');
-            const yearStart = new Date(parseInt(year), 0, 1);
-            const weekStartDate = startOfWeek(addDays(yearStart, (parseInt(week) - 1) * 7), { weekStartsOn: 1 });
-            
-            let weekScore = 0;
-            let weeklyCompletedDays = 0;
-            let weeklyValidDaysCount = 0;
-            let weeklyMonthlyScore = 0;
-            
-            // Check each day of the week
-            habit.days.forEach((status: number, dayIndex: number) => {
-              const dayDate = addDays(weekStartDate, dayIndex);
-              
-              // Only count days from account creation date onwards
-              if (!isBefore(dayDate, startOfDay(userCreatedAt))) {
-                weeklyValidDaysCount++;
-                const dayMonth = format(dayDate, 'yyyy-MM');
-                
-                let dayScore = 0;
-                if (status === 1) {
-                  // Completed task: +10 points
-                  dayScore = 10;
-                  weeklyCompletedDays++;
-                } else if (status === 2) {
-                  // Not completed task: -10 points
-                  dayScore = -10;
-                } else if (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) {
-                  // Unmarked past day: -15 points
-                  dayScore = -15;
-                }
-                
-                weekScore += dayScore;
-                
-                // Monthly score: only current month days
-                if (dayMonth === currentMonth) {
-                  weeklyMonthlyScore += dayScore;
-                }
-              }
-            });
-            
-            // Add perfect week bonus (+10) if all valid days completed
-            if (weeklyValidDaysCount > 0 && weeklyCompletedDays === weeklyValidDaysCount) {
-              weekScore += 10;
-              
-              // Check if this week contributes to current month for bonus
-              const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStartDate, i));
-              const hasCurrentMonthDays = weekDates.some(date => 
-                format(date, 'yyyy-MM') === currentMonth && 
-                !isBefore(date, startOfDay(userCreatedAt))
-              );
-              
-              if (hasCurrentMonthDays) {
-                weeklyMonthlyScore += 10;
-              }
-            }
-            
-            totalScore += weekScore;
-            monthlyScore += weeklyMonthlyScore;
-          }
-        });
-
-        return {
-          user_id: profile.user_id,
-          nickname: profile.nickname,
-          nutrition_personality: profile.nutrition_personality,
-          monthly_score: monthlyScore,
-          total_score: totalScore,
-          created_at: profile.created_at
-        };
-      });
-
-      // Sortuj według punktów miesięcznych (malejąco)
-      usersWithScores.sort((a, b) => b.monthly_score - a.monthly_score);
-      
+      const usersWithScores = await calculateUserScores(profiles);
       setUsers(usersWithScores);
     } catch (error) {
       toast({
