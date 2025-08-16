@@ -86,38 +86,58 @@ export const PointsHistory = ({ userId }: PointsHistoryProps) => {
 
       // Process habit data to calculate monthly points
       habitsData?.forEach(record => {
-        if (record.days && Array.isArray(record.days)) {
+        if (record.days && Array.isArray(record.days) && record.habit_name && record.habit_name.trim()) {
           // Parse week_key to get the week start date (format: YYYY-WW)
           const [year, week] = record.week_key.split('-');
           const yearStart = new Date(parseInt(year), 0, 1);
           const weekStartDate = startOfWeek(addDays(yearStart, (parseInt(week) - 1) * 7), { weekStartsOn: 1 });
           
+          let completedDays = 0;
+          let validDaysCount = 0;
+          const weekMonthlyContributions: { [monthKey: string]: number } = {};
+          
           // Check each day of the week
           record.days.forEach((status: number, dayIndex: number) => {
             const dayDate = addDays(weekStartDate, dayIndex);
             
-            // Only count days from account creation date onwards (using startOfDay like useMonthlyScore)
+            // Only count days from account creation date onwards
             if (!isBefore(dayDate, startOfDay(createdAt))) {
+              validDaysCount++;
               const monthKey = format(dayDate, 'yyyy-MM');
               
               if (monthlyPoints[monthKey]) {
-                // Only calculate points if habit name is defined (not empty)
-                if (record.habit_name && record.habit_name.trim()) {
-                  if (status === 1) {
-                    // Completed task: +10 points
-                    monthlyPoints[monthKey].points += 10;
-                  } else if (status === 2) {
-                    // Not completed task: -10 points
-                    monthlyPoints[monthKey].points -= 10;
-                  } else if (status === 0 && (isBefore(dayDate, now) || isToday(dayDate))) {
-                    // Unmarked past day: -15 points (only if habit is defined)
-                    monthlyPoints[monthKey].points -= 15;
-                  }
+                let dayScore = 0;
+                if (status === 1) {
+                  // Completed task: +10 points
+                  dayScore = 10;
+                  completedDays++;
+                } else if (status === 2) {
+                  // Not completed task: -10 points
+                  dayScore = -10;
+                } else if (status === 0 && (isBefore(dayDate, now) || isToday(dayDate))) {
+                  // Unmarked past day: -15 points
+                  dayScore = -15;
                 }
-                // Future days (status 0) contribute 0 points
+                
+                monthlyPoints[monthKey].points += dayScore;
+                
+                // Track which months this week contributes to
+                if (!weekMonthlyContributions[monthKey]) {
+                  weekMonthlyContributions[monthKey] = 0;
+                }
               }
             }
           });
+          
+          // Add perfect week bonus (+10) if all valid days completed
+          if (validDaysCount > 0 && completedDays === validDaysCount) {
+            // Distribute bonus to months that this week contributes to
+            Object.keys(weekMonthlyContributions).forEach(monthKey => {
+              if (monthlyPoints[monthKey]) {
+                monthlyPoints[monthKey].points += 10;
+              }
+            });
+          }
         }
       });
 

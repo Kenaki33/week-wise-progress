@@ -96,76 +96,66 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
         }
 
         userHabits.forEach(habit => {
-          if (habit.days && Array.isArray(habit.days)) {
+          if (habit.days && Array.isArray(habit.days) && habit.habit_name && habit.habit_name.trim()) {
             // Parse week_key to get the week start date (format: YYYY-WW)
             const [year, week] = habit.week_key.split('-');
             const yearStart = new Date(parseInt(year), 0, 1);
             const weekStartDate = startOfWeek(addDays(yearStart, (parseInt(week) - 1) * 7), { weekStartsOn: 1 });
             
-            // Debug dla User_6e823a2b
-            if (profile.user_id === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
-              console.log('RANKING - Processing week:', {
-                week_key: habit.week_key,
-                weekStartDate: format(weekStartDate, 'yyyy-MM-dd'),
-                days: habit.days,
-                habit_name: habit.habit_name
-              });
-            }
+            let weekScore = 0;
+            let weeklyCompletedDays = 0;
+            let weeklyValidDaysCount = 0;
+            let weeklyMonthlyScore = 0;
             
             // Check each day of the week
             habit.days.forEach((status: number, dayIndex: number) => {
               const dayDate = addDays(weekStartDate, dayIndex);
               
-              // Only count days from account creation date onwards (identyczna logika jak useMonthlyScore)
+              // Only count days from account creation date onwards
               if (!isBefore(dayDate, startOfDay(userCreatedAt))) {
+                weeklyValidDaysCount++;
                 const dayMonth = format(dayDate, 'yyyy-MM');
                 
-                // Only calculate points if habit name is defined (not empty)
-                if (habit.habit_name && habit.habit_name.trim()) {
-                  let dayScore = 0;
-                  if (status === 1) {
-                    // Completed task: +10 points
-                    dayScore = 10;
-                  } else if (status === 2) {
-                    // Not completed task: -10 points
-                    dayScore = -10;
-                  } else if (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) {
-                    // Unmarked past day: -15 points (only if habit is defined)
-                    dayScore = -15;
-                  }
-                  
-                  // Debug dla User_6e823a2b - loguj każdy dzień
-                  if (profile.user_id === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
-                    console.log('RANKING - Processing day:', {
-                      dayDate: format(dayDate, 'yyyy-MM-dd'),
-                      dayMonth,
-                      currentMonth,
-                      status,
-                      dayScore,
-                      habit_name: habit.habit_name
-                    });
-                  }
-                  
-                  // TOTAL SCORE: wszystkie punkty od założenia konta
-                  totalScore += dayScore;
-                  
-                  // MONTHLY SCORE: tylko punkty z bieżącego miesiąca
-                  if (dayMonth === currentMonth) {
-                    monthlyScore += dayScore;
-                    
-                    // Debug dla User_6e823a2b - loguj miesięczne punkty
-                    if (profile.user_id === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
-                      console.log('RANKING - Monthly point added:', {
-                        dayDate: format(dayDate, 'yyyy-MM-dd'),
-                        dayScore,
-                        monthlyScore
-                      });
-                    }
-                  }
+                let dayScore = 0;
+                if (status === 1) {
+                  // Completed task: +10 points
+                  dayScore = 10;
+                  weeklyCompletedDays++;
+                } else if (status === 2) {
+                  // Not completed task: -10 points
+                  dayScore = -10;
+                } else if (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) {
+                  // Unmarked past day: -15 points
+                  dayScore = -15;
                 }
-                // Future days (status 0) contribute 0 points
+                
+                weekScore += dayScore;
+                
+                // Monthly score: only current month days
+                if (dayMonth === currentMonth) {
+                  weeklyMonthlyScore += dayScore;
+                }
               }
             });
+            
+            // Add perfect week bonus (+10) if all valid days completed
+            if (weeklyValidDaysCount > 0 && weeklyCompletedDays === weeklyValidDaysCount) {
+              weekScore += 10;
+              
+              // Check if this week contributes to current month for bonus
+              const weekDates = Array.from({ length: 7 }, (_, i) => addDays(weekStartDate, i));
+              const hasCurrentMonthDays = weekDates.some(date => 
+                format(date, 'yyyy-MM') === currentMonth && 
+                !isBefore(date, startOfDay(userCreatedAt))
+              );
+              
+              if (hasCurrentMonthDays) {
+                weeklyMonthlyScore += 10;
+              }
+            }
+            
+            totalScore += weekScore;
+            monthlyScore += weeklyMonthlyScore;
           }
         });
 
