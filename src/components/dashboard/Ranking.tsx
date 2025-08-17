@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { User, RotateCcw } from 'lucide-react';
-import { format, startOfWeek, addDays, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
+import { format, parseISO } from 'date-fns';
+import { dedupeHabitsByWeek } from '@/utils/habitsDedup';
 
 type NutritionPersonality = 'ekspresowy_konsument' | 'emocjonalny_podjadacz' | 'beztroski_lasuch' | 'nieswiadomy_zjadacz' | 'perfekcjonista_dietetyczny' | 'wieczny_odchudzacz' | 'ogarniety_odzywiacze';
 
@@ -66,14 +67,13 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
         return;
       }
 
-      // Pobierz wszystkie habits dla wszystkich użytkowników
+      // Pobierz wszystkie habits dla wszystkich użytkowników (z timestampami do deduplikacji)
       const { data: habits, error: habitsError } = await supabase
         .from('habits')
-        .select('user_id, days, week_key, habit_name');
+        .select('user_id, days, week_key, habit_name, updated_at, created_at');
 
       if (habitsError) throw habitsError;
 
-      // Pobierz daty utworzenia kont - użyj zawsze profiles.created_at dla spójności
       const currentDate = new Date();
       const currentMonth = format(currentDate, 'yyyy-MM');
 
@@ -81,27 +81,18 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
       const { calculateTotalScore, calculateMonthlyScores } = await import('@/hooks/useScoring');
 
       const usersWithScores = profiles.map(profile => {
-        const userHabits = habits?.filter(habit => habit.user_id === profile.user_id) || [];
-        
+        const userHabitsRaw = habits?.filter(habit => habit.user_id === profile.user_id) || [];
+        const userHabits = dedupeHabitsByWeek(userHabitsRaw);
+
         let monthlyScore = 0;
         let totalScore = 0;
         
-        // Użyj zawsze daty z profiles dla spójności (tak samo dla wszystkich użytkowników)
         const userCreatedAt = parseISO(profile.created_at);
 
-        // Debug dla User_6e823a2b
-        if (profile.user_id === '6e823a2b-a430-4837-9f1d-7ca551d7197e') {
-          console.log('RANKING - Processing user:', {
-            nickname: profile.nickname,
-            userCreatedAt: format(userCreatedAt, 'yyyy-MM-dd HH:mm'),
-            totalHabits: userHabits.length
-          });
-        }
-
         // Use the unified scoring system
-        totalScore = calculateTotalScore(userHabits, userCreatedAt);
+        totalScore = calculateTotalScore(userHabits as any, userCreatedAt);
         
-        const monthlyScores = calculateMonthlyScores(userHabits, userCreatedAt);
+        const monthlyScores = calculateMonthlyScores(userHabits as any, userCreatedAt);
         monthlyScore = monthlyScores[currentMonth]?.points || 0;
 
         return {

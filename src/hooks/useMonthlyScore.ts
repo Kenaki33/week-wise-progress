@@ -1,7 +1,9 @@
+
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { format, parseISO } from 'date-fns';
 import { calculateMonthlyScores } from './useScoring';
+import { dedupeHabitsByWeek } from '@/utils/habitsDedup';
 
 export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTrigger?: number) => {
   const [monthlyScore, setMonthlyScore] = useState<number>(0);
@@ -30,17 +32,18 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
 
         const userCreatedAt = profile?.created_at ? parseISO(profile.created_at) : null;
         
-        // Get all habit records
+        // Get all habit records (include timestamps for safe dedupe)
         const { data, error } = await supabase
           .from('habits')
-          .select('week_key, days, habit_name')
+          .select('week_key, days, habit_name, updated_at, created_at')
           .eq('user_id', userId);
 
         if (error) {
           console.error('Error fetching monthly score:', error);
           setMonthlyScore(0);
         } else {
-          const monthlyScores = calculateMonthlyScores(data || [], userCreatedAt);
+          const safeData = dedupeHabitsByWeek(data || []);
+          const monthlyScores = calculateMonthlyScores(safeData, userCreatedAt);
           const targetMonth = format(selectedDate, 'yyyy-MM');
           const score = monthlyScores[targetMonth]?.points || 0;
           setMonthlyScore(score);

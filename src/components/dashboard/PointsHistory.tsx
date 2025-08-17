@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { format, startOfMonth, endOfMonth, addDays, startOfWeek, isBefore, isToday, isWithinInterval, parseISO, isAfter, startOfDay } from 'date-fns';
+import { format, parseISO, isAfter, startOfMonth } from 'date-fns';
 import { pl } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
+import { dedupeHabitsByWeek } from '@/utils/habitsDedup';
 
 interface PointsHistoryProps {
   userId: string;
@@ -50,10 +51,10 @@ export const PointsHistory = ({ userId }: PointsHistoryProps) => {
       const createdAt = parseISO(profile.created_at);
       setUserCreatedAt(createdAt);
       
-      // Get all habit data for the user
+      // Get all habit data for the user (include timestamps for safe dedupe)
       const { data: habitsData, error: habitsError } = await supabase
         .from('habits')
-        .select('week_key, days, habit_name')
+        .select('week_key, days, habit_name, updated_at, created_at')
         .eq('user_id', userId);
 
       if (habitsError) {
@@ -65,6 +66,9 @@ export const PointsHistory = ({ userId }: PointsHistoryProps) => {
         });
         return;
       }
+
+      // Dedupe by (week_key)
+      const safeHabits = dedupeHabitsByWeek(habitsData || []);
 
       // Calculate points for each month from account creation
       const monthlyPoints: { [key: string]: MonthlyPoints } = {};
@@ -86,7 +90,7 @@ export const PointsHistory = ({ userId }: PointsHistoryProps) => {
 
       // Use the unified scoring system
       const { calculateMonthlyScores } = await import('@/hooks/useScoring');
-      const monthlyScores = calculateMonthlyScores(habitsData || [], createdAt);
+      const monthlyScores = calculateMonthlyScores(safeHabits || [], createdAt);
       
       // Update monthlyPoints with calculated scores
       Object.entries(monthlyScores).forEach(([monthKey, scoreData]) => {
