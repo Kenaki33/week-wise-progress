@@ -4,11 +4,12 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfWeek, addDays, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import { Check, X } from 'lucide-react';
+import { Check, X, Save, Edit2 } from 'lucide-react';
 
 interface HabitData {
   habitName: string;
@@ -34,6 +35,10 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   const [loading, setLoading] = useState(true);
   const [userCreatedAt, setUserCreatedAt] = useState<Date | null>(null);
   const [hasUserInteracted, setHasUserInteracted] = useState(false);
+  const [isHabitSaved, setIsHabitSaved] = useState(false);
+  const [isChangeDialogOpen, setIsChangeDialogOpen] = useState(false);
+  const [confirmationWord, setConfirmationWord] = useState('');
+  const [tempHabitName, setTempHabitName] = useState('');
   const { toast } = useToast();
 
   // Load user creation date
@@ -96,6 +101,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
           reflection: data.reflection || '',
           weeklyScore: data.weekly_score || 0
         });
+        setIsHabitSaved(!!data.habit_name?.trim());
       } else {
         console.log('No existing data found, creating fresh week');
         // Reset for new week
@@ -105,6 +111,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
           reflection: '',
           weeklyScore: 0
         });
+        setIsHabitSaved(false);
       }
       
       setLoading(false);
@@ -235,6 +242,111 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     setHabitData(prev => ({ ...prev, reflection }));
   };
 
+  const handleSaveHabit = async () => {
+    if (!habitData.habitName.trim()) {
+      toast({
+        title: "Błąd",
+        description: "Musisz wpisać nazwę nawyku",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from('habits')
+      .upsert({
+        user_id: userId,
+        week_key: weekKey,
+        habit_name: habitData.habitName,
+        days: habitData.days,
+        reflection: habitData.reflection,
+        weekly_score: calculateWeeklyScore(habitData.days, weekDates, habitData.habitName)
+      }, {
+        onConflict: 'user_id,week_key'
+      });
+
+    if (error) {
+      console.error('Error saving habit:', error);
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zapisać nawyku",
+        variant: "destructive",
+      });
+    } else {
+      setIsHabitSaved(true);
+      toast({
+        title: "Sukces",
+        description: "Nawyk został zapisany",
+      });
+    }
+  };
+
+  const handleChangeHabit = () => {
+    setTempHabitName(habitData.habitName);
+    setIsChangeDialogOpen(true);
+    setConfirmationWord('');
+  };
+
+  const confirmChangeHabit = async () => {
+    if (confirmationWord.toLowerCase() !== 'zmień') {
+      toast({
+        title: "Błąd",
+        description: "Wpisz słowo 'zmień' aby potwierdzić",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (!tempHabitName.trim()) {
+      toast({
+        title: "Błąd",
+        description: "Musisz wpisać nową nazwę nawyku",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Zerowanie danych tygodnia
+    const resetData = {
+      habitName: tempHabitName,
+      days: new Array(7).fill(0),
+      reflection: '',
+      weeklyScore: 0
+    };
+
+    const { error } = await supabase
+      .from('habits')
+      .upsert({
+        user_id: userId,
+        week_key: weekKey,
+        habit_name: resetData.habitName,
+        days: resetData.days,
+        reflection: resetData.reflection,
+        weekly_score: resetData.weeklyScore
+      }, {
+        onConflict: 'user_id,week_key'
+      });
+
+    if (error) {
+      console.error('Error changing habit:', error);
+      toast({
+        title: "Błąd",
+        description: "Nie udało się zmienić nawyku",
+        variant: "destructive",
+      });
+    } else {
+      setHabitData(resetData);
+      setIsChangeDialogOpen(false);
+      setConfirmationWord('');
+      setTempHabitName('');
+      toast({
+        title: "Sukces",
+        description: "Nawyk został zmieniony i dane wyzerowane",
+      });
+      onDataChange?.();
+    }
+  };
+
   const dayNames = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela'];
   
   const completedDays = habitData.days.filter(status => status === 1).length;
@@ -281,15 +393,42 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <Input
-            placeholder="Wpisz nawyk, nad którym chcesz pracować..."
-            value={habitData.habitName}
-            onChange={(e) => updateHabitName(e.target.value)}
-            className="modern-input text-base sm:text-lg py-3 px-4"
-          />
-          {!isHabitDefined && (
+          <div className="flex gap-3">
+            <Input
+              placeholder="Wpisz nawyk, nad którym chcesz pracować..."
+              value={habitData.habitName}
+              onChange={(e) => updateHabitName(e.target.value)}
+              className="modern-input text-base sm:text-lg py-3 px-4 flex-1"
+              disabled={isHabitSaved}
+            />
+            {!isHabitSaved ? (
+              <Button
+                onClick={handleSaveHabit}
+                disabled={!habitData.habitName.trim()}
+                className="px-6"
+              >
+                <Save className="w-4 h-4 mr-2" />
+                Zapisz nawyk
+              </Button>
+            ) : (
+              <Button
+                onClick={handleChangeHabit}
+                variant="outline"
+                className="px-6"
+              >
+                <Edit2 className="w-4 h-4 mr-2" />
+                Zmień nawyk
+              </Button>
+            )}
+          </div>
+          {!isHabitSaved && !isHabitDefined && (
             <p className="text-sm text-muted-foreground mt-2 animate-fade-in">
-              Wpisz nazwę nawyku, aby móc go śledzić i zdobywać punkty
+              Wpisz nazwę nawyku i kliknij "Zapisz nawyk" aby móc go śledzić
+            </p>
+          )}
+          {isHabitSaved && (
+            <p className="text-sm text-green-600 dark:text-green-400 mt-2 animate-fade-in">
+              Nawyk został zapisany. Użyj "Zmień nawyk" aby go edytować.
             </p>
           )}
         </CardContent>
@@ -376,7 +515,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                       size="sm"
                       onClick={() => setDayStatus(index, dayStatus === 1 ? 0 : 1)}
                       className={`${dayStatus === 1 ? 'bg-green-500 hover:bg-green-600 text-white' : 'border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20'}`}
-                      disabled={isFutureDay || !isHabitDefined}
+                      disabled={isFutureDay || !isHabitSaved}
                     >
                       <Check className="w-4 h-4" />
                     </Button>
@@ -386,7 +525,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                       size="sm"
                       onClick={() => setDayStatus(index, dayStatus === 2 ? 0 : 2)}
                       className={`${dayStatus === 2 ? 'bg-red-500 hover:bg-red-600 text-white' : 'border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20'}`}
-                      disabled={isFutureDay || !isHabitDefined}
+                      disabled={isFutureDay || !isHabitSaved}
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -415,6 +554,54 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
           />
         </CardContent>
       </Card>
+
+      {/* Dialog potwierdzenia zmiany nawyku */}
+      <Dialog open={isChangeDialogOpen} onOpenChange={setIsChangeDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Zmiana nawyku</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Zmiana nawyku spowoduje wyzerowanie wszystkich danych tego tygodnia (zaznaczone dni i refleksja).
+            </p>
+            <div>
+              <Label htmlFor="new-habit">Nowa nazwa nawyku:</Label>
+              <Input
+                id="new-habit"
+                value={tempHabitName}
+                onChange={(e) => setTempHabitName(e.target.value)}
+                placeholder="Wpisz nową nazwę nawyku..."
+                className="mt-1"
+              />
+            </div>
+            <div>
+              <Label htmlFor="confirmation">Wpisz słowo "zmień" aby potwierdzić:</Label>
+              <Input
+                id="confirmation"
+                value={confirmationWord}
+                onChange={(e) => setConfirmationWord(e.target.value)}
+                placeholder="zmień"
+                className="mt-1"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsChangeDialogOpen(false)}
+            >
+              Anuluj
+            </Button>
+            <Button
+              onClick={confirmChangeHabit}
+              disabled={confirmationWord.toLowerCase() !== 'zmień' || !tempHabitName.trim()}
+            >
+              Zmień nawyk
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
