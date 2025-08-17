@@ -1,4 +1,5 @@
 import { format, startOfWeek, addDays, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
+import { getWeekStartDateFromKey } from '@/utils/weekKey';
 
 export interface WeekScore {
   weekKey: string;
@@ -56,9 +57,7 @@ export const calculateWeekScore = (
   userCreatedAt: Date | null
 ): WeekScore => {
   // Parse week_key to get the week start date (format: YYYY-WW)
-  const [year, week] = weekKey.split('-');
-  const yearStart = new Date(parseInt(year), 0, 1);
-  const weekStartDate = startOfWeek(addDays(yearStart, (parseInt(week) - 1) * 7), { weekStartsOn: 1 });
+  const weekStartDate = getWeekStartDateFromKey(weekKey);
   
   const hasHabitName = habitName && habitName.trim() !== '';
   let dailyPoints = 0;

@@ -12,6 +12,7 @@ import { format, startOfWeek, addDays, isBefore, isToday, parseISO, startOfDay }
 import { pl } from 'date-fns/locale';
 import { Check, X, Save, Edit2, Info } from 'lucide-react';
 import { calculateDayPoints, calculateWeekScore } from '@/hooks/useScoring';
+import { getLegacyWeekKey } from '@/utils/weekKey';
 
 interface HabitData {
   habitName: string;
@@ -105,16 +106,41 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
         });
         setIsHabitSaved(!!data.habit_name?.trim());
       } else {
-        console.log('No existing data found, creating fresh week');
-        // Reset for new week
-        setHabitData({
-          habitName: '',
-          days: new Array(7).fill(0),
-          reflection: '',
-          weeklyScore: 0
-        });
-        setIsHabitSaved(false);
+        // Fallback: try legacy (pre-ISO) week key to load older records
+        const legacyKey = getLegacyWeekKey(selectedDate);
+        const { data: legacyData, error: legacyError } = await supabase
+          .from('habits')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('week_key', legacyKey)
+          .maybeSingle();
+
+        if (legacyError && legacyError.code !== 'PGRST116') {
+          console.error('Error loading legacy habit data:', legacyError);
+        }
+
+        if (legacyData) {
+          console.warn('Loaded legacy habit data using key:', legacyKey);
+          setHabitData({
+            habitName: legacyData.habit_name || '',
+            days: legacyData.days || new Array(7).fill(0),
+            reflection: legacyData.reflection || '',
+            weeklyScore: legacyData.weekly_score || 0
+          });
+          setIsHabitSaved(!!legacyData.habit_name?.trim());
+        } else {
+          console.log('No existing data found, creating fresh week');
+          // Reset for new week
+          setHabitData({
+            habitName: '',
+            days: new Array(7).fill(0),
+            reflection: '',
+            weeklyScore: 0
+          });
+          setIsHabitSaved(false);
+        }
       }
+
       
       setLoading(false);
       setHasUserInteracted(false); // Reset interaction flag after loading

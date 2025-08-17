@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { format, startOfWeek } from 'date-fns';
+import { getISOWeekKey, getLegacyWeekKey } from '@/utils/weekKey';
 
 export interface HabitWeekData {
   habitName: string;
@@ -13,12 +14,7 @@ export const useHabitData = (userId?: string) => {
   const [habitsByWeek, setHabitsByWeek] = useState<Record<string, HabitWeekData>>({});
   const [loading, setLoading] = useState(false);
 
-  const getWeekKey = (date: Date) => {
-    const year = date.getFullYear();
-    const startOfYear = new Date(year, 0, 1);
-    const weekNumber = Math.ceil(((date.getTime() - startOfYear.getTime()) / 86400000 + startOfYear.getDay() + 1) / 7);
-    return `${year}-${weekNumber.toString().padStart(2, '0')}`;
-  };
+  const getWeekKey = (date: Date) => getISOWeekKey(date);
 
   const loadHabitData = async (date: Date) => {
     if (!userId) return null;
@@ -31,12 +27,25 @@ export const useHabitData = (userId?: string) => {
     }
 
     try {
-      const { data, error } = await supabase
+      // Try ISO week key first
+      let { data, error } = await supabase
         .from('habits')
         .select('*')
         .eq('user_id', userId)
         .eq('week_key', weekKey)
         .maybeSingle();
+
+      // Fallback: try legacy week key to avoid breaking existing records
+      if ((!data || error?.code === 'PGRST116')) {
+        const legacyWeekKey = getLegacyWeekKey(date);
+        const fallback = await supabase
+          .from('habits')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('week_key', legacyWeekKey)
+          .maybeSingle();
+        data = fallback.data ?? null;
+      }
 
       if (error && error.code !== 'PGRST116') {
         console.error('Error loading habit data:', error);
@@ -53,7 +62,7 @@ export const useHabitData = (userId?: string) => {
       habitData.completedDays = habitData.days.filter(Boolean).length;
       habitData.completionPercentage = habitData.days.length > 0 ? (habitData.completedDays / habitData.days.length) * 100 : 0;
 
-      // Cache the data
+      // Cache the data under the ISO key
       setHabitsByWeek(prev => ({
         ...prev,
         [weekKey]: habitData
