@@ -5,11 +5,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfWeek, addDays, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import { Check, X, Save, Edit2 } from 'lucide-react';
+import { Check, X, Save, Edit2, Info } from 'lucide-react';
+import { calculateDayPoints, calculateWeekScore } from '@/hooks/useScoring';
 
 interface HabitData {
   habitName: string;
@@ -121,48 +123,62 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     loadHabitData();
   }, [weekKey, userId, toast]);
 
-  // Calculate weekly score based on task completion (only if habit name is set)
-  const calculateWeeklyScore = (days: number[], weekDates: Date[], habitName: string) => {
-    // If no habit name is set, no points are calculated
-    if (!habitName.trim()) {
-      return 0;
-    }
+  // Calculate valid days count and completed days for progress tracking
+  const getProgressData = () => {
+    if (!userCreatedAt) return { validDaysCount: 7, completedDaysCount: 0 };
     
-    const today = new Date();
-    let score = 0;
-    let completedDays = 0;
-    let validDaysCount = 0; // Days that count towards completion (not before account creation)
-
-    days.forEach((status, index) => {
-      const dayDate = weekDates[index];
-      
-      // Only count days from account creation date onwards
-      if (userCreatedAt && isBefore(dayDate, startOfDay(userCreatedAt))) {
-        return; // Skip days before account creation
+    let validDaysCount = 0;
+    let completedDaysCount = 0;
+    
+    weekDates.forEach((dayDate, index) => {
+      // Only count days from account creation onwards
+      if (!isBefore(dayDate, startOfDay(userCreatedAt))) {
+        validDaysCount++;
+        if (habitData.days[index] === 1) {
+          completedDaysCount++;
+        }
       }
-      
-      validDaysCount++; // This day counts towards completion
-      
-      if (status === 1) {
-        // Completed task: +10 points
-        score += 10;
-        completedDays++;
-      } else if (status === 2) {
-        // Not completed task: -10 points
-        score -= 10;
-      } else if (status === 0 && (isBefore(dayDate, today) || isToday(dayDate))) {
-        // Unmarked past day: -15 points (only if habit is defined)
-        score -= 15;
-      }
-      // Future days (status 0) contribute 0 points
     });
+    
+    return { validDaysCount, completedDaysCount };
+  };
 
-    // Bonus for completing ALL valid days in the week
-    if (validDaysCount > 0 && completedDays === validDaysCount) {
-      score += 10; // Perfect week bonus!
-    }
+  // Check if a day should be counted (after account creation)
+  const isDayValid = (dayDate: Date) => {
+    return !userCreatedAt || !isBefore(dayDate, startOfDay(userCreatedAt));
+  };
 
-    return score;
+  // Get day points breakdown for detailed scoring
+  const getDayPointsBreakdown = () => {
+    const hasHabitName = habitData.habitName && habitData.habitName.trim() !== '';
+    return weekDates.map((dayDate, index) => {
+      const status = habitData.days[index];
+      const points = calculateDayPoints(status, dayDate, userCreatedAt, hasHabitName);
+      const isValid = isDayValid(dayDate);
+      
+      let reason = '';
+      if (!isValid) {
+        reason = 'Dzień nie liczony (konto od ' + format(userCreatedAt!, 'dd.MM', { locale: pl }) + ')';
+      } else if (!hasHabitName) {
+        reason = 'Brak nazwy nawyku';
+      } else if (status === 1) {
+        reason = 'Wykonane (+10)';
+      } else if (status === 2) {
+        reason = 'Niewykonane (-10)';
+      } else if (status === 0 && (isBefore(dayDate, new Date()) || isToday(dayDate))) {
+        reason = 'Nieoznaczone w przeszłości (-15)';
+      } else {
+        reason = 'Przyszły dzień (0)';
+      }
+      
+      return {
+        date: dayDate,
+        status,
+        points,
+        reason,
+        isValid
+      };
+    });
   };
 
   // Calculate dates for each day of the week
@@ -184,7 +200,8 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
       const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
       const weekDates = Array.from({ length: 7 }, (_, index) => addDays(weekStart, index));
       
-      const calculatedScore = calculateWeeklyScore(habitData.days, weekDates, habitData.habitName);
+      const weekScore = calculateWeekScore(weekKey, habitData.days, habitData.habitName, userCreatedAt);
+      const calculatedScore = weekScore.totalWeekScore;
       
       const { error } = await supabase
         .from('habits')
@@ -260,7 +277,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
         habit_name: habitData.habitName,
         days: habitData.days,
         reflection: habitData.reflection,
-        weekly_score: calculateWeeklyScore(habitData.days, weekDates, habitData.habitName)
+        weekly_score: calculateWeekScore(weekKey, habitData.days, habitData.habitName, userCreatedAt).totalWeekScore
       }, {
         onConflict: 'user_id,week_key'
       });
@@ -349,9 +366,11 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
 
   const dayNames = ['Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota', 'Niedziela'];
   
-  const completedDays = habitData.days.filter(status => status === 1).length;
-  const completionPercentage = habitData.days.length > 0 ? (completedDays / habitData.days.length) * 100 : 0;
-  const currentWeeklyScore = calculateWeeklyScore(habitData.days, weekDates, habitData.habitName);
+  const { validDaysCount, completedDaysCount } = getProgressData();
+  const completionPercentage = validDaysCount > 0 ? (completedDaysCount / validDaysCount) * 100 : 0;
+  const weekScore = calculateWeekScore(weekKey, habitData.days, habitData.habitName, userCreatedAt);
+  const currentWeeklyScore = weekScore.totalWeekScore;
+  const dayPointsBreakdown = getDayPointsBreakdown();
   
   // Check if habit name is defined to enable/disable buttons
   const isHabitDefined = habitData.habitName.trim().length > 0;
@@ -446,13 +465,37 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                   completionPercentage >= 40 ? 'bg-warning text-warning-foreground' : 
                   'bg-muted text-muted-foreground'
                 }`}>
-                  {completedDays}/7 dni ({Math.round(completionPercentage)}%)
+                  {completedDaysCount}/{validDaysCount} dni ({Math.round(completionPercentage)}%)
                 </span>
-                <span className={`px-4 py-2 rounded-full font-semibold text-sm ${
-                  currentWeeklyScore >= 0 ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                }`}>
-                  {currentWeeklyScore >= 0 ? '+' : ''}{currentWeeklyScore} pkt
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className={`px-4 py-2 rounded-full font-semibold text-sm cursor-help flex items-center gap-1 ${
+                      currentWeeklyScore >= 0 ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                    }`}>
+                      {currentWeeklyScore >= 0 ? '+' : ''}{currentWeeklyScore} pkt
+                      <Info className="w-3 h-3" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <div className="text-xs space-y-1">
+                      <div className="font-semibold mb-2">Szczegóły punktacji:</div>
+                      {dayPointsBreakdown.map((day, index) => (
+                        <div key={index} className="flex justify-between">
+                          <span>{format(day.date, 'EEE dd.MM', { locale: pl })}:</span>
+                          <span className={day.points > 0 ? 'text-green-400' : day.points < 0 ? 'text-red-400' : 'text-gray-400'}>
+                            {day.points > 0 ? '+' : ''}{day.points}
+                          </span>
+                        </div>
+                      ))}
+                      {weekScore.perfectWeekBonus > 0 && (
+                        <div className="flex justify-between border-t pt-1 mt-1">
+                          <span>Bonus za idealny tydzień:</span>
+                          <span className="text-green-400">+{weekScore.perfectWeekBonus}</span>
+                        </div>
+                      )}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
           </CardTitle>
@@ -472,65 +515,96 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
               today.setHours(23, 59, 59, 999); // Set to end of today for proper comparison
               const isPastOrToday = isBefore(dayDate, today) || isToday(dayDate);
               const isFutureDay = !isPastOrToday;
+              const isValidDay = isDayValid(dayDate);
+              const dayBreakdown = dayPointsBreakdown[index];
               
               return (
-                <div 
-                  key={day} 
-                  className={`
-                    flex items-center justify-between p-3 sm:p-4 rounded-xl border-2 
-                    transition-all duration-300 min-h-[70px]
-                    ${dayStatus === 1 
-                      ? 'border-green-500 bg-green-50 dark:bg-green-950/30' 
-                      : dayStatus === 2
-                      ? 'border-red-500 bg-red-50 dark:bg-red-950/30'
-                      : 'border-border hover:border-primary/50 hover:bg-accent/30'
-                    }
-                    ${!isHabitDefined ? 'opacity-50' : ''}
-                  `}
-                >
-                  <div className="flex flex-col flex-1 min-w-0">
-                    <Label className={`font-semibold text-sm sm:text-base ${
-                      dayStatus === 1 
-                        ? 'text-green-700 dark:text-green-300' 
-                        : dayStatus === 2
-                        ? 'text-red-700 dark:text-red-300'
-                        : 'text-foreground'
-                    }`}>
-                      {day}
-                    </Label>
-                    <span className={`text-xs sm:text-sm font-medium truncate ${
-                      dayStatus === 1 
-                        ? 'text-green-600 dark:text-green-400' 
-                        : dayStatus === 2
-                        ? 'text-red-600 dark:text-red-400'
-                        : 'text-muted-foreground'
-                    }`}>
-                      {format(dayDate, 'd MMMM', { locale: pl })}
-                    </span>
-                  </div>
-                   
-                  <div className="flex gap-2 ml-3">
-                    <Button
-                      variant={dayStatus === 1 ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setDayStatus(index, dayStatus === 1 ? 0 : 1)}
-                      className={`${dayStatus === 1 ? 'bg-green-500 hover:bg-green-600 text-white' : 'border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20'}`}
-                      disabled={isFutureDay || !isHabitSaved}
+                <Tooltip key={day}>
+                  <TooltipTrigger asChild>
+                    <div 
+                      className={`
+                        flex items-center justify-between p-3 sm:p-4 rounded-xl border-2 
+                        transition-all duration-300 min-h-[70px] cursor-help
+                        ${dayStatus === 1 
+                          ? 'border-green-500 bg-green-50 dark:bg-green-950/30' 
+                          : dayStatus === 2
+                          ? 'border-red-500 bg-red-50 dark:bg-red-950/30'
+                          : 'border-border hover:border-primary/50 hover:bg-accent/30'
+                        }
+                        ${!isHabitDefined ? 'opacity-50' : ''}
+                        ${!isValidDay ? 'opacity-40 bg-muted/30' : ''}
+                      `}
                     >
-                      <Check className="w-4 h-4" />
-                    </Button>
-                    
-                    <Button
-                      variant={dayStatus === 2 ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setDayStatus(index, dayStatus === 2 ? 0 : 2)}
-                      className={`${dayStatus === 2 ? 'bg-red-500 hover:bg-red-600 text-white' : 'border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20'}`}
-                      disabled={isFutureDay || !isHabitSaved}
-                    >
-                      <X className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </div>
+                      <div className="flex flex-col flex-1 min-w-0">
+                        <Label className={`font-semibold text-sm sm:text-base ${
+                          !isValidDay 
+                            ? 'text-muted-foreground line-through'
+                            : dayStatus === 1 
+                            ? 'text-green-700 dark:text-green-300' 
+                            : dayStatus === 2
+                            ? 'text-red-700 dark:text-red-300'
+                            : 'text-foreground'
+                        }`}>
+                          {day}
+                          {!isValidDay && (
+                            <span className="text-xs ml-1 opacity-70">(nie liczony)</span>
+                          )}
+                        </Label>
+                        <span className={`text-xs sm:text-sm font-medium truncate ${
+                          !isValidDay 
+                            ? 'text-muted-foreground opacity-70'
+                            : dayStatus === 1 
+                            ? 'text-green-600 dark:text-green-400' 
+                            : dayStatus === 2
+                            ? 'text-red-600 dark:text-red-400'
+                            : 'text-muted-foreground'
+                        }`}>
+                          {format(dayDate, 'd MMMM', { locale: pl })}
+                          {dayBreakdown.points !== 0 && (
+                            <span className={`ml-1 text-xs ${
+                              dayBreakdown.points > 0 ? 'text-green-500' : 'text-red-500'
+                            }`}>
+                              ({dayBreakdown.points > 0 ? '+' : ''}{dayBreakdown.points})
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                       
+                      <div className="flex gap-2 ml-3">
+                        <Button
+                          variant={dayStatus === 1 ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setDayStatus(index, dayStatus === 1 ? 0 : 1)}
+                          className={`${dayStatus === 1 ? 'bg-green-500 hover:bg-green-600 text-white' : 'border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20'}`}
+                          disabled={isFutureDay || !isHabitSaved || !isValidDay}
+                        >
+                          <Check className="w-4 h-4" />
+                        </Button>
+                        
+                        <Button
+                          variant={dayStatus === 2 ? "default" : "outline"}
+                          size="sm"
+                          onClick={() => setDayStatus(index, dayStatus === 2 ? 0 : 2)}
+                          className={`${dayStatus === 2 ? 'bg-red-500 hover:bg-red-600 text-white' : 'border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20'}`}
+                          disabled={isFutureDay || !isHabitSaved || !isValidDay}
+                        >
+                          <X className="w-4 h-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent side="top">
+                    <div className="text-xs">
+                      <div className="font-semibold">{format(dayDate, 'EEEE, d MMMM', { locale: pl })}</div>
+                      <div className="text-muted-foreground">{dayBreakdown.reason}</div>
+                      {dayBreakdown.points !== 0 && (
+                        <div className={dayBreakdown.points > 0 ? 'text-green-400' : 'text-red-400'}>
+                          Punkty: {dayBreakdown.points > 0 ? '+' : ''}{dayBreakdown.points}
+                        </div>
+                      )}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
               );
             })}
           </div>
