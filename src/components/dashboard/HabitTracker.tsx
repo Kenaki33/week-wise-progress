@@ -13,6 +13,7 @@ import { pl } from 'date-fns/locale';
 import { Check, X, Save, Edit2, Info } from 'lucide-react';
 import { calculateDayPoints, calculateWeekScore } from '@/hooks/useScoring';
 import { getLegacyWeekKey } from '@/utils/weekKey';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface HabitData {
   habitName: string;
@@ -42,7 +43,9 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   const [isChangeDialogOpen, setIsChangeDialogOpen] = useState(false);
   const [confirmationWord, setConfirmationWord] = useState('');
   const [tempHabitName, setTempHabitName] = useState('');
+  const [showMobileTooltip, setShowMobileTooltip] = useState(false);
   const { toast } = useToast();
+  const isMobile = useIsMobile();
 
   // Load user creation date
   useEffect(() => {
@@ -438,7 +441,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="flex gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
             <Input
               placeholder="Wpisz nawyk, nad którym chcesz pracować..."
               value={habitData.habitName}
@@ -450,7 +453,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
               <Button
                 onClick={handleSaveHabit}
                 disabled={!habitData.habitName.trim()}
-                className="px-6"
+                className="px-6 w-full sm:w-auto"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Zapisz nawyk
@@ -459,7 +462,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
               <Button
                 onClick={handleChangeHabit}
                 variant="outline"
-                className="px-6"
+                className="px-6 w-full sm:w-auto"
               >
                 <Edit2 className="w-4 h-4 mr-2" />
                 Zmień nawyk
@@ -493,35 +496,76 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                 }`}>
                   {completedDaysCount}/{validDaysCount} dni ({Math.round(completionPercentage)}%)
                 </span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className={`px-4 py-2 rounded-full font-semibold text-sm cursor-help flex items-center gap-1 ${
-                      currentWeeklyScore >= 0 ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
-                    }`}>
+                {isMobile ? (
+                  <div className="relative">
+                    <span 
+                      className={`px-4 py-2 rounded-full font-semibold text-sm cursor-pointer flex items-center gap-1 ${
+                        currentWeeklyScore >= 0 ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                      }`}
+                      onClick={() => setShowMobileTooltip(!showMobileTooltip)}
+                    >
                       {currentWeeklyScore >= 0 ? '+' : ''}{currentWeeklyScore} pkt
                       <Info className="w-3 h-3" />
                     </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <div className="text-xs space-y-1">
-                      <div className="font-semibold mb-2">Szczegóły punktacji:</div>
-                      {dayPointsBreakdown.map((day, index) => (
-                        <div key={index} className="flex justify-between">
-                          <span>{format(day.date, 'EEE dd.MM', { locale: pl })}:</span>
-                          <span className={day.points > 0 ? 'text-green-400' : day.points < 0 ? 'text-red-400' : 'text-gray-400'}>
-                            {day.points > 0 ? '+' : ''}{day.points}
-                          </span>
+                    {showMobileTooltip && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setShowMobileTooltip(false)}
+                        />
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 bg-popover border border-border rounded-md shadow-lg p-3 max-w-xs">
+                          <div className="text-xs space-y-1">
+                            <div className="font-semibold mb-2">Szczegóły punktacji:</div>
+                            {dayPointsBreakdown.map((day, index) => (
+                              <div key={index} className="flex justify-between">
+                                <span>{format(day.date, 'EEE dd.MM', { locale: pl })}:</span>
+                                <span className={day.points > 0 ? 'text-green-400' : day.points < 0 ? 'text-red-400' : 'text-gray-400'}>
+                                  {day.points > 0 ? '+' : ''}{day.points}
+                                </span>
+                              </div>
+                            ))}
+                            {weekScore.perfectWeekBonus > 0 && (
+                              <div className="flex justify-between border-t pt-1 mt-1">
+                                <span>Bonus za idealny tydzień:</span>
+                                <span className="text-green-400">+{weekScore.perfectWeekBonus}</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
-                      ))}
-                      {weekScore.perfectWeekBonus > 0 && (
-                        <div className="flex justify-between border-t pt-1 mt-1">
-                          <span>Bonus za idealny tydzień:</span>
-                          <span className="text-green-400">+{weekScore.perfectWeekBonus}</span>
-                        </div>
-                      )}
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className={`px-4 py-2 rounded-full font-semibold text-sm cursor-help flex items-center gap-1 ${
+                        currentWeeklyScore >= 0 ? 'bg-green-500 text-white' : 'bg-red-500 text-white'
+                      }`}>
+                        {currentWeeklyScore >= 0 ? '+' : ''}{currentWeeklyScore} pkt
+                        <Info className="w-3 h-3" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <div className="text-xs space-y-1">
+                        <div className="font-semibold mb-2">Szczegóły punktacji:</div>
+                        {dayPointsBreakdown.map((day, index) => (
+                          <div key={index} className="flex justify-between">
+                            <span>{format(day.date, 'EEE dd.MM', { locale: pl })}:</span>
+                            <span className={day.points > 0 ? 'text-green-400' : day.points < 0 ? 'text-red-400' : 'text-gray-400'}>
+                              {day.points > 0 ? '+' : ''}{day.points}
+                            </span>
+                          </div>
+                        ))}
+                        {weekScore.perfectWeekBonus > 0 && (
+                          <div className="flex justify-between border-t pt-1 mt-1">
+                            <span>Bonus za idealny tydzień:</span>
+                            <span className="text-green-400">+{weekScore.perfectWeekBonus}</span>
+                          </div>
+                        )}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </div>
             </div>
           </CardTitle>
