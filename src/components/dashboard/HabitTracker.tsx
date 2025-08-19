@@ -44,6 +44,8 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   const [confirmationWord, setConfirmationWord] = useState('');
   const [tempHabitName, setTempHabitName] = useState('');
   const [showMobileTooltip, setShowMobileTooltip] = useState(false);
+  const [habitChangeBlocked, setHabitChangeBlocked] = useState(false);
+  const [habitBlockReason, setHabitBlockReason] = useState('');
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -75,6 +77,94 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
 
     loadUserCreationDate();
   }, [userId]);
+
+  // Check if habit change is blocked due to low previous week completion
+  useEffect(() => {
+    if (!userId || !userCreatedAt) return;
+
+    const checkHabitChangeRestriction = async () => {
+      try {
+        // Helper functions to calculate previous week key
+        const getPreviousWeekKey = (currentWeekKey: string): string => {
+          const [isoYear, isoWeek] = currentWeekKey.split('-');
+          const currentMonday = new Date();
+          currentMonday.setFullYear(parseInt(isoYear));
+          const jan4 = new Date(parseInt(isoYear), 0, 4);
+          const firstMonday = new Date(jan4.getTime() - (jan4.getDay() - 1) * 86400000);
+          firstMonday.setTime(firstMonday.getTime() + (parseInt(isoWeek) - 1) * 7 * 86400000);
+          const prevMonday = new Date(firstMonday.getTime() - 7 * 86400000);
+          const prevYear = prevMonday.getFullYear();
+          const jan4Prev = new Date(prevYear, 0, 4);
+          const firstMondayPrev = new Date(jan4Prev.getTime() - (jan4Prev.getDay() - 1) * 86400000);
+          const weekNumber = Math.floor((prevMonday.getTime() - firstMondayPrev.getTime()) / (7 * 86400000)) + 1;
+          return `${prevYear}-${weekNumber.toString().padStart(2, '0')}`;
+        };
+
+        const prevWeekKey = getPreviousWeekKey(weekKey);
+        
+        // Get previous week data
+        const { data: prevWeekData } = await supabase
+          .from('habits')
+          .select('*')
+          .eq('user_id', userId)
+          .eq('week_key', prevWeekKey)
+          .maybeSingle();
+
+        if (!prevWeekData || !prevWeekData.habit_name?.trim()) {
+          setHabitChangeBlocked(false);
+          setHabitBlockReason('');
+          return;
+        }
+
+        // Calculate previous week completion
+        const [prevIsoYear, prevIsoWeek] = prevWeekKey.split('-');
+        const prevMonday = new Date();
+        prevMonday.setFullYear(parseInt(prevIsoYear));
+        const jan4 = new Date(parseInt(prevIsoYear), 0, 4);
+        const firstMonday = new Date(jan4.getTime() - (jan4.getDay() - 1) * 86400000);
+        firstMonday.setTime(firstMonday.getTime() + (parseInt(prevIsoWeek) - 1) * 7 * 86400000);
+
+        let countableDays = 0;
+        let completedCount = 0;
+
+        for (let i = 0; i < 7; i++) {
+          const dayDate = new Date(firstMonday.getTime() + i * 86400000);
+          const userStartDate = new Date(userCreatedAt.getFullYear(), userCreatedAt.getMonth(), userCreatedAt.getDate());
+          
+          if (dayDate >= userStartDate) {
+            countableDays++;
+            if (prevWeekData.days[i] === 1) {
+              completedCount++;
+            }
+          }
+        }
+
+        if (countableDays === 0) {
+          setHabitChangeBlocked(false);
+          setHabitBlockReason('');
+          return;
+        }
+
+        const completionPct = completedCount / countableDays;
+        
+        if (completionPct < 0.67) {
+          setHabitChangeBlocked(true);
+          setHabitBlockReason(
+            `Nie można zmienić nawyku, ponieważ w poprzednim tygodniu (${prevWeekKey}, ukończono ${completedCount} z ${countableDays} dni = ${Math.round(completionPct * 100)}%) nie osiągnięto wymaganego progu 67%. Kontynuuj ten sam nawyk: "${prevWeekData.habit_name}".`
+          );
+        } else {
+          setHabitChangeBlocked(false);
+          setHabitBlockReason('');
+        }
+      } catch (error) {
+        console.error('Error checking habit change restriction:', error);
+        setHabitChangeBlocked(false);
+        setHabitBlockReason('');
+      }
+    };
+
+    checkHabitChangeRestriction();
+  }, [weekKey, userId, userCreatedAt]);
 
   // Load data from Supabase
   useEffect(() => {
@@ -269,6 +359,15 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   }, [habitData.habitName, habitData.days, habitData.reflection, weekKey, userId, loading, selectedDate, userCreatedAt, toast, onDataChange]);
 
   const updateHabitName = (name: string) => {
+    // Don't allow changing habit name if blocked
+    if (habitChangeBlocked && name !== habitData.habitName) {
+      toast({
+        title: "Ograniczenie",
+        description: habitBlockReason,
+        variant: "destructive",
+      });
+      return;
+    }
     setHasUserInteracted(true);
     setHabitData(prev => ({ ...prev, habitName: name }));
   };
@@ -447,26 +546,67 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
               value={habitData.habitName}
               onChange={(e) => updateHabitName(e.target.value)}
               className="modern-input text-base sm:text-lg py-3 px-4 flex-1"
-              disabled={isHabitSaved}
+              disabled={isHabitSaved || habitChangeBlocked}
             />
             {!isHabitSaved ? (
               <Button
                 onClick={handleSaveHabit}
-                disabled={!habitData.habitName.trim()}
+                disabled={!habitData.habitName.trim() || habitChangeBlocked}
                 className="px-6 w-full sm:w-auto"
               >
                 <Save className="w-4 h-4 mr-2" />
                 Zapisz nawyk
               </Button>
             ) : (
-              <Button
-                onClick={handleChangeHabit}
-                variant="outline"
-                className="px-6 w-full sm:w-auto"
-              >
-                <Edit2 className="w-4 h-4 mr-2" />
-                Zmień nawyk
-              </Button>
+              <div className="relative">
+                {isMobile && habitChangeBlocked ? (
+                  <div className="relative">
+                    <Button
+                      onClick={() => setShowMobileTooltip(!showMobileTooltip)}
+                      variant="outline"
+                      className="px-6 w-full sm:w-auto opacity-50 cursor-not-allowed"
+                      disabled
+                    >
+                      <Edit2 className="w-4 h-4 mr-2" />
+                      Zmień nawyk
+                    </Button>
+                    {showMobileTooltip && (
+                      <>
+                        <div 
+                          className="fixed inset-0 z-40" 
+                          onClick={() => setShowMobileTooltip(false)}
+                        />
+                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 bg-popover border border-border rounded-md shadow-lg p-3 max-w-xs">
+                          <div className="text-xs text-destructive">
+                            {habitBlockReason}
+                          </div>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button
+                        onClick={habitChangeBlocked ? undefined : handleChangeHabit}
+                        variant="outline"
+                        className={`px-6 w-full sm:w-auto ${habitChangeBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                        disabled={habitChangeBlocked}
+                      >
+                        <Edit2 className="w-4 h-4 mr-2" />
+                        Zmień nawyk
+                      </Button>
+                    </TooltipTrigger>
+                    {habitChangeBlocked && (
+                      <TooltipContent side="bottom" className="max-w-xs">
+                        <div className="text-xs text-destructive">
+                          {habitBlockReason}
+                        </div>
+                      </TooltipContent>
+                    )}
+                  </Tooltip>
+                )}
+              </div>
             )}
           </div>
           {!isHabitSaved && !isHabitDefined && (
