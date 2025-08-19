@@ -85,7 +85,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      iso_week_key_monday: {
+        Args: { week_key: string }
+        Returns: string
+      }
+      prev_iso_week_key: {
+        Args: { week_key: string }
+        Returns: string
+      }
     }
     Enums: {
       nutrition_personality:
