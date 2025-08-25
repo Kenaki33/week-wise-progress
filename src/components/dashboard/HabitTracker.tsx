@@ -689,18 +689,18 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
               </Button>
             ) : (
               <div className="relative">
-                {isMobile && habitChangeBlocked ? (
+                {isMobile ? (
                   <div className="relative">
                     <Button
-                      onClick={() => setShowMobileTooltip(!showMobileTooltip)}
+                      onClick={habitChangeBlocked ? () => setShowMobileTooltip(!showMobileTooltip) : handleChangeHabit}
                       variant="outline"
-                      className="px-6 w-full sm:w-auto opacity-50 cursor-not-allowed"
-                      disabled
+                      className={`px-6 w-full sm:w-auto ${habitChangeBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      disabled={habitChangeBlocked}
                     >
                       <Edit2 className="w-4 h-4 mr-2" />
                       Zmień nawyk
                     </Button>
-                    {showMobileTooltip && (
+                    {showMobileTooltip && habitChangeBlocked && (
                       <>
                         <div 
                           className="fixed inset-0 z-40" 
