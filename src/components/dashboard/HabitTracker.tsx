@@ -10,7 +10,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfWeek, addDays, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import { Check, X, Save, Edit2, Info } from 'lucide-react';
+import { Check, X, Save, Edit2, Info, AlertTriangle } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 import { calculateDayPoints, calculateWeekScore } from '@/hooks/useScoring';
 import { getLegacyWeekKey } from '@/utils/weekKey';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -168,7 +169,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
 
   // Load data from Supabase
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !userCreatedAt) return;
 
     const loadHabitData = async () => {
       setLoading(true);
@@ -199,48 +200,129 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
         });
         setIsHabitSaved(!!data.habit_name?.trim());
       } else {
-        // Fallback: try legacy (pre-ISO) week key to load older records
-        const legacyKey = getLegacyWeekKey(selectedDate);
-        const { data: legacyData, error: legacyError } = await supabase
-          .from('habits')
-          .select('*')
-          .eq('user_id', userId)
-          .eq('week_key', legacyKey)
-          .maybeSingle();
-
-        if (legacyError && legacyError.code !== 'PGRST116') {
-          console.error('Error loading legacy habit data:', legacyError);
-        }
-
-        if (legacyData) {
-          console.warn('Loaded legacy habit data using key:', legacyKey);
-          setHabitData({
-            habitName: legacyData.habit_name || '',
-            days: legacyData.days || new Array(7).fill(0),
-            reflection: legacyData.reflection || '',
-            weeklyScore: legacyData.weekly_score || 0
-          });
-          setIsHabitSaved(!!legacyData.habit_name?.trim());
-        } else {
-          console.log('No existing data found, creating fresh week');
-          // Reset for new week
-          setHabitData({
-            habitName: '',
-            days: new Array(7).fill(0),
-            reflection: '',
-            weeklyScore: 0
-          });
-          setIsHabitSaved(false);
-        }
+        // No current week data - check if we should auto-copy from previous week
+        await handleNoCurrentWeekData();
       }
 
-      
       setLoading(false);
       setHasUserInteracted(false); // Reset interaction flag after loading
     };
 
+    const handleNoCurrentWeekData = async () => {
+      // First try legacy fallback
+      const legacyKey = getLegacyWeekKey(selectedDate);
+      const { data: legacyData, error: legacyError } = await supabase
+        .from('habits')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('week_key', legacyKey)
+        .maybeSingle();
+
+      if (legacyError && legacyError.code !== 'PGRST116') {
+        console.error('Error loading legacy habit data:', legacyError);
+      }
+
+      if (legacyData) {
+        console.warn('Loaded legacy habit data using key:', legacyKey);
+        setHabitData({
+          habitName: legacyData.habit_name || '',
+          days: legacyData.days || new Array(7).fill(0),
+          reflection: legacyData.reflection || '',
+          weeklyScore: legacyData.weekly_score || 0
+        });
+        setIsHabitSaved(!!legacyData.habit_name?.trim());
+        return;
+      }
+
+      // No legacy data - check if we should auto-copy from previous week
+      const getPreviousWeekKey = (currentWeekKey: string): string => {
+        const [isoYear, isoWeek] = currentWeekKey.split('-');
+        const currentMonday = new Date();
+        currentMonday.setFullYear(parseInt(isoYear));
+        const jan4 = new Date(parseInt(isoYear), 0, 4);
+        const firstMonday = new Date(jan4.getTime() - (jan4.getDay() - 1) * 86400000);
+        firstMonday.setTime(firstMonday.getTime() + (parseInt(isoWeek) - 1) * 7 * 86400000);
+        const prevMonday = new Date(firstMonday.getTime() - 7 * 86400000);
+        const prevYear = prevMonday.getFullYear();
+        const jan4Prev = new Date(prevYear, 0, 4);
+        const firstMondayPrev = new Date(jan4Prev.getTime() - (jan4Prev.getDay() - 1) * 86400000);
+        const weekNumber = Math.floor((prevMonday.getTime() - firstMondayPrev.getTime()) / (7 * 86400000)) + 1;
+        return `${prevYear}-${weekNumber.toString().padStart(2, '0')}`;
+      };
+
+      const prevWeekKey = getPreviousWeekKey(weekKey);
+      
+      // Get previous week data
+      const { data: prevWeekData } = await supabase
+        .from('habits')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('week_key', prevWeekKey)
+        .maybeSingle();
+
+      if (!prevWeekData || !prevWeekData.habit_name?.trim()) {
+        // No previous week or no habit name - start fresh
+        console.log('No existing data found, creating fresh week');
+        setHabitData({
+          habitName: '',
+          days: new Array(7).fill(0),
+          reflection: '',
+          weeklyScore: 0
+        });
+        setIsHabitSaved(false);
+        return;
+      }
+
+      // Calculate previous week completion to decide auto-copy
+      const [prevIsoYear, prevIsoWeek] = prevWeekKey.split('-');
+      const prevMonday = new Date();
+      prevMonday.setFullYear(parseInt(prevIsoYear));
+      const jan4 = new Date(parseInt(prevIsoYear), 0, 4);
+      const firstMonday = new Date(jan4.getTime() - (jan4.getDay() - 1) * 86400000);
+      firstMonday.setTime(firstMonday.getTime() + (parseInt(prevIsoWeek) - 1) * 7 * 86400000);
+
+      let countableDays = 0;
+      let completedCount = 0;
+
+      for (let i = 0; i < 7; i++) {
+        const dayDate = new Date(firstMonday.getTime() + i * 86400000);
+        const userStartDate = new Date(userCreatedAt.getFullYear(), userCreatedAt.getMonth(), userCreatedAt.getDate());
+        
+        if (dayDate >= userStartDate) {
+          countableDays++;
+          if (prevWeekData.days[i] === 1) {
+            completedCount++;
+          }
+        }
+      }
+
+      const COMPLETION_THRESHOLD = 0.67;
+      
+      if (countableDays > 0 && (completedCount / countableDays) < COMPLETION_THRESHOLD) {
+        // Auto-copy habit name from previous week due to low completion
+        console.log(`Auto-copying habit "${prevWeekData.habit_name}" from previous week due to ${Math.round((completedCount / countableDays) * 100)}% completion (below ${Math.round(COMPLETION_THRESHOLD * 100)}%)`);
+        setHabitData({
+          habitName: prevWeekData.habit_name,
+          days: new Array(7).fill(0),
+          reflection: '',
+          weeklyScore: 0
+        });
+        setIsHabitSaved(true); // Mark as saved since we auto-copied
+      } else {
+        // Normal fresh start
+        console.log('No existing data found, creating fresh week');
+        setHabitData({
+          habitName: '',
+          days: new Array(7).fill(0),
+          reflection: '',
+          weeklyScore: 0
+        });
+        setIsHabitSaved(false);
+      }
+    };
+
     loadHabitData();
-  }, [weekKey, userId, toast]);
+  }, [weekKey, userId, userCreatedAt, toast]);
 
   // Calculate valid days count and completed days for progress tracking
   const getProgressData = () => {
@@ -322,27 +404,36 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
       const weekScore = calculateWeekScore(weekKey, habitData.days, habitData.habitName, userCreatedAt);
       const calculatedScore = weekScore.totalWeekScore;
       
-      const { error } = await supabase
-        .from('habits')
-        .upsert({
-          user_id: userId,
-          week_key: weekKey,
-          habit_name: habitData.habitName,
-          days: habitData.days,
-          reflection: habitData.reflection,
-          weekly_score: calculatedScore
-        }, {
-          onConflict: 'user_id,week_key'
-        });
+    const { error } = await supabase
+      .from('habits')
+      .upsert({
+        user_id: userId,
+        week_key: weekKey,
+        habit_name: habitData.habitName,
+        days: habitData.days,
+        reflection: habitData.reflection,
+        weekly_score: calculatedScore
+      }, {
+        onConflict: 'user_id,week_key'
+      });
 
-      if (error) {
-        console.error('Error saving habit data:', error);
+    if (error) {
+      console.error('Error saving habit data:', error);
+      // Show specific error message if it's about habit change restriction
+      if (error.code === '23514' && error.message.includes('Nie można zmienić nawyku')) {
+        toast({
+          title: "Ograniczenie zmiany nawyku",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
         toast({
           title: "Błąd",
           description: "Nie udało się zapisać danych",
           variant: "destructive",
         });
-      } else {
+      }
+    } else {
         // Update local state with calculated score only if it changed
         setHabitData(prev => {
           if (prev.weeklyScore !== calculatedScore) {
@@ -412,11 +503,20 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
 
     if (error) {
       console.error('Error saving habit:', error);
-      toast({
-        title: "Błąd",
-        description: "Nie udało się zapisać nawyku",
-        variant: "destructive",
-      });
+      // Show specific error message if it's about habit change restriction
+      if (error.code === '23514' && error.message.includes('Nie można zmienić nawyku')) {
+        toast({
+          title: "Ograniczenie zmiany nawyku",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się zapisać nawyku",
+          variant: "destructive",
+        });
+      }
     } else {
       setIsHabitSaved(true);
       toast({
@@ -474,11 +574,20 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
 
     if (error) {
       console.error('Error changing habit:', error);
-      toast({
-        title: "Błąd",
-        description: "Nie udało się zmienić nawyku",
-        variant: "destructive",
-      });
+      // Show specific error message if it's about habit change restriction
+      if (error.code === '23514' && error.message.includes('Nie można zmienić nawyku')) {
+        toast({
+          title: "Ograniczenie zmiany nawyku",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Błąd",
+          description: "Nie udało się zmienić nawyku",
+          variant: "destructive",
+        });
+      }
     } else {
       setHabitData(resetData);
       setIsChangeDialogOpen(false);
@@ -609,12 +718,20 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
               </div>
             )}
           </div>
-          {!isHabitSaved && !isHabitDefined && (
+          {habitChangeBlocked && (
+            <Alert variant="destructive" className="mt-3 animate-fade-in">
+              <AlertTriangle className="h-4 w-4" />
+              <AlertDescription>
+                {habitBlockReason}
+              </AlertDescription>
+            </Alert>
+          )}
+          {!isHabitSaved && !isHabitDefined && !habitChangeBlocked && (
             <p className="text-sm text-muted-foreground mt-2 animate-fade-in">
               Wpisz nazwę nawyku i kliknij "Zapisz nawyk" aby móc go śledzić
             </p>
           )}
-          {isHabitSaved && (
+          {isHabitSaved && !habitChangeBlocked && (
             <p className="text-sm text-green-600 dark:text-green-400 mt-2 animate-fade-in">
               Nawyk został zapisany. Użyj "Zmień nawyk" aby go edytować.
             </p>
