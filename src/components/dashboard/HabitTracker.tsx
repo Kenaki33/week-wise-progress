@@ -749,9 +749,15 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
             </p>
           )}
           {isHabitSaved && (
-            <p className="text-sm text-green-600 dark:text-green-400 mt-2 animate-fade-in">
-              Nawyk został zapisany. Użyj "Zmień nawyk" aby go edytować.
-            </p>
+            habitChangeBlocked ? (
+              <p className="text-sm text-muted-foreground mt-2 animate-fade-in">
+                Kontynuuj nawyk z poprzedniego tygodnia. Po więcej informacji najedź na nawyk powyżej.
+              </p>
+            ) : (
+              <p className="text-sm text-green-600 dark:text-green-400 mt-2 animate-fade-in">
+                Nawyk został zapisany. Użyj "Zmień nawyk" aby go edytować.
+              </p>
+            )
           )}
         </CardContent>
       </Card>
