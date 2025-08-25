@@ -727,10 +727,16 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                         Zmień nawyk
                       </Button>
                     </TooltipTrigger>
-                    {habitChangeBlocked && (
+                    {habitChangeBlocked ? (
                       <TooltipContent side="bottom" className="max-w-xs">
                         <div className="text-xs text-destructive">
                           {habitBlockReason}
+                        </div>
+                      </TooltipContent>
+                    ) : (
+                      <TooltipContent side="bottom">
+                        <div className="text-xs">
+                          Kliknij aby zmienić nawyk i wyzerować dane tego tygodnia
                         </div>
                       </TooltipContent>
                     )}
