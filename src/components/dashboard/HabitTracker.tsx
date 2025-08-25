@@ -650,13 +650,34 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-3">
-            <Input
-              placeholder="Wpisz nawyk, nad którym chcesz pracować..."
-              value={habitData.habitName}
-              onChange={(e) => updateHabitName(e.target.value)}
-              className="modern-input text-base sm:text-lg py-3 px-4 flex-1"
-              disabled={isHabitSaved || habitChangeBlocked}
-            />
+            <div className="flex-1">
+              {habitChangeBlocked ? (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Input
+                      placeholder="Wpisz nawyk, nad którym chcesz pracować..."
+                      value={habitData.habitName}
+                      onChange={(e) => updateHabitName(e.target.value)}
+                      className="modern-input text-base sm:text-lg py-3 px-4"
+                      disabled={isHabitSaved || habitChangeBlocked}
+                    />
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    <div className="text-xs text-destructive">
+                      {habitBlockReason}
+                    </div>
+                  </TooltipContent>
+                </Tooltip>
+              ) : (
+                <Input
+                  placeholder="Wpisz nawyk, nad którym chcesz pracować..."
+                  value={habitData.habitName}
+                  onChange={(e) => updateHabitName(e.target.value)}
+                  className="modern-input text-base sm:text-lg py-3 px-4"
+                  disabled={isHabitSaved || habitChangeBlocked}
+                />
+              )}
+            </div>
             {!isHabitSaved ? (
               <Button
                 onClick={handleSaveHabit}
@@ -718,20 +739,12 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
               </div>
             )}
           </div>
-          {habitChangeBlocked && (
-            <Alert variant="destructive" className="mt-3 animate-fade-in">
-              <AlertTriangle className="h-4 w-4" />
-              <AlertDescription>
-                {habitBlockReason}
-              </AlertDescription>
-            </Alert>
-          )}
-          {!isHabitSaved && !isHabitDefined && !habitChangeBlocked && (
+          {!isHabitSaved && !isHabitDefined && (
             <p className="text-sm text-muted-foreground mt-2 animate-fade-in">
               Wpisz nazwę nawyku i kliknij "Zapisz nawyk" aby móc go śledzić
             </p>
           )}
-          {isHabitSaved && !habitChangeBlocked && (
+          {isHabitSaved && (
             <p className="text-sm text-green-600 dark:text-green-400 mt-2 animate-fade-in">
               Nawyk został zapisany. Użyj "Zmień nawyk" aby go edytować.
             </p>
