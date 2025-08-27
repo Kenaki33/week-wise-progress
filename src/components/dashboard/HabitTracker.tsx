@@ -761,7 +761,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
           {isHabitSaved && (
             habitChangeBlocked ? (
               <p className="text-sm text-muted-foreground mt-2 animate-fade-in">
-                Kontynuuj nawyk z poprzedniego tygodnia. Po więcej informacji najedź na nawyk powyżej.
+                Kontynuuj nawyk z poprzedniego tygodnia. {isMobile ? "Po więcej informacji najedź na ikonkę (i)." : "Po więcej informacji najedź na nawyk powyżej."}
               </p>
             ) : (
               <p className="text-sm text-green-600 dark:text-green-400 mt-2 animate-fade-in">
