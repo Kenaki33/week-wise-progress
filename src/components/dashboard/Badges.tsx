@@ -89,7 +89,7 @@ export const Badges = ({ userId }: BadgesProps) => {
                     <TooltipTrigger asChild>
                       <span className="cursor-help font-medium">Mistrzowski Tydzień</span>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
+                    <TooltipContent side="top" className="max-w-[250px] break-words">
                       <p>Za osiągnięcie co najmniej 85% dni zaliczonych w jednym tygodniu.</p>
                     </TooltipContent>
                   </Tooltip>
@@ -106,7 +106,7 @@ export const Badges = ({ userId }: BadgesProps) => {
                     <TooltipTrigger asChild>
                       <span className="cursor-help font-medium">Mistrzowski Miesiąc</span>
                     </TooltipTrigger>
-                    <TooltipContent className="max-w-xs">
+                    <TooltipContent side="top" className="max-w-[250px] break-words">
                       <p>Za cztery tygodnie z rzędu, w których każdy ma wynik co najmniej 85%.</p>
                     </TooltipContent>
                   </Tooltip>
