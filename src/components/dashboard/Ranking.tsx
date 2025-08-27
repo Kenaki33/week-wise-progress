@@ -5,9 +5,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { User, RotateCcw } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { User, RotateCcw, Info } from 'lucide-react';
 import { format, parseISO } from 'date-fns';
 import { dedupeHabitsByWeek } from '@/utils/habitsDedup';
+import { computeBadgeCounts } from '@/hooks/useBadges';
 
 type NutritionPersonality = 'ekspresowy_konsument' | 'emocjonalny_podjadacz' | 'beztroski_lasuch' | 'nieswiadomy_zjadacz' | 'perfekcjonista_dietetyczny' | 'wieczny_odchudzacz' | 'ogarniety_odzywiacze';
 
@@ -18,6 +21,8 @@ interface RankingUser {
   monthly_score: number;
   total_score: number;
   created_at: string;
+  masterWeekBadges: number;
+  masterMonthBadges: number;
 }
 
 const personalityLabels = {
@@ -95,13 +100,18 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
         const monthlyScores = calculateMonthlyScores(userHabits as any, userCreatedAt);
         monthlyScore = monthlyScores[currentMonth]?.points || 0;
 
+        // Calculate badges
+        const badges = computeBadgeCounts(userHabits, userCreatedAt);
+
         return {
           user_id: profile.user_id,
           nickname: profile.nickname,
           nutrition_personality: profile.nutrition_personality,
           monthly_score: monthlyScore,
           total_score: totalScore,
-          created_at: profile.created_at
+          created_at: profile.created_at,
+          masterWeekBadges: badges.masterWeek,
+          masterMonthBadges: badges.masterMonth
         };
       });
 
@@ -267,11 +277,23 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <span className="text-sm font-bold text-primary flex-shrink-0">#{getRealPosition(user.user_id)}</span>
                         <div className="min-w-0 flex-1">
-                          <div className="font-medium text-xs truncate">
+                          <div className="font-medium text-xs truncate flex items-center gap-1">
                             {user.nickname}
                             {isCurrentUser(user.user_id) && (
                               <span className="ml-1 text-[10px] text-primary">(Ty)</span>
                             )}
+                            <Popover>
+                              <PopoverTrigger asChild>
+                                <Info className="h-3 w-3 text-muted-foreground cursor-pointer" />
+                              </PopoverTrigger>
+                              <PopoverContent className="w-auto p-2 text-xs">
+                                <div>
+                                  <strong>Odznaki:</strong><br />
+                                  Mistrzowski Tydzień: {user.masterWeekBadges}<br />
+                                  Mistrzowski Miesiąc: {user.masterMonthBadges}
+                                </div>
+                              </PopoverContent>
+                            </Popover>
                           </div>
                           <div className="text-[10px] text-muted-foreground truncate">
                             {personalityLabels[user.nutrition_personality]}
@@ -318,10 +340,25 @@ export const Ranking = ({ currentUserId }: RankingProps) => {
                         {getRealPosition(user.user_id)}
                       </TableCell>
                       <TableCell className="font-medium">
-                        {user.nickname}
-                        {isCurrentUser(user.user_id) && (
-                          <span className="ml-2 text-xs text-primary">(Ty)</span>
-                        )}
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <span className="cursor-help">
+                                {user.nickname}
+                                {isCurrentUser(user.user_id) && (
+                                  <span className="ml-2 text-xs text-primary">(Ty)</span>
+                                )}
+                              </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <div>
+                                <strong>Odznaki:</strong><br />
+                                Mistrzowski Tydzień: {user.masterWeekBadges}<br />
+                                Mistrzowski Miesiąc: {user.masterMonthBadges}
+                              </div>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </TableCell>
                       <TableCell className={`text-right font-semibold ${getScoreColor(user.monthly_score)}`}>
                         {user.monthly_score >= 0 ? '+' : ''}{user.monthly_score}

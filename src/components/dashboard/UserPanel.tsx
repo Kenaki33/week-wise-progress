@@ -13,6 +13,7 @@ import { User } from '@supabase/supabase-js';
 import { Settings, Trash2 } from 'lucide-react';
 import { PointsHistory } from './PointsHistory';
 import { Ranking } from './Ranking';
+import { Badges } from './Badges';
 
 interface UserPanelProps {
   user: User;
@@ -334,8 +335,9 @@ export const UserPanel = ({ user }: UserPanelProps) => {
         </DialogHeader>
         
         <Tabs defaultValue="ranking" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 h-auto">
+          <TabsList className="grid w-full grid-cols-3 sm:grid-cols-5 h-auto">
             <TabsTrigger value="ranking" className="text-[10px] sm:text-sm px-1 sm:px-4 py-2 whitespace-nowrap">Ranking</TabsTrigger>
+            <TabsTrigger value="badges" className="text-[10px] sm:text-sm px-1 sm:px-4 py-2 whitespace-nowrap">Odznaki</TabsTrigger>
             <TabsTrigger value="history" className="text-[10px] sm:text-sm px-1 sm:px-4 py-2 whitespace-nowrap">Historia</TabsTrigger>
             <TabsTrigger value="profile" className="text-[10px] sm:text-sm px-1 sm:px-4 py-2 whitespace-nowrap">Profil</TabsTrigger>
             <TabsTrigger value="password" className="text-[10px] sm:text-sm px-1 sm:px-4 py-2 whitespace-nowrap">Hasło</TabsTrigger>
@@ -343,6 +345,10 @@ export const UserPanel = ({ user }: UserPanelProps) => {
           
           <TabsContent value="ranking" className="space-y-4">
             <Ranking currentUserId={user.id} />
+          </TabsContent>
+          
+          <TabsContent value="badges" className="space-y-4">
+            <Badges userId={user.id} />
           </TabsContent>
           
           <TabsContent value="history" className="space-y-4">
