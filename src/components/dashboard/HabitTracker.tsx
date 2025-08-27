@@ -14,7 +14,7 @@ import { pl } from 'date-fns/locale';
 import { Check, X, Save, Edit2, Info, AlertTriangle } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { calculateDayPoints, calculateWeekScore } from '@/hooks/useScoring';
-import { getLegacyWeekKey } from '@/utils/weekKey';
+import { getLegacyWeekKey, getISOWeekKey } from '@/utils/weekKey';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface HabitData {
@@ -465,6 +465,19 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   };
 
   const setDayStatus = (dayIndex: number, status: number) => {
+    // Check if this is a past week that shouldn't be editable
+    const currentWeekKey = getISOWeekKey(new Date());
+    const isPastWeek = weekKey < currentWeekKey;
+    
+    if (isPastWeek) {
+      toast({
+        title: "Ograniczenie edycji",
+        description: "Nie można edytować poprzednich tygodni po rozpoczęciu nowego tygodnia.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setHasUserInteracted(true);
     setHabitData(prev => ({
       ...prev,
@@ -936,7 +949,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                           size="sm"
                           onClick={() => setDayStatus(index, dayStatus === 1 ? 0 : 1)}
                           className={`${dayStatus === 1 ? 'bg-green-500 hover:bg-green-600 text-white' : 'border-green-500 text-green-600 hover:bg-green-50 dark:hover:bg-green-950/20'}`}
-                          disabled={isFutureDay || !isHabitSaved || !isValidDay}
+                          disabled={isFutureDay || !isHabitSaved || !isValidDay || weekKey < getISOWeekKey(new Date())}
                         >
                           <Check className="w-4 h-4" />
                         </Button>
@@ -946,7 +959,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                           size="sm"
                           onClick={() => setDayStatus(index, dayStatus === 2 ? 0 : 2)}
                           className={`${dayStatus === 2 ? 'bg-red-500 hover:bg-red-600 text-white' : 'border-red-500 text-red-600 hover:bg-red-50 dark:hover:bg-red-950/20'}`}
-                          disabled={isFutureDay || !isHabitSaved || !isValidDay}
+                          disabled={isFutureDay || !isHabitSaved || !isValidDay || weekKey < getISOWeekKey(new Date())}
                         >
                           <X className="w-4 h-4" />
                         </Button>
