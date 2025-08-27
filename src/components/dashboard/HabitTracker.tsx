@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfWeek, addDays, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
@@ -690,28 +691,37 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
             ) : (
               <div className="relative">
                 {isMobile ? (
-                  <div className="relative">
+                  <div className="flex items-center gap-2">
                     <Button
-                      onClick={habitChangeBlocked ? () => setShowMobileTooltip(!showMobileTooltip) : handleChangeHabit}
+                      onClick={handleChangeHabit}
                       variant="outline"
                       className={`px-6 w-full sm:w-auto ${habitChangeBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}
                       disabled={habitChangeBlocked}
+                      type="button"
                     >
                       <Edit2 className="w-4 h-4 mr-2" />
                       Zmień nawyk
                     </Button>
-                    {showMobileTooltip && habitChangeBlocked && (
-                      <>
-                        <div 
-                          className="fixed inset-0 z-40" 
-                          onClick={() => setShowMobileTooltip(false)}
-                        />
-                        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-2 z-50 bg-popover border border-border rounded-md shadow-lg p-3 max-w-xs">
+
+                    {habitChangeBlocked && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="icon"
+                            aria-label="Dlaczego zablokowane?"
+                            className="shrink-0"
+                          >
+                            <Info className="w-5 h-5" />
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent side="bottom" align="end" className="max-w-xs p-3">
                           <div className="text-xs text-destructive">
                             {habitBlockReason}
                           </div>
-                        </div>
-                      </>
+                        </PopoverContent>
+                      </Popover>
                     )}
                   </div>
                 ) : (
