@@ -88,7 +88,7 @@ export const Badges = ({ userId }: BadgesProps) => {
             </div>
             <Progress 
               value={(progress.current / progress.needed) * 100} 
-              className="mb-2"
+              className="mb-2 progress-gradient"
             />
             <p className="text-xs text-muted-foreground">
               {progress.current} {progress.description}
