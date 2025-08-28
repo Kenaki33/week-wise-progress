@@ -66,19 +66,30 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
           });
           const badgePoints = monthRewards.reduce((sum, reward) => sum + reward.points_awarded, 0);
           
-          // Create breakdown
+          // Create breakdown with detailed weekly information
           const weeklyScores = monthData?.weeks.map(week => ({
             weekKey: week.weekKey,
-            score: week.totalWeekScore
+            score: week.dailyPoints,
+            perfectBonus: week.perfectWeekBonus,
+            totalScore: week.totalWeekScore
           })) || [];
           
-          const perfectWeekBonuses = weeklyScores.reduce((sum, week) => {
-            const weekData = monthData?.weeks.find(w => w.weekKey === week.weekKey);
-            return sum + (weekData?.perfectWeekBonus || 0);
-          }, 0);
+          // Calculate total perfect week bonuses for this month
+          const perfectWeekBonuses = weeklyScores.reduce((sum, week) => sum + week.perfectBonus, 0);
+          
+          console.log('Monthly breakdown:', {
+            targetMonth,
+            weeklyScores,
+            perfectWeekBonuses,
+            badgePoints,
+            monthData: monthData?.weeks
+          });
           
           setBreakdown({
-            weeklyScores,
+            weeklyScores: weeklyScores.map(w => ({ 
+              weekKey: w.weekKey, 
+              score: w.totalScore 
+            })),
             perfectWeekBonuses,
             badgeRewards: badgePoints,
             totalScore: score + badgePoints

@@ -44,29 +44,41 @@ export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderP
                     {breakdown ? (
                       <div className="text-xs space-y-1">
                         <div className="font-semibold mb-2">Szczegóły punktacji miesiąca:</div>
-                        {breakdown.weeklyScores.map((week, index) => (
-                          <div key={index} className="flex justify-between">
-                            <span>Tydzień {week.weekKey}:</span>
-                            <span className={week.score > 0 ? 'text-green-400' : week.score < 0 ? 'text-red-400' : 'text-gray-400'}>
-                              {week.score > 0 ? '+' : ''}{week.score}
-                            </span>
-                          </div>
-                        ))}
-                        {breakdown.perfectWeekBonuses > 0 && (
-                          <div className="flex justify-between border-t pt-1 mt-1">
-                            <span>Bonusy za idealne tygodnie:</span>
-                            <span className="text-green-400">+{breakdown.perfectWeekBonuses}</span>
-                          </div>
-                        )}
-                        {breakdown.badgeRewards > 0 && (
-                          <div className="flex justify-between border-t pt-1 mt-1">
-                            <span>Odznaki:</span>
-                            <span className="text-green-400">+{breakdown.badgeRewards}</span>
-                          </div>
+                        {breakdown.weeklyScores.length > 0 ? (
+                          <>
+                            {breakdown.weeklyScores.map((week, index) => (
+                              <div key={index} className="flex justify-between">
+                                <span>Tydzień {week.weekKey}:</span>
+                                <span className={week.score > 0 ? 'text-green-400' : week.score < 0 ? 'text-red-400' : 'text-gray-400'}>
+                                  {week.score > 0 ? '+' : ''}{week.score}
+                                </span>
+                              </div>
+                            ))}
+                            {breakdown.perfectWeekBonuses > 0 && (
+                              <div className="flex justify-between border-t pt-1 mt-1">
+                                <span>Bonusy za idealne tygodnie:</span>
+                                <span className="text-green-400">+{breakdown.perfectWeekBonuses}</span>
+                              </div>
+                            )}
+                            {breakdown.badgeRewards > 0 && (
+                              <div className="flex justify-between border-t pt-1 mt-1">
+                                <span>Odznaki (Mistrzowski Miesiąc):</span>
+                                <span className="text-green-400">+{breakdown.badgeRewards}</span>
+                              </div>
+                            )}
+                            <div className="flex justify-between border-t pt-1 mt-1 font-semibold">
+                              <span>RAZEM:</span>
+                              <span className={breakdown.totalScore > 0 ? 'text-green-400' : breakdown.totalScore < 0 ? 'text-red-400' : 'text-gray-400'}>
+                                {breakdown.totalScore > 0 ? '+' : ''}{breakdown.totalScore}
+                              </span>
+                            </div>
+                          </>
+                        ) : (
+                          <div>Brak tygodni w tym miesiącu</div>
                         )}
                       </div>
                     ) : (
-                      <div className="text-xs">Brak danych dla tego miesiąca</div>
+                      <div className="text-xs">Ładowanie danych miesiąca...</div>
                     )}
                   </TooltipContent>
                 </Tooltip>

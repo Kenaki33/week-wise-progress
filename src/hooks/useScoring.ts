@@ -148,6 +148,9 @@ export const calculateMonthlyScores = (
       userCreatedAt
     );
     
+    // Determine which month this week primarily belongs to
+    const primaryMonth = getMonthForPerfectWeekBonus(weekScore.weekStartDate, userCreatedAt);
+    
     // First, ensure all months for this week exist in monthlyScores
     for (let dayIndex = 0; dayIndex < 7; dayIndex++) {
       const dayDate = addDays(weekScore.weekStartDate, dayIndex);
@@ -163,6 +166,15 @@ export const calculateMonthlyScores = (
             weeks: []
           };
         }
+      }
+    }
+    
+    // Add this week to the primary month's weeks array
+    if (primaryMonth && monthlyScores[primaryMonth]) {
+      // Check if this week is already added to avoid duplicates
+      const existingWeek = monthlyScores[primaryMonth].weeks.find(w => w.weekKey === weekScore.weekKey);
+      if (!existingWeek) {
+        monthlyScores[primaryMonth].weeks.push(weekScore);
       }
     }
     
