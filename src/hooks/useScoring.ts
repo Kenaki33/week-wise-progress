@@ -198,11 +198,12 @@ export const calculateMonthlyScores = (
 };
 
 /**
- * Calculates total score from all time
+ * Calculates total score from all time including badge rewards
  */
 export const calculateTotalScore = (
   habitsData: any[],
-  userCreatedAt: Date | null
+  userCreatedAt: Date | null,
+  badgeRewardPoints: number = 0
 ): number => {
   let totalScore = 0;
   
@@ -218,6 +219,9 @@ export const calculateTotalScore = (
     
     totalScore += weekScore.totalWeekScore;
   });
+  
+  // Add badge reward points
+  totalScore += badgeRewardPoints;
   
   return totalScore;
 };

@@ -6,6 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { computeBadgeCounts, computeBadgeProgress, BadgeCounts, BadgeProgress } from '@/hooks/useBadges';
+import { useBadgeRewards } from '@/hooks/useBadgeRewards';
 import { dedupeHabitsByWeek } from '@/utils/habitsDedup';
 import { parseISO } from 'date-fns';
 
@@ -17,7 +18,9 @@ export const Badges = ({ userId }: BadgesProps) => {
   const [badges, setBadges] = useState<BadgeCounts>({ masterWeek: 0, masterMonth: 0 });
   const [progress, setProgress] = useState<BadgeProgress | null>(null);
   const [loading, setLoading] = useState(true);
+  const [prevBadges, setPrevBadges] = useState<BadgeCounts>({ masterWeek: 0, masterMonth: 0 });
   const { toast } = useToast();
+  const { awardBadgePoints } = useBadgeRewards(userId);
 
   useEffect(() => {
     fetchBadges();
@@ -49,6 +52,16 @@ export const Badges = ({ userId }: BadgesProps) => {
       
       const badgeCounts = computeBadgeCounts(dedupedHabits, userCreatedAt);
       const badgeProgress = computeBadgeProgress(dedupedHabits, userCreatedAt);
+      
+      // Check for new Master Month badges and award points
+      if (badgeCounts.masterMonth > prevBadges.masterMonth) {
+        const newBadges = badgeCounts.masterMonth - prevBadges.masterMonth;
+        for (let i = 0; i < newBadges; i++) {
+          await awardBadgePoints('Mistrzowski Miesiąc', 20);
+        }
+      }
+      
+      setPrevBadges(badges); // Save current badges as previous for next comparison
       setBadges(badgeCounts);
       setProgress(badgeProgress);
     } catch (error) {

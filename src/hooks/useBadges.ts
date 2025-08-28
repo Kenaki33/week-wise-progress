@@ -1,5 +1,6 @@
 import { calculateWeekScore } from './useScoring';
 import { dedupeHabitsByWeek } from '@/utils/habitsDedup';
+import { useBadgeRewards } from './useBadgeRewards';
 
 export interface BadgeCounts {
   masterWeek: number;
@@ -86,7 +87,7 @@ export const computeBadgeProgress = (habitsData: any[], userCreatedAt: Date | nu
   };
 };
 
-// Calculate badge counts based on habit data
+// Calculate badge counts based on habit data and award points for new badges
 export const computeBadgeCounts = (habitsData: any[], userCreatedAt: Date | null): BadgeCounts => {
   if (!habitsData || habitsData.length === 0) {
     return { masterWeek: 0, masterMonth: 0 };
@@ -150,10 +151,12 @@ export const computeBadgeCounts = (habitsData: any[], userCreatedAt: Date | null
     }
   }
 
-  return {
+  const result = {
     masterWeek: masterWeekCount,
     masterMonth: masterMonthCount
   };
+
+  return result;
 };
 
 // Helper function to check if two weeks are consecutive

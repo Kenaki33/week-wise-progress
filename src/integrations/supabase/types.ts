@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      badge_rewards: {
+        Row: {
+          badge_type: string
+          created_at: string
+          earned_at: string
+          id: string
+          points_awarded: number
+          user_id: string
+        }
+        Insert: {
+          badge_type: string
+          created_at?: string
+          earned_at?: string
+          id?: string
+          points_awarded: number
+          user_id: string
+        }
+        Update: {
+          badge_type?: string
+          created_at?: string
+          earned_at?: string
+          id?: string
+          points_awarded?: number
+          user_id?: string
+        }
+        Relationships: []
+      }
       habits: {
         Row: {
           created_at: string

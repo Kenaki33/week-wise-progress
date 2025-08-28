@@ -2,10 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { parseISO } from 'date-fns';
 import { calculateTotalScore } from './useScoring';
+import { useBadgeRewards } from './useBadgeRewards';
 
 export const useTotalScore = (userId?: string, refreshTrigger?: number) => {
   const [totalScore, setTotalScore] = useState<number>(0);
   const [loading, setLoading] = useState(false);
+  const { getTotalBadgePoints } = useBadgeRewards(userId);
 
   useEffect(() => {
     if (!userId) return;
@@ -33,7 +35,8 @@ export const useTotalScore = (userId?: string, refreshTrigger?: number) => {
           console.error('Error fetching total score:', error);
           setTotalScore(0);
         } else {
-          const total = calculateTotalScore(data || [], userCreatedAt);
+          const badgePoints = getTotalBadgePoints();
+          const total = calculateTotalScore(data || [], userCreatedAt, badgePoints);
           setTotalScore(total);
         }
       } catch (error) {
