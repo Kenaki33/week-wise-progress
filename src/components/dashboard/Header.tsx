@@ -48,7 +48,7 @@ export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderP
                           <>
                             {breakdown.weeklyScores.map((week, index) => (
                               <div key={index} className="flex justify-between">
-                                <span>Tydzień {week.weekKey}:</span>
+                                <span>Tydzień {week.dateRange}:</span>
                                 <span className={week.score > 0 ? 'text-green-400' : week.score < 0 ? 'text-red-400' : 'text-gray-400'}>
                                   {week.score > 0 ? '+' : ''}{week.score}
                                 </span>

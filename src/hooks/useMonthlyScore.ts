@@ -1,16 +1,30 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { format, parseISO } from 'date-fns';
+import { format, parseISO, addDays } from 'date-fns';
 import { calculateMonthlyScores } from './useScoring';
 import { dedupeHabitsByWeek } from '@/utils/habitsDedup';
 import { useBadgeRewards } from './useBadgeRewards';
+import { getWeekStartDateFromKey } from '@/utils/weekKey';
+import { pl } from 'date-fns/locale';
 
 export interface MonthlyScoreBreakdown {
-  weeklyScores: { weekKey: string; score: number; }[];
+  weeklyScores: { weekKey: string; score: number; dateRange: string; }[];
   perfectWeekBonuses: number;
   badgeRewards: number;
   totalScore: number;
 }
+
+// Helper function to convert week_key to date range string
+const getWeekDateRange = (weekKey: string): string => {
+  try {
+    const weekStart = getWeekStartDateFromKey(weekKey);
+    const weekEnd = addDays(weekStart, 6);
+    return `${format(weekStart, 'dd.MM', { locale: pl })}-${format(weekEnd, 'dd.MM', { locale: pl })}`;
+  } catch (error) {
+    console.error('Error formatting week date range:', error);
+    return weekKey;
+  }
+};
 
 export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTrigger?: number) => {
   const [monthlyScore, setMonthlyScore] = useState<number>(0);
@@ -71,8 +85,13 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
             weekKey: week.weekKey,
             score: week.dailyPoints,
             perfectBonus: week.perfectWeekBonus,
-            totalScore: week.totalWeekScore
+            totalScore: week.totalWeekScore,
+            dateRange: getWeekDateRange(week.weekKey),
+            weekStartDate: week.weekStartDate
           })) || [];
+          
+          // Sort weeks chronologically
+          weeklyScores.sort((a, b) => a.weekStartDate.getTime() - b.weekStartDate.getTime());
           
           // Calculate total perfect week bonuses for this month
           const perfectWeekBonuses = weeklyScores.reduce((sum, week) => sum + week.perfectBonus, 0);
@@ -88,7 +107,8 @@ export const useMonthlyScore = (userId?: string, selectedDate?: Date, refreshTri
           setBreakdown({
             weeklyScores: weeklyScores.map(w => ({ 
               weekKey: w.weekKey, 
-              score: w.totalScore 
+              score: w.totalScore,
+              dateRange: w.dateRange
             })),
             perfectWeekBonuses,
             badgeRewards: badgePoints,
