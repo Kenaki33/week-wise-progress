@@ -1,6 +1,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { LogOut } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { LogOut, Info } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserPanel } from './UserPanel';
 import { User } from '@supabase/supabase-js';
@@ -16,7 +17,7 @@ interface HeaderProps {
 }
 
 export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderProps) => {
-  const { monthlyScore, loading } = useMonthlyScore(user.id, selectedDate, refreshTrigger);
+  const { monthlyScore, breakdown, loading } = useMonthlyScore(user.id, selectedDate, refreshTrigger);
   return (
     <header className="bg-header text-header-foreground shadow-lg">
       <div className="container mx-auto px-2 sm:px-6 py-2 sm:py-4">
@@ -28,13 +29,47 @@ export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderP
                 <span className="text-xs sm:text-sm text-header-foreground/70 truncate">
                   {format(selectedDate, 'LLLL yyyy', { locale: pl })}:
                 </span>
-                <span className={`text-xs sm:text-sm font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded w-fit ${
-                  monthlyScore >= 0 
-                    ? 'bg-points-positive-bg text-points-positive' 
-                    : 'bg-points-negative-bg text-points-negative'
-                }`}>
-                  {loading ? '...' : `${monthlyScore >= 0 ? '+' : ''}${monthlyScore} pkt`}
-                </span>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <span className={`text-xs sm:text-sm font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded w-fit cursor-help flex items-center gap-1 ${
+                      monthlyScore >= 0 
+                        ? 'bg-points-positive-bg text-points-positive' 
+                        : 'bg-points-negative-bg text-points-negative'
+                    }`}>
+                      {loading ? '...' : `${monthlyScore >= 0 ? '+' : ''}${monthlyScore} pkt`}
+                      <Info className="w-3 h-3" />
+                    </span>
+                  </TooltipTrigger>
+                  <TooltipContent side="bottom" className="max-w-xs">
+                    {breakdown ? (
+                      <div className="text-xs space-y-1">
+                        <div className="font-semibold mb-2">Szczegóły punktacji miesiąca:</div>
+                        {breakdown.weeklyScores.map((week, index) => (
+                          <div key={index} className="flex justify-between">
+                            <span>Tydzień {week.weekKey}:</span>
+                            <span className={week.score > 0 ? 'text-green-400' : week.score < 0 ? 'text-red-400' : 'text-gray-400'}>
+                              {week.score > 0 ? '+' : ''}{week.score}
+                            </span>
+                          </div>
+                        ))}
+                        {breakdown.perfectWeekBonuses > 0 && (
+                          <div className="flex justify-between border-t pt-1 mt-1">
+                            <span>Bonusy za idealne tygodnie:</span>
+                            <span className="text-green-400">+{breakdown.perfectWeekBonuses}</span>
+                          </div>
+                        )}
+                        {breakdown.badgeRewards > 0 && (
+                          <div className="flex justify-between border-t pt-1 mt-1">
+                            <span>Odznaki:</span>
+                            <span className="text-green-400">+{breakdown.badgeRewards}</span>
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <div className="text-xs">Brak danych dla tego miesiąca</div>
+                    )}
+                  </TooltipContent>
+                </Tooltip>
               </div>
             )}
           </div>
