@@ -6,6 +6,86 @@ export interface BadgeCounts {
   masterMonth: number;
 }
 
+export interface BadgeProgress {
+  nextBadge: string;
+  current: number;
+  needed: number;
+  description: string;
+}
+
+// Calculate badge progress towards next achievement
+export const computeBadgeProgress = (habitsData: any[], userCreatedAt: Date | null): BadgeProgress | null => {
+  if (!habitsData || habitsData.length === 0) {
+    return {
+      nextBadge: "Mistrzowski Miesiąc",
+      current: 0,
+      needed: 4,
+      description: "tygodnie mistrzowskie z rzędu do pierwszego Mistrzowskiego Miesiąca"
+    };
+  }
+
+  // Deduplicate habits by week
+  const dedupedHabits = dedupeHabitsByWeek(habitsData);
+  
+  // Group by week and calculate weekly scores
+  const weekScores: { [weekKey: string]: { score: number; percentage: number } } = {};
+  
+  dedupedHabits.forEach(habit => {
+    const weekScore = calculateWeekScore(
+      habit.week_key,
+      habit.days || [0, 0, 0, 0, 0, 0, 0],
+      habit.habit_name || '',
+      userCreatedAt
+    );
+    
+    const validDays = weekScore.validDaysCount;
+    const completedDays = weekScore.completedDaysCount;
+    const percentage = validDays > 0 ? completedDays / validDays : 0;
+    
+    weekScores[habit.week_key] = {
+      score: weekScore.totalWeekScore,
+      percentage
+    };
+  });
+
+  // Get master weeks and sort them
+  const masterWeeks = Object.entries(weekScores)
+    .filter(([_, week]) => week.percentage >= 0.85)
+    .map(([weekKey, _]) => weekKey)
+    .sort();
+
+  // Find current streak at the end (most recent consecutive weeks)
+  let currentStreak = 0;
+  
+  if (masterWeeks.length > 0) {
+    // Start from the most recent week and work backwards
+    for (let i = masterWeeks.length - 1; i >= 0; i--) {
+      const currentWeek = masterWeeks[i];
+      const nextWeek = masterWeeks[i + 1];
+      
+      if (i === masterWeeks.length - 1) {
+        // Most recent week
+        currentStreak = 1;
+      } else if (isConsecutiveWeek(currentWeek, nextWeek)) {
+        currentStreak++;
+      } else {
+        break; // Streak is broken
+      }
+    }
+  }
+
+  // Calculate progress towards next master month
+  const streakRemainder = currentStreak % 4;
+  const weeksNeeded = 4 - streakRemainder;
+  
+  return {
+    nextBadge: "Mistrzowski Miesiąc",
+    current: streakRemainder,
+    needed: 4,
+    description: `tygodnie mistrzowskie z rzędu do ${currentStreak < 4 ? 'pierwszego' : 'kolejnego'} Mistrzowskiego Miesiąca`
+  };
+};
+
 // Calculate badge counts based on habit data
 export const computeBadgeCounts = (habitsData: any[], userCreatedAt: Date | null): BadgeCounts => {
   if (!habitsData || habitsData.length === 0) {

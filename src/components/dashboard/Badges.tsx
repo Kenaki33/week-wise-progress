@@ -2,9 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Progress } from '@/components/ui/progress';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { computeBadgeCounts, BadgeCounts } from '@/hooks/useBadges';
+import { computeBadgeCounts, computeBadgeProgress, BadgeCounts, BadgeProgress } from '@/hooks/useBadges';
 import { dedupeHabitsByWeek } from '@/utils/habitsDedup';
 import { parseISO } from 'date-fns';
 
@@ -14,6 +15,7 @@ interface BadgesProps {
 
 export const Badges = ({ userId }: BadgesProps) => {
   const [badges, setBadges] = useState<BadgeCounts>({ masterWeek: 0, masterMonth: 0 });
+  const [progress, setProgress] = useState<BadgeProgress | null>(null);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
 
@@ -46,7 +48,9 @@ export const Badges = ({ userId }: BadgesProps) => {
       const dedupedHabits = dedupeHabitsByWeek(habits || []);
       
       const badgeCounts = computeBadgeCounts(dedupedHabits, userCreatedAt);
+      const badgeProgress = computeBadgeProgress(dedupedHabits, userCreatedAt);
       setBadges(badgeCounts);
+      setProgress(badgeProgress);
     } catch (error) {
       toast({
         title: "Błąd",
@@ -74,6 +78,23 @@ export const Badges = ({ userId }: BadgesProps) => {
         <CardTitle className="gradient-text">Twoje Odznaki</CardTitle>
       </CardHeader>
       <CardContent>
+        {progress && (
+          <div className="mb-6 p-4 rounded-lg bg-muted/50">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-sm font-medium">Postęp do następnej odznaki</span>
+              <span className="text-sm text-muted-foreground">
+                {progress.current}/{progress.needed}
+              </span>
+            </div>
+            <Progress 
+              value={(progress.current / progress.needed) * 100} 
+              className="mb-2"
+            />
+            <p className="text-xs text-muted-foreground">
+              {progress.current} {progress.description}
+            </p>
+          </div>
+        )}
         <Table>
           <TableHeader>
             <TableRow>
