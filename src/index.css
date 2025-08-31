@@ -82,75 +82,75 @@
   }
 
   .dark {
-    /* Dark mode - stonowane, ciepłe odcienie inspirowane trybem dziennym */
-    --background: 28 15% 12%;
-    --foreground: 28 8% 85%;
-    --card: 28 12% 15%;
-    --card-foreground: 28 8% 85%;
-    --popover: 28 12% 15%;
-    --popover-foreground: 28 8% 85%;
+    /* Dark mode - ciemny header jak w dzień, jaśniejszy content */
+    --background: 220 15% 50%;
+    --foreground: 0 0% 95%;
+    --card: 220 15% 55%;
+    --card-foreground: 0 0% 95%;
+    --popover: 220 15% 55%;
+    --popover-foreground: 0 0% 95%;
     
     /* Primary - łagodniejszy pomarańczowy */
     --primary: 28 70% 48%;
     --primary-foreground: 0 0% 100%;
     --primary-hover: 28 75% 52%;
-    --primary-light: 28 30% 20%;
+    --primary-light: 28 30% 60%;
     
-    /* Secondary colors - stonowane brązy */
-    --secondary: 28 10% 18%;
-    --secondary-foreground: 28 8% 80%;
+    /* Secondary colors - jaśniejsze odcienie */
+    --secondary: 220 15% 45%;
+    --secondary-foreground: 0 0% 95%;
     
     /* Muted colors */
-    --muted: 28 8% 16%;
-    --muted-foreground: 28 6% 60%;
+    --muted: 220 15% 45%;
+    --muted-foreground: 220 10% 80%;
     
     /* Accent colors */
-    --accent: 28 8% 20%;
-    --accent-foreground: 28 8% 80%;
+    --accent: 220 15% 45%;
+    --accent-foreground: 0 0% 95%;
     
     /* Status colors - łagodniejsze */
     --destructive: 0 60% 55%;
     --destructive-foreground: 0 0% 100%;
     
     /* Border and input colors */
-    --border: 28 10% 25%;
-    --input: 28 8% 18%;
+    --border: 220 15% 40%;
+    --input: 220 15% 45%;
     --ring: 28 70% 48%;
     
-    /* Header Colors */
-    --header: 28 8% 80%;
-    --header-foreground: 28 15% 12%;
+    /* Header Colors - jak w trybie dziennym */
+    --header: 220 15% 25%;
+    --header-foreground: 0 0% 100%;
     
     /* Success & Warning - stonowane */
     --success: 142 45% 45%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 25% 18%;
+    --success-light: 142 25% 60%;
     
     --warning: 28 70% 48%;
     --warning-foreground: 0 0% 100%;
-    --warning-light: 28 25% 18%;
+    --warning-light: 28 25% 60%;
     
     /* Points display colors - stonowane, czytelne */
-    --points-positive: 142 50% 55%;
-    --points-positive-bg: 142 20% 18%;
-    --points-negative: 0 55% 60%;
-    --points-negative-bg: 0 20% 18%;
+    --points-positive: 142 50% 40%;
+    --points-positive-bg: 142 20% 70%;
+    --points-negative: 0 55% 45%;
+    --points-negative-bg: 0 20% 70%;
     
     /* Calendar Colors */
     --calendar-selected: 28 70% 48%;
-    --calendar-hover: 28 10% 22%;
+    --calendar-hover: 220 15% 45%;
     --calendar-today: 28 70% 48%;
     
     /* Stonowane dark mode gradienty */
     --gradient-primary: linear-gradient(135deg, hsl(28 70% 48%), hsl(35 70% 52%));
-    --gradient-card: linear-gradient(135deg, hsl(28 12% 15%), hsl(28 10% 18%));
+    --gradient-card: linear-gradient(135deg, hsl(220 15% 55%), hsl(220 15% 50%));
     --gradient-hero: linear-gradient(135deg, hsl(28 70% 48% / 0.1), hsl(35 70% 52% / 0.05));
-    --gradient-glass: linear-gradient(135deg, hsl(28 12% 15% / 0.9), hsl(28 10% 18% / 0.8));
+    --gradient-glass: linear-gradient(135deg, hsl(220 15% 55% / 0.9), hsl(220 15% 50% / 0.8));
     
     /* Łagodniejsze cienie */
-    --shadow-soft: 0 4px 20px hsla(28 20% 8% / 0.3);
-    --shadow-medium: 0 8px 32px hsla(28 20% 8% / 0.4);
-    --shadow-hover: 0 12px 40px hsla(28 20% 8% / 0.5);
+    --shadow-soft: 0 4px 20px hsla(220 15% 20% / 0.3);
+    --shadow-medium: 0 8px 32px hsla(220 15% 20% / 0.4);
+    --shadow-hover: 0 12px 40px hsla(220 15% 20% / 0.5);
     --shadow-focus: 0 0 0 3px hsla(28 70% 48% / 0.3);
     --shadow-glow: 0 0 40px hsla(28 70% 48% / 0.25);
     --shadow-colored: 0 8px 32px hsla(28 70% 48% / 0.2);
