@@ -1,11 +1,13 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { LogOut, Info } from 'lucide-react';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { UserPanel } from './UserPanel';
 import { User } from '@supabase/supabase-js';
 import { useMonthlyScore } from '@/hooks/useMonthlyScore';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { format } from 'date-fns';
 import { pl } from 'date-fns/locale';
 
@@ -18,6 +20,7 @@ interface HeaderProps {
 
 export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderProps) => {
   const { monthlyScore, breakdown, loading } = useMonthlyScore(user.id, selectedDate, refreshTrigger);
+  const isMobile = useIsMobile();
   return (
     <header className="bg-header text-header-foreground shadow-lg">
       <div className="container mx-auto px-2 sm:px-6 py-2 sm:py-4">
@@ -29,59 +32,115 @@ export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderP
                 <span className="text-xs sm:text-sm text-header-foreground/70 truncate">
                   {format(selectedDate, 'LLLL yyyy', { locale: pl })}:
                 </span>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <span className={`text-xs sm:text-sm font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded w-fit cursor-help flex items-center gap-1 ${
-                      monthlyScore >= 0 
-                        ? 'bg-points-positive-bg text-points-positive' 
-                        : 'bg-points-negative-bg text-points-negative'
-                    }`}>
-                      {loading ? '...' : `${monthlyScore >= 0 ? '+' : ''}${monthlyScore} pkt`}
-                      <Info className="w-3 h-3" />
-                    </span>
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    {breakdown ? (
-                      <div className="text-xs space-y-1">
-                        <div className="font-semibold mb-2">Szczegóły punktacji miesiąca:</div>
-                        {breakdown.weeklyScores.length > 0 ? (
-                          <>
-                            {breakdown.weeklyScores.map((week, index) => (
-                              <div key={index} className="flex justify-between">
-                                <span>Tydzień {week.dateRange}:</span>
-                                <span className={week.score > 0 ? 'text-green-400' : week.score < 0 ? 'text-red-400' : 'text-gray-400'}>
-                                  {week.score > 0 ? '+' : ''}{week.score}
+{isMobile ? (
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <span className={`text-xs sm:text-sm font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded w-fit cursor-pointer flex items-center gap-1 ${
+                        monthlyScore >= 0 
+                          ? 'bg-points-positive-bg text-points-positive' 
+                          : 'bg-points-negative-bg text-points-negative'
+                      }`}>
+                        {loading ? '...' : `${monthlyScore >= 0 ? '+' : ''}${monthlyScore} pkt`}
+                        <Info className="w-3 h-3" />
+                      </span>
+                    </PopoverTrigger>
+                    <PopoverContent side="bottom" className="max-w-xs w-auto">
+                      {breakdown ? (
+                        <div className="text-xs space-y-1">
+                          <div className="font-semibold mb-2">Szczegóły punktacji miesiąca:</div>
+                          {breakdown.weeklyScores.length > 0 ? (
+                            <>
+                              {breakdown.weeklyScores.map((week, index) => (
+                                <div key={index} className="flex justify-between">
+                                  <span>Tydzień {week.dateRange}:</span>
+                                  <span className={week.score > 0 ? 'text-green-400' : week.score < 0 ? 'text-red-400' : 'text-gray-400'}>
+                                    {week.score > 0 ? '+' : ''}{week.score}
+                                  </span>
+                                </div>
+                              ))}
+                              {breakdown.perfectWeekBonuses > 0 && (
+                                <div className="flex justify-between border-t pt-1 mt-1">
+                                  <span>Bonusy za idealne tygodnie:</span>
+                                  <span className="text-green-400">+{breakdown.perfectWeekBonuses}</span>
+                                </div>
+                              )}
+                              {breakdown.badgeRewards > 0 && (
+                                <div className="flex justify-between border-t pt-1 mt-1">
+                                  <span>Odznaki (Mistrzowski Miesiąc):</span>
+                                  <span className="text-green-400">+{breakdown.badgeRewards}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between border-t pt-1 mt-1 font-semibold">
+                                <span>RAZEM:</span>
+                                <span className={breakdown.totalScore > 0 ? 'text-green-400' : breakdown.totalScore < 0 ? 'text-red-400' : 'text-gray-400'}>
+                                  {breakdown.totalScore > 0 ? '+' : ''}{breakdown.totalScore}
                                 </span>
                               </div>
-                            ))}
-                            {breakdown.perfectWeekBonuses > 0 && (
-                              <div className="flex justify-between border-t pt-1 mt-1">
-                                <span>Bonusy za idealne tygodnie:</span>
-                                <span className="text-green-400">+{breakdown.perfectWeekBonuses}</span>
+                            </>
+                          ) : (
+                            <div>Brak tygodni w tym miesiącu</div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-xs">Ładowanie danych miesiąca...</div>
+                      )}
+                    </PopoverContent>
+                  </Popover>
+                ) : (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className={`text-xs sm:text-sm font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded w-fit cursor-help flex items-center gap-1 ${
+                        monthlyScore >= 0 
+                          ? 'bg-points-positive-bg text-points-positive' 
+                          : 'bg-points-negative-bg text-points-negative'
+                      }`}>
+                        {loading ? '...' : `${monthlyScore >= 0 ? '+' : ''}${monthlyScore} pkt`}
+                        <Info className="w-3 h-3" />
+                      </span>
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      {breakdown ? (
+                        <div className="text-xs space-y-1">
+                          <div className="font-semibold mb-2">Szczegóły punktacji miesiąca:</div>
+                          {breakdown.weeklyScores.length > 0 ? (
+                            <>
+                              {breakdown.weeklyScores.map((week, index) => (
+                                <div key={index} className="flex justify-between">
+                                  <span>Tydzień {week.dateRange}:</span>
+                                  <span className={week.score > 0 ? 'text-green-400' : week.score < 0 ? 'text-red-400' : 'text-gray-400'}>
+                                    {week.score > 0 ? '+' : ''}{week.score}
+                                  </span>
+                                </div>
+                              ))}
+                              {breakdown.perfectWeekBonuses > 0 && (
+                                <div className="flex justify-between border-t pt-1 mt-1">
+                                  <span>Bonusy za idealne tygodnie:</span>
+                                  <span className="text-green-400">+{breakdown.perfectWeekBonuses}</span>
+                                </div>
+                              )}
+                              {breakdown.badgeRewards > 0 && (
+                                <div className="flex justify-between border-t pt-1 mt-1">
+                                  <span>Odznaki (Mistrzowski Miesiąc):</span>
+                                  <span className="text-green-400">+{breakdown.badgeRewards}</span>
+                                </div>
+                              )}
+                              <div className="flex justify-between border-t pt-1 mt-1 font-semibold">
+                                <span>RAZEM:</span>
+                                <span className={breakdown.totalScore > 0 ? 'text-green-400' : breakdown.totalScore < 0 ? 'text-red-400' : 'text-gray-400'}>
+                                  {breakdown.totalScore > 0 ? '+' : ''}{breakdown.totalScore}
+                                </span>
                               </div>
-                            )}
-                            {breakdown.badgeRewards > 0 && (
-                              <div className="flex justify-between border-t pt-1 mt-1">
-                                <span>Odznaki (Mistrzowski Miesiąc):</span>
-                                <span className="text-green-400">+{breakdown.badgeRewards}</span>
-                              </div>
-                            )}
-                            <div className="flex justify-between border-t pt-1 mt-1 font-semibold">
-                              <span>RAZEM:</span>
-                              <span className={breakdown.totalScore > 0 ? 'text-green-400' : breakdown.totalScore < 0 ? 'text-red-400' : 'text-gray-400'}>
-                                {breakdown.totalScore > 0 ? '+' : ''}{breakdown.totalScore}
-                              </span>
-                            </div>
-                          </>
-                        ) : (
-                          <div>Brak tygodni w tym miesiącu</div>
-                        )}
-                      </div>
-                    ) : (
-                      <div className="text-xs">Ładowanie danych miesiąca...</div>
-                    )}
-                  </TooltipContent>
-                </Tooltip>
+                            </>
+                          ) : (
+                            <div>Brak tygodni w tym miesiącu</div>
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-xs">Ładowanie danych miesiąca...</div>
+                      )}
+                    </TooltipContent>
+                  </Tooltip>
+                )}
               </div>
             )}
           </div>
