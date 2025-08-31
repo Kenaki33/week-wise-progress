@@ -130,8 +130,8 @@
     --warning-foreground: 0 0% 100%;
     --warning-light: 28 25% 60%;
     
-    /* Points display colors - stonowane, czytelne */
-    --points-positive: 142 50% 40%;
+    /* Points display colors - stonowane jak nazwy dni */
+    --points-positive: 142 35% 60%;
     --points-positive-bg: 142 20% 70%;
     --points-negative: 0 55% 45%;
     --points-negative-bg: 0 20% 70%;
