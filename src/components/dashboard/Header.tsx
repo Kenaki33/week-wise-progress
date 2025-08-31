@@ -35,14 +35,14 @@ export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderP
 {isMobile ? (
                   <Popover>
                     <PopoverTrigger asChild>
-                      <span className={`text-xs sm:text-sm font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded w-fit cursor-pointer flex items-center gap-1 ${
+                      <button className={`text-xs sm:text-sm font-semibold px-1.5 sm:px-2 py-0.5 sm:py-1 rounded w-fit cursor-pointer flex items-center gap-1 border-0 bg-transparent ${
                         monthlyScore >= 0 
                           ? 'bg-points-positive-bg text-points-positive' 
                           : 'bg-points-negative-bg text-points-negative'
                       }`}>
                         {loading ? '...' : `${monthlyScore >= 0 ? '+' : ''}${monthlyScore} pkt`}
                         <Info className="w-3 h-3" />
-                      </span>
+                      </button>
                     </PopoverTrigger>
                     <PopoverContent side="bottom" className="max-w-xs w-auto">
                       {breakdown ? (
