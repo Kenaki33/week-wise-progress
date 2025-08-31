@@ -82,78 +82,78 @@
   }
 
   .dark {
-    /* Dark mode - ciemny header jak w dzień, jaśniejszy content */
-    --background: 220 15% 50%;
+    /* Dark mode - ciepły fioletowo-niebieski jak na screenie */
+    --background: 248 39% 23%;
     --foreground: 0 0% 95%;
-    --card: 220 15% 55%;
+    --card: 248 39% 27%;
     --card-foreground: 0 0% 95%;
-    --popover: 220 15% 55%;
+    --popover: 248 39% 27%;
     --popover-foreground: 0 0% 95%;
     
-    /* Primary - łagodniejszy pomarańczowy */
-    --primary: 28 70% 48%;
+    /* Primary - ten sam pomarańczowy gradient */
+    --primary: 28 100% 52%;
     --primary-foreground: 0 0% 100%;
-    --primary-hover: 28 75% 52%;
-    --primary-light: 28 30% 60%;
+    --primary-hover: 28 100% 58%;
+    --primary-light: 28 100% 15%;
     
-    /* Secondary colors - jaśniejsze odcienie */
-    --secondary: 220 15% 45%;
+    /* Secondary colors */
+    --secondary: 248 39% 20%;
     --secondary-foreground: 0 0% 95%;
     
     /* Muted colors */
-    --muted: 220 15% 45%;
-    --muted-foreground: 220 10% 80%;
+    --muted: 248 39% 20%;
+    --muted-foreground: 220 10% 70%;
     
     /* Accent colors */
-    --accent: 220 15% 45%;
+    --accent: 248 39% 20%;
     --accent-foreground: 0 0% 95%;
     
-    /* Status colors - łagodniejsze */
-    --destructive: 0 60% 55%;
+    /* Status colors */
+    --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
     
     /* Border and input colors */
-    --border: 220 15% 40%;
-    --input: 220 15% 45%;
-    --ring: 28 70% 48%;
+    --border: 248 39% 32%;
+    --input: 248 39% 20%;
+    --ring: 28 100% 52%;
     
-    /* Header Colors - jak w trybie dziennym */
-    --header: 220 15% 25%;
-    --header-foreground: 0 0% 100%;
+    /* Header Colors */
+    --header: 0 0% 95%;
+    --header-foreground: 248 39% 23%;
     
-    /* Success & Warning - stonowane */
-    --success: 142 35% 60%;
-    --success-foreground: 220 15% 25%;
-    --success-light: 142 25% 60%;
+    /* Success & Warning */
+    --success: 142 69% 58%;
+    --success-foreground: 0 0% 100%;
+    --success-light: 142 69% 15%;
     
-    --warning: 28 70% 48%;
+    --warning: 28 100% 52%;
     --warning-foreground: 0 0% 100%;
-    --warning-light: 28 25% 60%;
+    --warning-light: 28 100% 15%;
     
-    /* Points display colors - stonowane jak nazwy dni */
-    --points-positive: 142 35% 60%;
-    --points-positive-bg: 142 20% 70%;
-    --points-negative: 0 55% 45%;
-    --points-negative-bg: 0 20% 70%;
+    /* Points display colors - high contrast for dark mode */
+    --points-positive: 142 100% 70%;
+    --points-positive-bg: 142 100% 15%;
+    --points-negative: 0 100% 75%;
+    --points-negative-bg: 0 100% 15%;
     
     /* Calendar Colors */
-    --calendar-selected: 28 70% 48%;
-    --calendar-hover: 220 15% 45%;
-    --calendar-today: 28 70% 48%;
+    --calendar-selected: 28 100% 52%;
+    --calendar-hover: 248 39% 32%;
+    --calendar-today: 28 100% 52%;
     
-    /* Stonowane dark mode gradienty */
-    --gradient-primary: linear-gradient(135deg, hsl(28 70% 48%), hsl(35 70% 52%));
-    --gradient-card: linear-gradient(135deg, hsl(220 15% 55%), hsl(220 15% 50%));
-    --gradient-hero: linear-gradient(135deg, hsl(28 70% 48% / 0.1), hsl(35 70% 52% / 0.05));
-    --gradient-glass: linear-gradient(135deg, hsl(220 15% 55% / 0.9), hsl(220 15% 50% / 0.8));
+    /* Nowoczesne dark mode gradienty i efekty */
+    --gradient-primary: linear-gradient(135deg, hsl(28 100% 52%), hsl(35 100% 58%));
+    --gradient-card: linear-gradient(135deg, hsl(248 39% 27%), hsl(248 39% 30%));
+    --gradient-hero: linear-gradient(135deg, hsl(28 100% 52% / 0.15), hsl(35 100% 58% / 0.08));
+    --gradient-glass: linear-gradient(135deg, hsl(248 39% 27% / 0.9), hsl(248 39% 30% / 0.8));
     
-    /* Łagodniejsze cienie */
-    --shadow-soft: 0 4px 20px hsla(220 15% 20% / 0.3);
-    --shadow-medium: 0 8px 32px hsla(220 15% 20% / 0.4);
-    --shadow-hover: 0 12px 40px hsla(220 15% 20% / 0.5);
-    --shadow-focus: 0 0 0 3px hsla(28 70% 48% / 0.3);
-    --shadow-glow: 0 0 40px hsla(28 70% 48% / 0.25);
-    --shadow-colored: 0 8px 32px hsla(28 70% 48% / 0.2);
+    /* Nowoczesne dark mode cienie */
+    --shadow-soft: 0 4px 24px hsla(248 39% 10% / 0.4);
+    --shadow-medium: 0 8px 40px hsla(248 39% 10% / 0.5);
+    --shadow-hover: 0 12px 48px hsla(248 39% 10% / 0.6);
+    --shadow-focus: 0 0 0 3px hsla(28 100% 52% / 0.4);
+    --shadow-glow: 0 0 60px hsla(28 100% 52% / 0.4);
+    --shadow-colored: 0 8px 40px hsla(28 100% 52% / 0.3);
   }
 }
 
