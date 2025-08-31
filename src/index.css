@@ -122,8 +122,8 @@
     --header-foreground: 0 0% 100%;
     
     /* Success & Warning - stonowane */
-    --success: 142 45% 45%;
-    --success-foreground: 0 0% 100%;
+    --success: 142 35% 60%;
+    --success-foreground: 220 15% 25%;
     --success-light: 142 25% 60%;
     
     --warning: 28 70% 48%;
