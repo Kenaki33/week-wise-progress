@@ -131,7 +131,7 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[95vh] h-[85vh] p-0 relative">
+      <DialogContent className="max-w-4xl w-[95vw] h-[85vh] max-h-[85vh] p-0 relative fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-50">
         <button
           onClick={() => onOpenChange(false)}
           className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 transition-colors flex items-center justify-center text-white/70 hover:text-white"
@@ -150,7 +150,7 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
           <iframe
             key={iframeKey}
             {...(htmlContent ? { srcDoc: htmlContent } : { src: `${import.meta.env.BASE_URL}wheels/${wheelFile}` })}
-            className="w-full h-full border-0 rounded-b-lg"
+            className="w-full h-full border-0 rounded-lg"
             title="Koło Fortuny Nawyków"
           />
         </div>
