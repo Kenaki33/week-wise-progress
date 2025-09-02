@@ -131,7 +131,13 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] p-0">
+      <DialogContent className="max-w-4xl max-h-[95vh] h-[85vh] p-0 relative">
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 transition-colors flex items-center justify-center text-white/70 hover:text-white"
+        >
+          ×
+        </button>
         <DialogHeader className="sr-only">
           <DialogTitle>
             Koło fortuny nawyków
@@ -140,7 +146,7 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
             Zakręć kołem, aby wylosować nawyk na ten tydzień.
           </DialogDescription>
         </DialogHeader>
-        <div className="h-[70vh] w-full">
+        <div className="h-full w-full">
           <iframe
             key={iframeKey}
             {...(htmlContent ? { srcDoc: htmlContent } : { src: `${import.meta.env.BASE_URL}wheels/${wheelFile}` })}
