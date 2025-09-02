@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Koło Fortuny Nawyków - Perfekcjonista Dietetyczny</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+        :root {
+            --bg-primary-start: #2b3a8c;
+            --bg-primary-end: #4555b0;
+            --text-primary: #FFFFFF;
+            --text-secondary: #A0AEC0;
+            --accent-yellow: #FFC900;
+            --accent-orange: #FF8A00;
+            --accent-green-start: #68D391;
+            --accent-green-end: #9AE6B4;
+            --bg-card: rgba(20, 30, 70, 0.5);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg-primary-start);
+            background-image: linear-gradient(160deg, var(--bg-primary-start) 0%, var(--bg-primary-end) 100%);
+            color: var(--text-primary);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.5rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            line-height: 1.2;
+        }
+
+        .subtitle {
+            font-size: 1.25rem;
+            font-weight: 500;
+            color: var(--accent-yellow);
+            margin-bottom: 2rem;
+        }
+
+        .wheel-container {
+            position: relative;
+            width: 100%;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        #fortune-wheel {
+            width: 100%;
+            height: auto;
+            transition: transform 5s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        
+        .wheel-pointer {
+            position: absolute;
+            top: 50%;
+            right: -25px;
+            transform: translateY(-50%);
+            width: 0;
+            height: 0;
+            border-top: 25px solid transparent;
+            border-bottom: 25px solid transparent;
+            border-right: 50px solid var(--accent-yellow);
+            filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+        }
+
+        .buttons-wrapper {
+            margin-top: 2rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        #spin-btn {
+            padding: 16px 40px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #1A202C;
+            background: linear-gradient(45deg, var(--accent-green-start), var(--accent-green-end));
+            box-shadow: 0 4px 15px rgba(104, 211, 145, 0.3);
+        }
+
+        #spin-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(104, 211, 145, 0.4);
+        }
+        
+        #spin-btn:disabled {
+            cursor: not-allowed;
+            opacity: 0.7;
+            transform: none;
+            box-shadow: none;
+        }
+
+        /* Modal Styles */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+            -webkit-backdrop-filter: blur(5px);
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease, visibility 0.3s ease;
+        }
+        
+        .modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 24px;
+            padding: 40px;
+            width: 90%;
+            max-width: 500px;
+            text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+            transform: scale(0.9);
+            transition: transform 0.3s ease;
+        }
+        
+        .modal.visible .modal-content {
+            transform: scale(1);
+        }
+
+        .modal-content h3 {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-top: 0;
+            margin-bottom: 1rem;
+        }
+        
+        .modal-content .modal-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+            margin-top: 0;
+        }
+
+        .modal-content #result-habit-name {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--accent-yellow);
+            margin-bottom: 1rem;
+        }
+
+        .modal-content #result-habit-task {
+            font-size: 1.1rem;
+            color: var(--text-primary);
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .modal-btn {
+            padding: 12px 30px;
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            background-color: var(--border-color);
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin: 0 0.5rem;
+        }
+        
+        .modal-btn:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+        }
+        
+        @media (max-width: 600px) {
+            h1 { font-size: 2rem; }
+            .subtitle { font-size: 1.1rem; }
+            .wheel-pointer { 
+                right: -15px;
+                border-top-width: 15px; 
+                border-bottom-width: 15px; 
+                border-left-width: 0;
+                border-right: 30px solid var(--accent-yellow);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <h1>Wylosuj Nawyk na Ten Tydzień</h1>
+        <p class="subtitle">Dla Perfekcjonisty Dietetycznego</p>
+
+        <div class="wheel-container">
+            <canvas id="fortune-wheel" width="500" height="500"></canvas>
+            <div class="wheel-pointer"></div>
+        </div>
+        
+        <div class="buttons-wrapper">
+            <button id="spin-btn">Zakręć kołem!</button>
+        </div>
+    </div>
+    
+    <div id="result-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="modal-subtitle">Twój nawyk na ten tydzień to:</h3>
+            <p id="result-habit-name"></p>
+            <p id="result-habit-task"></p>
+            <div>
+                <button id="result-accept-btn" class="modal-btn">Wybierz ten nawyk</button>
+                <button id="spin-again-btn" class="modal-btn">Losuj ponownie</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const canvas = document.getElementById('fortune-wheel');
+            const spinBtn = document.getElementById('spin-btn');
+            
+            const resultModal = document.getElementById('result-modal');
+            const resultAcceptBtn = document.getElementById('result-accept-btn');
+            const spinAgainBtn = document.getElementById('spin-again-btn');
+            const resultHabitName = document.getElementById('result-habit-name');
+            const resultHabitTask = document.getElementById('result-habit-task');
+
+            const habits = [
+                { name: "Posiłek Bez Liczenia", task: "Raz w tym tygodniu zjedz jeden posiłek, nie licząc jego kalorii ani makroskładników. Skup się na smaku i przyjemności." },
+                { name: "Zasada 80/20 w Praktyce", task: "Świadomie zaplanuj i zjedz jedną małą przekąskę, która normalnie trafiłaby na Twoją 'zakazaną' listę (np. kostka czekolady, mała gałka lodów). To Twoje '20%'." },
+                { name: "Dzień Bez Wagi", task: "Wybierz jeden dzień w tygodniu, w którym świadomie nie stajesz na wadze. Zaufaj procesowi, a nie codziennym wahaniom." },
+                { name: "Dodaj, Zamiast Ograniczać", task: "Zamiast myśleć o tym, co musisz usunąć z diety, skup się na dodaniu jednej porcji warzyw lub owoców do swojego lunchu." },
+                { name: "Elastyczna Kolacja", task: "Jednego wieczoru przygotuj kolację, korzystając tylko ze składników, które masz już w domu, nawet jeśli nie tworzą one 'idealnego' posiłku z Twojego planu." },
+                { name: "Jedzenie to Też Relacje", task: "Zjedz jeden posiłek w tygodniu w towarzystwie przyjaciół lub rodziny, skupiając się na rozmowie i atmosferze, a nie tylko na jedzeniu." },
+                { name: "Odpuszczam Jeden Składnik", task: "W jednym z Twoich 'idealnych' posiłków, świadomie zamień jeden składnik na jego 'normalny' odpowiednik (np. zwykły makaron zamiast pełnoziarnistego, odrobina zwykłego sosu)." },
+                { name: "Słuchaj Głodu, Nie Zegarka", task: "Przez jeden dzień postaraj się zjeść posiłki wtedy, gdy poczujesz fizyczny głód, a nie dlatego, że tak wskazuje Twój harmonogram." },
+                { name: "Pozytywna Myśl po Posiłku", task: "Jeśli zjesz coś, co uznajesz za 'niedoskonałe', zamiast czuć się winnym, powiedz sobie jedną pozytywną rzecz, np. 'To było pyszne i sprawiło mi przyjemność'." },
+                { name: "Odpoczynek od Planowania", task: "Daj sobie jeden dzień w tygodniu, w którym nie planujesz posiłków z wyprzedzeniem. Decyduj na bieżąco, na co masz ochotę, wybierając zdrowe, ale dostępne opcje." }
+            ];
+
+            const ctx = canvas.getContext('2d');
+            const numSegments = habits.length;
+            const segmentAngle = (2 * Math.PI) / numSegments;
+            const colors = ["#4555b0", "#3c4a9c"];
+            let currentRotation = 0;
+            let isSpinning = false;
+            let selectedHabit = null;
+            
+            function drawWheel() {
+                const centerX = canvas.width / 2;
+                const centerY = canvas.height / 2;
+                const radius = canvas.width / 2 - 10;
+
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.save();
+                ctx.translate(centerX, centerY);
+                ctx.rotate(currentRotation);
+
+                for (let i = 0; i < numSegments; i++) {
+                    const startAngle = i * segmentAngle;
+                    const endAngle = startAngle + segmentAngle;
+
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.arc(0, 0, radius, startAngle, endAngle);
+                    ctx.closePath();
+                    ctx.fillStyle = colors[i % 2];
+                    ctx.fill();
+                    ctx.strokeStyle = '#2b3a8c';
+                    ctx.lineWidth = 4;
+                    ctx.stroke();
+
+                    ctx.save();
+                    ctx.rotate(startAngle + segmentAngle / 2);
+                    ctx.textAlign = "center";
+                    ctx.fillStyle = "#FFFFFF";
+                    ctx.font = "bold 15px Inter";
+
+                    const text = habits[i].name;
+                    const words = text.split(' ');
+                    const line1 = words.slice(0, 2).join(' ');
+                    const line2 = words.slice(2).join(' ');
+                    
+                    const textRadius = radius * 0.65;
+
+                    if (line2) {
+                        ctx.fillText(line1, textRadius, -5);
+                        ctx.fillText(line2, textRadius, 15);
+                    } else {
+                        ctx.fillText(line1, textRadius, 5);
+                    }
+                    
+                    ctx.restore();
+                }
+                ctx.restore();
+            }
+            
+            function spin() {
+                if (isSpinning) return;
+                isSpinning = true;
+                spinBtn.disabled = true;
+
+                const randomSpins = Math.floor(Math.random() * 5) + 5;
+                const targetSegment = Math.floor(Math.random() * numSegments);
+                const targetRotation = (randomSpins * 2 * Math.PI) - (targetSegment * segmentAngle) - (segmentAngle / 2);
+
+                let startTime = null;
+                const duration = 5000;
+
+                function animate(timestamp) {
+                    if (!startTime) startTime = timestamp;
+                    const elapsedTime = timestamp - startTime;
+                    
+                    const progress = Math.min(elapsedTime / duration, 1);
+                    const easeOutProgress = 1 - Math.pow(1 - progress, 3);
+
+                    currentRotation = easeOutProgress * targetRotation;
+                    
+                    drawWheel();
+
+                    if (progress < 1) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        isSpinning = false;
+                        spinBtn.disabled = false;
+                        selectedHabit = habits[targetSegment];
+                        showResult(selectedHabit);
+                    }
+                }
+
+                requestAnimationFrame(animate);
+            }
+            
+            function showResult(habit) {
+                resultHabitName.textContent = `Nawyk "${habit.name}"`;
+                resultHabitTask.textContent = habit.task;
+                resultModal.classList.add('visible');
+            }
+            
+            spinBtn.addEventListener('click', spin);
+            
+            resultAcceptBtn.addEventListener('click', () => {
+                if (selectedHabit && window.parent) {
+                    window.parent.postMessage({
+                        type: 'habit-wheel:selected',
+                        habit: selectedHabit.name
+                    }, '*');
+                }
+                resultModal.classList.remove('visible');
+            });
+
+            spinAgainBtn.addEventListener('click', () => {
+                resultModal.classList.remove('visible');
+                spin();
+            });
+
+            // Listen for spin message from parent
+            window.addEventListener('message', (event) => {
+                if (event.data?.type === 'habit-wheel:spin') {
+                    spin();
+                }
+            });
+            
+            drawWheel();
+        });
+    </script>
+</body>
+</html>
