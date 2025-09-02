@@ -132,11 +132,11 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-4xl max-h-[90vh] p-0">
-        <DialogHeader className="p-6 pb-0">
-          <DialogTitle className="text-center">
-            Wylosuj Nawyk na Ten Tydzień dla {personalityLabel}
+        <DialogHeader className="sr-only">
+          <DialogTitle>
+            Koło fortuny nawyków
           </DialogTitle>
-          <DialogDescription className="sr-only">
+          <DialogDescription>
             Zakręć kołem, aby wylosować nawyk na ten tydzień.
           </DialogDescription>
         </DialogHeader>
