@@ -49,6 +49,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   const [showMobileTooltip, setShowMobileTooltip] = useState(false);
   const [habitChangeBlocked, setHabitChangeBlocked] = useState(false);
   const [habitBlockReason, setHabitBlockReason] = useState('');
+  const [showHabitWheel, setShowHabitWheel] = useState(false);
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
@@ -465,6 +466,14 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     setHabitData(prev => ({ ...prev, habitName: name }));
   };
 
+  const handleHabitWheelSelection = (selectedHabit: string) => {
+    updateHabitName(selectedHabit);
+    toast({
+      title: "Nawyk wylosowany!",
+      description: `Wybrano: ${selectedHabit}`,
+    });
+  };
+
   const setDayStatus = (dayIndex: number, status: number) => {
     // Check if this is a past week that shouldn't be editable
     const currentWeekKey = getISOWeekKey(new Date());
@@ -665,32 +674,46 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1">
-              {habitChangeBlocked ? (
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Input
-                      placeholder="Wpisz nawyk, nad którym chcesz pracować..."
-                      value={habitData.habitName}
-                      onChange={(e) => updateHabitName(e.target.value)}
-                      className="modern-input text-base sm:text-lg py-3 px-4"
-                      disabled={isHabitSaved || habitChangeBlocked}
-                    />
-                  </TooltipTrigger>
-                  <TooltipContent side="bottom" className="max-w-xs">
-                    <div className="text-xs text-destructive">
-                      {habitBlockReason}
-                    </div>
-                  </TooltipContent>
-                </Tooltip>
-              ) : (
-                <Input
-                  placeholder="Wpisz nawyk, nad którym chcesz pracować..."
-                  value={habitData.habitName}
-                  onChange={(e) => updateHabitName(e.target.value)}
-                  className="modern-input text-base sm:text-lg py-3 px-4"
-                  disabled={isHabitSaved || habitChangeBlocked}
-                />
+            <div className="flex items-center space-x-2 flex-1">
+              <div className="flex-1">
+                {habitChangeBlocked ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Input
+                        placeholder="Wpisz nawyk, nad którym chcesz pracować..."
+                        value={habitData.habitName}
+                        onChange={(e) => updateHabitName(e.target.value)}
+                        className="modern-input text-base sm:text-lg py-3 px-4"
+                        disabled={isHabitSaved || habitChangeBlocked}
+                      />
+                    </TooltipTrigger>
+                    <TooltipContent side="bottom" className="max-w-xs">
+                      <div className="text-xs text-destructive">
+                        {habitBlockReason}
+                      </div>
+                    </TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <Input
+                    placeholder="Wpisz nawyk, nad którym chcesz pracować..."
+                    value={habitData.habitName}
+                    onChange={(e) => updateHabitName(e.target.value)}
+                    className="modern-input text-base sm:text-lg py-3 px-4"
+                    disabled={isHabitSaved || habitChangeBlocked}
+                  />
+                )}
+              </div>
+              {!isHabitSaved && (
+                <Button
+                  onClick={() => setShowHabitWheel(true)}
+                  variant="outline"
+                  size="sm"
+                  disabled={habitChangeBlocked}
+                  className="shrink-0"
+                >
+                  <Dice1 className="w-4 h-4" />
+                  <span className="ml-1 hidden sm:inline">Losuj</span>
+                </Button>
               )}
             </div>
             {!isHabitSaved ? (
@@ -1050,6 +1073,13 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <HabitWheelDialog
+        open={showHabitWheel}
+        onOpenChange={setShowHabitWheel}
+        onHabitSelected={handleHabitWheelSelection}
+        userId={userId || ''}
+      />
     </div>
   );
 };
