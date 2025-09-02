@@ -468,9 +468,15 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
 
   const handleHabitWheelSelection = (selectedHabit: string) => {
     updateHabitName(selectedHabit);
+    // Zapamiętaj i od razu zapisz jako nawyk tygodnia
+    setTimeout(() => {
+      // Po zaktualizowaniu stanu zapisz nawyk
+      // eslint-disable-next-line @typescript-eslint/no-floating-promises
+      handleSaveHabit();
+    }, 50);
     toast({
       title: "Nawyk wylosowany!",
-      description: `Wybrano: ${selectedHabit}`,
+      description: `Wybrano: ${selectedHabit}. Zapisano jako nawyk tygodnia.`,
     });
   };
 

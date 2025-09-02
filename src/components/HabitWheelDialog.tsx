@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { supabase } from '@/integrations/supabase/client';
 
 interface HabitWheelDialogProps {
@@ -32,6 +32,7 @@ const personalityLabels = {
 export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }: HabitWheelDialogProps) {
   const [iframeKey, setIframeKey] = useState(0);
   const [personality, setPersonality] = useState<string | null>(null);
+  const [htmlContent, setHtmlContent] = useState<string | null>(null);
 
   useEffect(() => {
     if (open && userId) {
@@ -77,6 +78,22 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
     }
   }, [open]);
 
+  useEffect(() => {
+    if (!open || !personality) {
+      setHtmlContent(null);
+      return;
+    }
+    const file = personalityWheelMap[personality as keyof typeof personalityWheelMap];
+    const url = `${import.meta.env.BASE_URL}wheels/${file}`;
+    fetch(url)
+      .then((r) => (r.ok ? r.text() : Promise.reject(`HTTP ${r.status}`)))
+      .then((html) => setHtmlContent(html))
+      .catch((err) => {
+        console.error('Error loading wheel HTML:', err);
+        setHtmlContent(null);
+      });
+  }, [open, personality]);
+
   if (!personality) return null;
 
   const wheelFile = personalityWheelMap[personality as keyof typeof personalityWheelMap];
@@ -89,11 +106,14 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
           <DialogTitle className="text-center">
             Wylosuj Nawyk na Ten Tydzień dla {personalityLabel}
           </DialogTitle>
+          <DialogDescription className="sr-only">
+            Zakręć kołem, aby wylosować nawyk na ten tydzień.
+          </DialogDescription>
         </DialogHeader>
         <div className="h-[70vh] w-full">
           <iframe
             key={iframeKey}
-            src={`/wheels/${wheelFile}`}
+            {...(htmlContent ? { srcDoc: htmlContent } : { src: `${import.meta.env.BASE_URL}wheels/${wheelFile}` })}
             className="w-full h-full border-0 rounded-b-lg"
             title="Koło Fortuny Nawyków"
           />
