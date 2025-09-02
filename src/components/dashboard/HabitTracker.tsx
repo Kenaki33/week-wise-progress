@@ -11,7 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { format, startOfWeek, addDays, isBefore, isToday, parseISO, startOfDay } from 'date-fns';
 import { pl } from 'date-fns/locale';
-import { Check, X, Save, Edit2, Info, AlertTriangle, Dice1 } from 'lucide-react';
+import { Check, X, Save, Edit2, Info, AlertTriangle, RotateCw } from 'lucide-react';
 import { HabitWheelDialog } from '../HabitWheelDialog';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { calculateDayPoints, calculateWeekScore } from '@/hooks/useScoring';
@@ -717,7 +717,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                   disabled={habitChangeBlocked}
                   className="shrink-0"
                 >
-                  <Dice1 className="w-4 h-4" />
+                  <RotateCw className="w-4 h-4" />
                   <span className="ml-1 hidden sm:inline">Losuj</span>
                 </Button>
               )}
