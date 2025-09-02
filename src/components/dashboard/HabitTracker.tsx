@@ -468,12 +468,9 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
 
   const handleHabitWheelSelection = (selectedHabit: string) => {
     updateHabitName(selectedHabit);
-    // Zapamiętaj i od razu zapisz jako nawyk tygodnia
-    setTimeout(() => {
-      // Po zaktualizowaniu stanu zapisz nawyk
-      // eslint-disable-next-line @typescript-eslint/no-floating-promises
-      handleSaveHabit();
-    }, 50);
+    // Zapisz od razu przy użyciu wybranej nazwy, aby uniknąć wyścigu ze stanem
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    handleSaveHabit(selectedHabit);
     toast({
       title: "Nawyk wylosowany!",
       description: `Wybrano: ${selectedHabit}. Zapisano jako nawyk tygodnia.`,
@@ -508,8 +505,9 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     setHabitData(prev => ({ ...prev, reflection }));
   };
 
-  const handleSaveHabit = async () => {
-    if (!habitData.habitName.trim()) {
+  const handleSaveHabit = async (nameOverride?: string) => {
+    const nameToSave = (nameOverride ?? habitData.habitName).trim();
+    if (!nameToSave) {
       toast({
         title: "Błąd",
         description: "Musisz wpisać nazwę nawyku",
@@ -523,10 +521,10 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
       .upsert({
         user_id: userId,
         week_key: weekKey,
-        habit_name: habitData.habitName,
+        habit_name: nameToSave,
         days: habitData.days,
         reflection: habitData.reflection,
-        weekly_score: calculateWeekScore(weekKey, habitData.days, habitData.habitName, userCreatedAt).totalWeekScore
+        weekly_score: calculateWeekScore(weekKey, habitData.days, nameToSave, userCreatedAt).totalWeekScore
       }, {
         onConflict: 'user_id,week_key'
       });
@@ -555,7 +553,6 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
       });
     }
   };
-
   const handleChangeHabit = () => {
     setTempHabitName(habitData.habitName);
     setIsChangeDialogOpen(true);
@@ -724,7 +721,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
             </div>
             {!isHabitSaved ? (
               <Button
-                onClick={handleSaveHabit}
+                onClick={() => handleSaveHabit()}
                 disabled={!habitData.habitName.trim() || habitChangeBlocked}
                 className="px-6 w-full sm:w-auto"
               >
