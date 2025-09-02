@@ -118,21 +118,16 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
     fetch(url)
       .then((r) => (r.ok ? r.text() : Promise.reject(`HTTP ${r.status}`)))
       .then((html) => {
-        // Add CSS to scale down the wheel by 20% and reduce spacing
+        // Add CSS to scale down the wheel by 20%
         const scaledHtml = html.replace(
           '</head>',
           `<style>
             .wheel-container { 
               transform: scale(0.8); 
               transform-origin: center;
-              margin: -2rem 0;
             }
             .app-container {
-              padding: 0.5rem 0.5rem 0 0.5rem;
-            }
-            body {
-              margin: 0;
-              padding: 0;
+              padding-top: 1rem;
             }
           </style></head>`
         );
