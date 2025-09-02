@@ -709,18 +709,18 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                   />
                 )}
               </div>
-              {!isHabitSaved && (
-                <Button
-                  onClick={() => setShowHabitWheel(true)}
-                  variant="outline"
-                  size="sm"
-                  disabled={habitChangeBlocked}
-                  className="shrink-0"
-                >
-                  <RotateCw className="w-4 h-4" />
-                  <span className="ml-1 hidden sm:inline">Losuj</span>
-                </Button>
-              )}
+              <Button
+                onClick={() => setShowHabitWheel(true)}
+                variant="outline"
+                size="sm"
+                disabled={habitChangeBlocked}
+                className="shrink-0"
+                type="button"
+                aria-label="Zakręć kołem fortuny nawyków"
+              >
+                <RotateCw className="w-4 h-4" />
+                <span className="ml-1 hidden sm:inline">Losuj</span>
+              </Button>
             </div>
             {!isHabitSaved ? (
               <Button
