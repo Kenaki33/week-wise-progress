@@ -117,7 +117,22 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
     const url = `${import.meta.env.BASE_URL}wheels/${file}`;
     fetch(url)
       .then((r) => (r.ok ? r.text() : Promise.reject(`HTTP ${r.status}`)))
-      .then((html) => setHtmlContent(html))
+      .then((html) => {
+        // Add CSS to scale down the wheel by 20%
+        const scaledHtml = html.replace(
+          '</head>',
+          `<style>
+            .wheel-container { 
+              transform: scale(0.8); 
+              transform-origin: center;
+            }
+            .app-container {
+              padding-top: 1rem;
+            }
+          </style></head>`
+        );
+        setHtmlContent(scaledHtml);
+      })
       .catch((err) => {
         console.error('Error loading wheel HTML:', err);
         setHtmlContent(null);
