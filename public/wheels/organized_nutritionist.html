@@ -250,17 +250,18 @@
             const resultHabitName = document.getElementById('result-habit-name');
             const resultHabitTask = document.getElementById('result-habit-task');
 
+            // NOWA, ZAAWANSOWANA LISTA NAWYKÓW
             const habits = [
-                { name: "Kulinarne Odkrycie Tygodnia", task: "Znajdź i wypróbuj jeden zupełnie nowy, zdrowy przepis, który wykracza poza Twoją codzienną rutynę. Może to być danie z kuchni, której jeszcze nie znasz?" },
-                { name: "Dzień Bez Mięsa", task: "Wprowadź jeden w pełni wegetariański lub wegański dzień w tygodniu, aby poeksperymentować z nowymi źródłami białka roślinnego." },
-                { name: "Superfoods Boost", task: "Wzbogać jeden ze swoich posiłków o 'superfood', którego rzadko używasz, np. nasiona chia, spirulinę, jagody goji czy kurkumę." },
-                { name: "Test Fermentacji", task: "Spróbuj w tym tygodniu jednego nowego produktu fermentowanego, np. kimchi, kombuchy, kefiru czy kiszonych warzyw innych niż kapusta i ogórki." },
-                { name: "Dzielenie się Wiedzą", task: "Podziel się jednym ze swoich ulubionych zdrowych przepisów lub cenną wskazówką żywieniową z przyjacielem, członkiem rodziny lub na grupie na Facebooku." },
-                { name: "Analiza Energetyczna", task: "Po jednym z posiłków zwróć szczególną uwagę na swoje samopoczucie i poziom energii 1-2 godziny później. Zapisz w notatniku, co Ci służy najlepiej." },
-                { name: "Lokalny Produkt", task: "Idź na lokalny targ lub do małego sklepu i kup jeden sezonowy, lokalny produkt, a następnie wykorzystaj go w jednym ze swoich dań." },
-                { name: "Zielony Koktajl", task: "Zamiast jednego ze swoich standardowych posiłków (np. drugiego śniadania), przygotuj bogaty w składniki odżywcze zielony koktajl na bazie szpinaku lub jarmużu." },
-                { name: "Dzień Intuicyjny", task: "Wybierz jeden dzień, w którym rezygnujesz ze ścisłego planu posiłków i jesz w pełni intuicyjnie – dokładnie to, na co masz ochotę i kiedy czujesz głód." },
-                { name: "Zdrowy Talerz Towarzyski", task: "Na spotkanie ze znajomymi lub rodziną, zamiast standardowych przekąsek, przygotuj zdrową, ale efektowną deskę z warzywami, hummusem, owocami i orzechami." }
+                { name: "Kulinarna Inżynieria Odwrotna", task: "Stwórz pełnowartościowy posiłek, używając tylko tego, co masz w lodówce i spiżarni przed kolejnymi zakupami. Wykorzystaj swoją kreatywność!" },
+                { name: "Mistrz Jednego Składnika", task: "Wybierz jedno sezonowe warzywo i przez tydzień przygotuj je na co najmniej 5 różnych sposobów, testując różne techniki kulinarne." },
+                { name: "Eksperyment z Oknem Żywieniowym", task: "Przez 7 dni testuj skrócone okno żywieniowe (np. jedz przez 8h, pość przez 16h) i notuj wpływ na energię, koncentrację i sen." },
+                { name: "Tydzień Bez Stymulantów", task: "Zrób 7-dniowy reset od kofeiny (kawa, herbata, energetyki) i/lub alkoholu. Obserwuj swój bazowy poziom energii i jakość snu." },
+                { name: "Trening Sytości 80%", task: "Przez cały tydzień kończ każdy posiłek, gdy czujesz się w 80% syty. Naucz się rozpoznawać subtelną granicę między 'najedzony' a 'przejedzony'." },
+                { name: "Mapa Rytmu Dobowego", task: "Przez 7 dni notuj swoje naturalne szczyty i spadki energii. Następnie spróbuj zsynchronizować największe posiłki z okresami najwyższej aktywności." },
+                { name: "Dziennik Wpływu Pokarmu", task: "Po każdym posiłku przez tydzień zapisuj, jak się czujesz 1-2 godziny później (energia, nastrój, jasność umysłu). Zostań detektywem swojego ciała." },
+                { name: "Tydzień 'Tęczy na Talerzu'", task: "Twoja misja: przez 7 dni komponuj co najmniej jeden posiłek dziennie zawierający minimum 5 różnych, naturalnych kolorów. Zadbaj o różnorodność!" },
+                { name: "Codzienna Analiza Wyborów", task: "Każdego wieczoru przez tydzień odpowiedz na 2 pytania: Jaki był mój najlepszy wybór żywieniowy dzisiaj i dlaczego? Co zrobiłbym inaczej?" },
+                { name: "Tydzień bez Mięsa", task: "Wprowadź co najmniej jeden w pełni wegetariański lub wegański dzień w tygodniu. Odkryj nowe smaki i źródła białka roślinnego." }
             ];
 
             const ctx = canvas.getContext('2d');
