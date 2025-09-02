@@ -29,6 +29,36 @@ const personalityLabels = {
   eternal_dieter: 'Wiecznego Odchudzacza'
 };
 
+// Mapowanie możliwych wartości z bazy (PL/EN/slugi) do kanonicznych kluczy
+const personalitySynonyms: Record<string, keyof typeof personalityWheelMap> = {
+  // EN canonical
+  carefree_gourmand: 'carefree_gourmand',
+  express_consumer: 'express_consumer',
+  emotional_snacker: 'emotional_snacker',
+  unconscious_eater: 'unconscious_eater',
+  organized_nutritionist: 'organized_nutritionist',
+  dietary_perfectionist: 'dietary_perfectionist',
+  eternal_dieter: 'eternal_dieter',
+  // Common PL slugs/typos
+  beztroski_lasuch: 'carefree_gourmand',
+  beztroski_łasuch: 'carefree_gourmand',
+  ekspresowy_konsument: 'express_consumer',
+  emocjonalny_podjadacz: 'emotional_snacker',
+  nieswiadomy_zjadacz: 'unconscious_eater',
+  nieświadomy_zjadacz: 'unconscious_eater',
+  ogarniety_odzywiacz: 'organized_nutritionist',
+  ogarnięty_odżywiacz: 'organized_nutritionist',
+  ogarniety_odzywiacze: 'organized_nutritionist',
+  perfekcjonista_dietetyczny: 'dietary_perfectionist',
+  wieczny_odchudzacz: 'eternal_dieter',
+};
+
+function normalizePersonality(value: string | null | undefined): keyof typeof personalityWheelMap {
+  if (!value) return 'carefree_gourmand';
+  const key = value.trim().toLowerCase().replace(/\s+/g, '_');
+  return personalitySynonyms[key] ?? (personalityWheelMap[key as keyof typeof personalityWheelMap] ? (key as keyof typeof personalityWheelMap) : 'carefree_gourmand');
+}
+
 export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }: HabitWheelDialogProps) {
   const [iframeKey, setIframeKey] = useState(0);
   const [personality, setPersonality] = useState<string | null>(null);
@@ -53,7 +83,7 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
         return;
       }
 
-      setPersonality(data?.nutrition_personality || 'carefree_gourmand');
+      setPersonality(normalizePersonality(data?.nutrition_personality));
     } catch (error) {
       console.error('Error:', error);
       setPersonality('carefree_gourmand');
