@@ -150,7 +150,7 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
           <iframe
             key={iframeKey}
             {...(htmlContent ? { srcDoc: htmlContent } : { src: `${import.meta.env.BASE_URL}wheels/${wheelFile}` })}
-            className="w-full h-full border-0 rounded-lg"
+            className="w-full h-full md:h-[90%] border-0 rounded-lg"
             title="Koło Fortuny Nawyków"
           />
         </div>
