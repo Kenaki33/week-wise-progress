@@ -125,14 +125,18 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
             .wheel-container { 
               transform: scale(0.8); 
               transform-origin: center;
-              margin: 0.33rem auto;
+              margin: 0;
             }
             .app-container {
-              padding: 0.33rem;
+              padding: 10px;
+              min-height: 100vh;
+              display: flex;
+              flex-direction: column;
+              justify-content: center;
             }
             body {
-              margin: 0.33rem;
-              padding: 0.33rem;
+              margin: 0;
+              padding: 0;
             }
           </style></head>`
         );
