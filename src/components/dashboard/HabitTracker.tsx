@@ -829,7 +829,12 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
             </p>
           )}
           {isHabitSaved && (
-            habitChangeBlocked ? (
+            isPastWeek ? (
+              <p className="text-sm text-amber-600 dark:text-amber-400 mt-2 animate-fade-in flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Nie można edytować poprzednich tygodni
+              </p>
+            ) : habitChangeBlocked ? (
               <p className="text-sm text-muted-foreground mt-2 animate-fade-in">
                 Kontynuuj nawyk z poprzedniego tygodnia. {isMobile ? "Po więcej informacji najedź na ikonkę (i)." : "Po więcej informacji najedź na nawyk powyżej."}
               </p>
