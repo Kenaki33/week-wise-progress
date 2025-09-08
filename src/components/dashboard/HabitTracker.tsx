@@ -53,6 +53,10 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   const { toast } = useToast();
   const isMobile = useIsMobile();
 
+  // Check if this is a past week - crucial for disabling edits
+  const currentWeekKey = getISOWeekKey(new Date());
+  const isPastWeek = weekKey < currentWeekKey;
+
   // Load user creation date
   useEffect(() => {
     if (!userId) return;
@@ -453,6 +457,16 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   }, [habitData.habitName, habitData.days, habitData.reflection, weekKey, userId, loading, selectedDate, userCreatedAt, toast, onDataChange]);
 
   const updateHabitName = (name: string) => {
+    // Hard block on past weeks
+    if (isPastWeek) {
+      toast({
+        title: "Ograniczenie edycji",
+        description: "Nie można edytować nawyków z poprzednich tygodni.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     // Don't allow changing habit name if blocked
     if (habitChangeBlocked && name !== habitData.habitName) {
       toast({
@@ -467,10 +481,13 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   };
 
   const handleHabitWheelSelection = (selectedHabit: string) => {
+    // Calculate the exact week key for this selection to prevent overwriting past weeks
+    const targetWeekKey = getISOWeekKey(selectedDate);
+    
     updateHabitName(selectedHabit);
-    // Zapisz od razu przy użyciu wybranej nazwy, aby uniknąć wyścigu ze stanem
+    // Save with the specific week key computed at spin time
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    handleSaveHabit(selectedHabit);
+    handleSaveHabit(selectedHabit, targetWeekKey);
     toast({
       title: "Nawyk wylosowany!",
       description: `Wybrano: ${selectedHabit}. Zapisano jako nawyk tygodnia.`,
@@ -478,10 +495,6 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
   };
 
   const setDayStatus = (dayIndex: number, status: number) => {
-    // Check if this is a past week that shouldn't be editable
-    const currentWeekKey = getISOWeekKey(new Date());
-    const isPastWeek = weekKey < currentWeekKey;
-    
     if (isPastWeek) {
       toast({
         title: "Ograniczenie edycji",
@@ -505,7 +518,17 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     setHabitData(prev => ({ ...prev, reflection }));
   };
 
-  const handleSaveHabit = async (nameOverride?: string) => {
+  const handleSaveHabit = async (nameOverride?: string, weekKeyOverride?: string) => {
+    // Hard block save attempts on past weeks
+    if (isPastWeek) {
+      toast({
+        title: "Ograniczenie edycji",
+        description: "Nie można zapisywać zmian w poprzednich tygodniach.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     const nameToSave = (nameOverride ?? habitData.habitName).trim();
     if (!nameToSave) {
       toast({
@@ -516,15 +539,18 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
       return;
     }
 
+    // Use overridden week key if provided (for wheel selection)
+    const targetWeekKey = weekKeyOverride ?? weekKey;
+
     const { error } = await supabase
       .from('habits')
       .upsert({
         user_id: userId,
-        week_key: weekKey,
+        week_key: targetWeekKey,
         habit_name: nameToSave,
         days: habitData.days,
         reflection: habitData.reflection,
-        weekly_score: calculateWeekScore(weekKey, habitData.days, nameToSave, userCreatedAt).totalWeekScore
+        weekly_score: calculateWeekScore(targetWeekKey, habitData.days, nameToSave, userCreatedAt).totalWeekScore
       }, {
         onConflict: 'user_id,week_key'
       });
@@ -696,52 +722,52 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                       </div>
                     </TooltipContent>
                   </Tooltip>
-                ) : (
-                  <Input
-                    placeholder="Wpisz nawyk, nad którym chcesz pracować..."
-                    value={habitData.habitName}
-                    onChange={(e) => updateHabitName(e.target.value)}
-                    className="modern-input text-base sm:text-lg py-3 px-4"
-                    disabled={isHabitSaved || habitChangeBlocked}
-                  />
-                )}
+                 ) : (
+                   <Input
+                     placeholder="Wpisz nawyk, nad którym chcesz pracować..."
+                     value={habitData.habitName}
+                     onChange={(e) => updateHabitName(e.target.value)}
+                     className="modern-input text-base sm:text-lg py-3 px-4"
+                     disabled={isHabitSaved || habitChangeBlocked || isPastWeek}
+                   />
+                 )}
               </div>
-              <Button
-                onClick={() => setShowHabitWheel(true)}
-                variant="outline"
-                size="sm"
-                disabled={habitChangeBlocked}
-                className="shrink-0"
-                type="button"
-                aria-label="Zakręć kołem fortuny nawyków"
-              >
-                <RotateCw className="w-4 h-4" />
-                <span className="ml-1 hidden sm:inline">Losuj</span>
-              </Button>
+               <Button
+                 onClick={() => setShowHabitWheel(true)}
+                 variant="outline"
+                 size="sm"
+                 disabled={habitChangeBlocked || isPastWeek}
+                 className="shrink-0"
+                 type="button"
+                 aria-label="Zakręć kołem fortuny nawyków"
+               >
+                 <RotateCw className="w-4 h-4" />
+                 <span className="ml-1 hidden sm:inline">Losuj</span>
+               </Button>
             </div>
-            {!isHabitSaved ? (
-              <Button
-                onClick={() => handleSaveHabit()}
-                disabled={!habitData.habitName.trim() || habitChangeBlocked}
-                className="px-6 w-full sm:w-auto"
-              >
-                <Save className="w-4 h-4 mr-2" />
-                Zapisz nawyk
-              </Button>
-            ) : (
+             {!isHabitSaved ? (
+               <Button
+                 onClick={() => handleSaveHabit()}
+                 disabled={!habitData.habitName.trim() || habitChangeBlocked || isPastWeek}
+                 className="px-6 w-full sm:w-auto"
+               >
+                 <Save className="w-4 h-4 mr-2" />
+                 Zapisz nawyk
+               </Button>
+             ) : (
               <div className="relative">
                 {isMobile ? (
                   <div className="flex items-center gap-2">
-                    <Button
-                      onClick={handleChangeHabit}
-                      variant="outline"
-                      className={`px-6 w-full sm:w-auto ${habitChangeBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}
-                      disabled={habitChangeBlocked}
-                      type="button"
-                    >
-                      <Edit2 className="w-4 h-4 mr-2" />
-                      Zmień nawyk
-                    </Button>
+                     <Button
+                       onClick={handleChangeHabit}
+                       variant="outline"
+                       className={`px-6 w-full sm:w-auto ${(habitChangeBlocked || isPastWeek) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                       disabled={habitChangeBlocked || isPastWeek}
+                       type="button"
+                     >
+                       <Edit2 className="w-4 h-4 mr-2" />
+                       Zmień nawyk
+                     </Button>
 
                     {habitChangeBlocked && (
                       <Popover>
@@ -767,27 +793,31 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                 ) : (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <Button
-                        onClick={habitChangeBlocked ? undefined : handleChangeHabit}
-                        variant="outline"
-                        className={`px-6 w-full sm:w-auto ${habitChangeBlocked ? 'opacity-50 cursor-not-allowed' : ''}`}
-                        disabled={habitChangeBlocked}
-                      >
-                        <Edit2 className="w-4 h-4 mr-2" />
-                        Zmień nawyk
-                      </Button>
+                       <Button
+                         onClick={(habitChangeBlocked || isPastWeek) ? undefined : handleChangeHabit}
+                         variant="outline"
+                         className={`px-6 w-full sm:w-auto ${(habitChangeBlocked || isPastWeek) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                         disabled={habitChangeBlocked || isPastWeek}
+                       >
+                         <Edit2 className="w-4 h-4 mr-2" />
+                         Zmień nawyk
+                       </Button>
                     </TooltipTrigger>
-                    <TooltipContent side="bottom" className="max-w-xs">
-                      {habitChangeBlocked ? (
-                        <div className="text-xs text-destructive">
-                          {habitBlockReason}
-                        </div>
-                      ) : (
-                        <div className="text-xs">
-                          Kliknij aby zmienić nawyk i wyzerować dane tego tygodnia
-                        </div>
-                      )}
-                    </TooltipContent>
+                     <TooltipContent side="bottom" className="max-w-xs">
+                       {isPastWeek ? (
+                         <div className="text-xs text-destructive">
+                           Nie można zmieniać nawyków z poprzednich tygodni
+                         </div>
+                       ) : habitChangeBlocked ? (
+                         <div className="text-xs text-destructive">
+                           {habitBlockReason}
+                         </div>
+                       ) : (
+                         <div className="text-xs">
+                           Kliknij aby zmienić nawyk i wyzerować dane tego tygodnia
+                         </div>
+                       )}
+                     </TooltipContent>
                   </Tooltip>
                 )}
               </div>
@@ -799,7 +829,12 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
             </p>
           )}
           {isHabitSaved && (
-            habitChangeBlocked ? (
+            isPastWeek ? (
+              <p className="text-sm text-amber-600 dark:text-amber-400 mt-2 animate-fade-in flex items-center gap-2">
+                <AlertTriangle className="w-4 h-4" />
+                Nie można zmieniać poprzednich tygodni
+              </p>
+            ) : habitChangeBlocked ? (
               <p className="text-sm text-muted-foreground mt-2 animate-fade-in">
                 Kontynuuj nawyk z poprzedniego tygodnia. {isMobile ? "Po więcej informacji najedź na ikonkę (i)." : "Po więcej informacji najedź na nawyk powyżej."}
               </p>
