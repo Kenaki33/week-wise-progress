@@ -180,6 +180,27 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
         </Select>
       </div>
 
+      <div className="text-xs text-muted-foreground mb-4 leading-relaxed">
+        Tworząc konto, akceptujesz nasz{' '}
+        <a 
+          href="/terms-of-service.html" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-primary hover:underline font-medium"
+        >
+          Regulamin Świadczenia Usług
+        </a>{' '}
+        i potwierdzasz zapoznanie się z naszą{' '}
+        <a 
+          href="/privacy-policy.html" 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="text-primary hover:underline font-medium"
+        >
+          Polityką Prywatności
+        </a>.
+      </div>
+
       <Button type="submit" className="w-full" disabled={loading}>
         {loading ? 'Rejestrowanie...' : 'Zarejestruj się'}
       </Button>
