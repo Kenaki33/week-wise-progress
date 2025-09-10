@@ -1024,7 +1024,10 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                    <TooltipContent side="top">
                      <div className="text-xs">
                        <div className="font-semibold">{format(dayDate, 'EEEE, d MMMM', { locale: pl })}</div>
-                       <div className="text-muted-foreground">{dayBreakdown.reason}</div>
+                       {/* Hide generic reason like Wykonane/Niewykonane/Nieoznaczone w przeszłości */}
+                       {!((dayStatus === 1) || (dayStatus === 2) || (dayStatus === 0 && isPastOrToday)) && (
+                         <div className="text-muted-foreground">{dayBreakdown.reason}</div>
+                       )}
                        {dayBreakdown.points !== 0 && (
                          <div className={dayBreakdown.points > 0 ? 'text-green-400' : 'text-red-400'}>
                            Punkty: {dayBreakdown.points > 0 ? '+' : ''}{dayBreakdown.points}
