@@ -993,16 +993,9 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                             : dayStatus === 2
                             ? 'text-red-600 dark:text-red-400'
                             : 'text-muted-foreground'
-                        }`}>
-                          {format(dayDate, 'd MMMM', { locale: pl })}
-                          {dayBreakdown.points !== 0 && (
-                            <span className={`ml-1 text-xs ${
-                              dayBreakdown.points > 0 ? 'text-green-500' : 'text-red-500'
-                            }`}>
-                              ({dayBreakdown.points > 0 ? '+' : ''}{dayBreakdown.points})
-                            </span>
-                          )}
-                        </span>
+                         }`}>
+                           {format(dayDate, 'd MMMM', { locale: pl })}
+                         </span>
                       </div>
                        
                       <div className="flex gap-2 ml-3">
@@ -1032,6 +1025,11 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                      <div className="text-xs">
                        <div className="font-semibold">{format(dayDate, 'EEEE, d MMMM', { locale: pl })}</div>
                        <div className="text-muted-foreground">{dayBreakdown.reason}</div>
+                       {dayBreakdown.points !== 0 && (
+                         <div className={dayBreakdown.points > 0 ? 'text-green-400' : 'text-red-400'}>
+                           Punkty: {dayBreakdown.points > 0 ? '+' : ''}{dayBreakdown.points}
+                         </div>
+                       )}
                      </div>
                    </TooltipContent>
                 </Tooltip>
