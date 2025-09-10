@@ -24,7 +24,8 @@ export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderP
   return (
     <header className="bg-header text-header-foreground shadow-lg">
       <div className="container mx-auto px-2 sm:px-6 py-2 sm:py-4">
-        <div className="flex items-center justify-between gap-2 sm:gap-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="flex items-center justify-between gap-2 sm:gap-4">
           <div className="min-w-0 flex-1">
             <h1 className="text-sm sm:text-2xl font-bold truncate leading-tight">Jeden Nawyk</h1>
             {selectedDate && (
@@ -171,6 +172,7 @@ export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderP
                 <LogOut className="w-4 h-4" />
               </Button>
             </div>
+          </div>
           </div>
         </div>
       </div>
