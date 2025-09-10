@@ -76,6 +76,29 @@ export const Dashboard = ({ user, onLogout }: DashboardProps) => {
               Dołącz do naszej społeczności na Facebooku
             </a>
           </div>
+          
+          {/* Legal Links */}
+          <div className="flex justify-center mt-4 pt-4 border-t border-border/50">
+            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+              <a 
+                href="/terms-of-service.html" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors"
+              >
+                Regulamin
+              </a>
+              <span>•</span>
+              <a 
+                href="/privacy-policy.html" 
+                target="_blank" 
+                rel="noopener noreferrer"
+                className="hover:text-primary transition-colors"
+              >
+                Polityka Prywatności
+              </a>
+            </div>
+          </div>
         </div>
       </div>
     </div>
