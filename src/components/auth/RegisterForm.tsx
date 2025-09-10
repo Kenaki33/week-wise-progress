@@ -178,6 +178,20 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
             <SelectItem value="ogarniety_odzywiacze">Ogarnięty Odżywiacz</SelectItem>
           </SelectContent>
         </Select>
+        
+        <div className="mt-3">
+          <a
+            href="https://zdrowo-ogarnieci.pl/quiz/"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors font-medium"
+          >
+            🧭 Odkryj swoją Osobowość Żywieniową
+          </a>
+          <p className="text-xs text-muted-foreground mt-1">
+            Nie znasz swojej osobowości? Rozwiąż krótki quiz!
+          </p>
+        </div>
       </div>
 
       <div className="text-xs text-muted-foreground mb-4 leading-relaxed">
