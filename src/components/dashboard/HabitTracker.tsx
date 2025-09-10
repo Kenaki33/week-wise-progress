@@ -1028,17 +1028,12 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                       </div>
                     </div>
                   </TooltipTrigger>
-                  <TooltipContent side="top">
-                    <div className="text-xs">
-                      <div className="font-semibold">{format(dayDate, 'EEEE, d MMMM', { locale: pl })}</div>
-                      <div className="text-muted-foreground">{dayBreakdown.reason}</div>
-                      {dayBreakdown.points !== 0 && (
-                        <div className={dayBreakdown.points > 0 ? 'text-green-400' : 'text-red-400'}>
-                          Punkty: {dayBreakdown.points > 0 ? '+' : ''}{dayBreakdown.points}
-                        </div>
-                      )}
-                    </div>
-                  </TooltipContent>
+                   <TooltipContent side="top">
+                     <div className="text-xs">
+                       <div className="font-semibold">{format(dayDate, 'EEEE, d MMMM', { locale: pl })}</div>
+                       <div className="text-muted-foreground">{dayBreakdown.reason}</div>
+                     </div>
+                   </TooltipContent>
                 </Tooltip>
               );
             })}
