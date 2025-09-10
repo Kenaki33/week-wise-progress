@@ -26,7 +26,7 @@ export const Header = ({ user, onLogout, selectedDate, refreshTrigger }: HeaderP
       <div className="container mx-auto px-2 sm:px-6 py-2 sm:py-4">
         <div className="flex items-center justify-between gap-2 sm:gap-4">
           <div className="min-w-0 flex-1">
-            <h1 className="text-sm sm:text-2xl font-bold truncate leading-tight">Mój Tracker Nawyków</h1>
+            <h1 className="text-sm sm:text-2xl font-bold truncate leading-tight">Jeden Nawyk</h1>
             {selectedDate && (
               <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 mt-1">
                 <span className="text-xs sm:text-sm text-header-foreground/70 truncate">

@@ -12,7 +12,7 @@ export const AuthPage = () => {
   const getTitle = () => {
     switch (mode) {
       case 'login':
-        return 'Mój Tracker Nawyków';
+        return 'Jeden Nawyk';
       case 'register':
         return 'Utwórz konto';
       case 'reset':
