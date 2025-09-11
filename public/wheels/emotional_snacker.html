@@ -368,7 +368,8 @@
                 if (selectedHabit && window.parent) {
                     window.parent.postMessage({
                         type: 'habit-wheel:selected',
-                        habit: selectedHabit.name
+                        habit: selectedHabit.name,
+                        task: selectedHabit.task
                     }, '*');
                 }
                 resultModal.classList.remove('visible');

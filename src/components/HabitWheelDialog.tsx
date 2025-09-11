@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Info } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 
 interface HabitWheelDialogProps {
@@ -7,6 +9,11 @@ interface HabitWheelDialogProps {
   onOpenChange: (open: boolean) => void;
   onHabitSelected: (habit: string) => void;
   userId: string;
+}
+
+interface HabitWithDescription {
+  name: string;
+  task: string;
 }
 
 const personalityWheelMap = {
@@ -63,6 +70,7 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
   const [iframeKey, setIframeKey] = useState(0);
   const [personality, setPersonality] = useState<string | null>(null);
   const [htmlContent, setHtmlContent] = useState<string | null>(null);
+  const [selectedHabit, setSelectedHabit] = useState<HabitWithDescription | null>(null);
 
   useEffect(() => {
     if (open && userId) {
@@ -92,8 +100,14 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
 
   const handleMessage = (event: MessageEvent) => {
     if (event.data?.type === 'habit-wheel:selected') {
+      setSelectedHabit({
+        name: event.data.habit,
+        task: event.data.task || ''
+      });
+    } else if (event.data?.type === 'habit-wheel:habit-confirmed') {
       onHabitSelected(event.data.habit);
       onOpenChange(false);
+      setSelectedHabit(null);
     }
   };
 
@@ -145,31 +159,63 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
   const personalityLabel = personalityLabels[personality as keyof typeof personalityLabels];
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl w-[95vw] h-[85vh] max-h-[85vh] p-0 relative fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-50">
-        <button
-          onClick={() => onOpenChange(false)}
-          className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 transition-colors flex items-center justify-center text-white/70 hover:text-white"
-        >
-          ×
-        </button>
-        <DialogHeader className="sr-only">
-          <DialogTitle>
-            Koło fortuny nawyków
-          </DialogTitle>
-          <DialogDescription>
-            Zakręć kołem, aby wylosować nawyk na ten tydzień.
-          </DialogDescription>
-        </DialogHeader>
-        <div className="h-full w-full">
-          <iframe
-            key={iframeKey}
-            {...(htmlContent ? { srcDoc: htmlContent } : { src: `${import.meta.env.BASE_URL}wheels/${wheelFile}` })}
-            className="w-full h-full border-0 rounded-lg"
-            title="Koło Fortuny Nawyków"
-          />
-        </div>
-      </DialogContent>
-    </Dialog>
+    <TooltipProvider>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-4xl w-[95vw] h-[85vh] max-h-[85vh] p-0 relative fixed top-[50%] left-[50%] translate-x-[-50%] translate-y-[-50%] z-50">
+          <button
+            onClick={() => onOpenChange(false)}
+            className="absolute top-4 right-4 z-10 w-8 h-8 rounded-full bg-black/20 hover:bg-black/30 transition-colors flex items-center justify-center text-white/70 hover:text-white"
+          >
+            ×
+          </button>
+          
+          {selectedHabit && (
+            <div className="absolute top-4 left-4 z-10 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg max-w-md">
+              <div className="flex items-start gap-2">
+                <div className="flex-1">
+                  <h4 className="font-semibold text-gray-900 mb-1">{selectedHabit.name}</h4>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Szczegóły nawyku</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
+                          <Info className="h-4 w-4 text-gray-500" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs bg-white border shadow-lg">
+                        <p className="text-sm text-gray-700">{selectedHabit.task}</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setSelectedHabit(null)}
+                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  ×
+                </button>
+              </div>
+            </div>
+          )}
+          
+          <DialogHeader className="sr-only">
+            <DialogTitle>
+              Koło fortuny nawyków
+            </DialogTitle>
+            <DialogDescription>
+              Zakręć kołem, aby wylosować nawyk na ten tydzień.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="h-full w-full">
+            <iframe
+              key={iframeKey}
+              {...(htmlContent ? { srcDoc: htmlContent } : { src: `${import.meta.env.BASE_URL}wheels/${wheelFile}` })}
+              className="w-full h-full border-0 rounded-lg"
+              title="Koło Fortuny Nawyków"
+            />
+          </div>
+        </DialogContent>
+      </Dialog>
+    </TooltipProvider>
   );
 }
