@@ -270,14 +270,14 @@ export const UserPanel = ({ user }: UserPanelProps) => {
     setLoading(true);
 
     try {
-      // Delete user's profile data first
-      const { error: profileError } = await supabase
-        .from('profiles')
+      // Delete user's badge rewards data
+      const { error: badgeRewardsError } = await supabase
+        .from('badge_rewards')
         .delete()
         .eq('user_id', user.id);
 
-      if (profileError) {
-        console.error('Error deleting profile:', profileError);
+      if (badgeRewardsError) {
+        console.error('Error deleting badge rewards:', badgeRewardsError);
       }
 
       // Delete user's habits data
@@ -290,26 +290,37 @@ export const UserPanel = ({ user }: UserPanelProps) => {
         console.error('Error deleting habits:', habitsError);
       }
 
-      // Delete the user account
-      const { error: authError } = await supabase.auth.admin.deleteUser(user.id);
+      // Delete user's profile data
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('user_id', user.id);
 
-      if (authError) {
+      if (profileError) {
+        console.error('Error deleting profile:', profileError);
+      }
+
+      // Sign out the user (this is what we can do without admin permissions)
+      const { error: signOutError } = await supabase.auth.signOut();
+
+      if (signOutError) {
         toast({
           title: "Błąd",
-          description: "Nie udało się usunąć konta. Spróbuj ponownie później.",
+          description: "Nie udało się wylogować. Spróbuj ponownie później.",
           variant: "destructive",
         });
       } else {
         toast({
           title: "Sukces",
-          description: "Konto zostało usunięte",
+          description: "Dane konta zostały usunięte i zostałeś wylogowany",
         });
-        // User will be automatically logged out
+        // User will be automatically logged out and redirected
       }
     } catch (error) {
+      console.error('Error during account deletion:', error);
       toast({
         title: "Błąd",
-        description: "Wystąpił błąd podczas usuwania konta",
+        description: "Wystąpił błąd podczas usuwania danych konta",
         variant: "destructive",
       });
     }
