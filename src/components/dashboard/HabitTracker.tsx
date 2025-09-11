@@ -817,34 +817,38 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
               </div>
               
               {/* Icons row - below input on mobile, inline on desktop */}
-              <div className="flex items-center space-x-2 justify-center md:justify-start">
-                 {/* Tooltip z opisem nawyku */}
-                 {habitData.habitTask && habitData.habitTask.trim() && (
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <button className="p-2 hover:bg-accent rounded-full transition-colors">
-                          <Info className="h-4 w-4 text-muted-foreground" />
-                        </button>
-                      </TooltipTrigger>
-                      <TooltipContent className="max-w-xs bg-popover border shadow-lg text-popover-foreground">
-                        <p className="text-sm">{habitData.habitTask}</p>
-                      </TooltipContent>
-                    </Tooltip>
-                 )}
-                 
-                 <Button
-                   onClick={() => setShowHabitWheel(true)}
-                   variant="outline"
-                   size="sm"
-                   disabled={habitChangeBlocked || isPastWeek}
-                   className="shrink-0"
-                   type="button"
-                   aria-label="Zakręć kołem fortuny nawyków"
-                 >
-                   <RotateCw className="w-4 h-4" />
-                   <span className="ml-1 hidden sm:inline">Losuj</span>
-                 </Button>
-              </div>
+               <div className="flex items-center space-x-2 justify-center md:justify-start">
+                  {/* Tooltip z opisem nawyku - pokazuj gdy nawyk jest zapisany */}
+                  {isHabitSaved && (
+                     <Tooltip>
+                       <TooltipTrigger asChild>
+                         <button className="p-2 hover:bg-accent rounded-full transition-colors">
+                           <Info className="h-4 w-4 text-muted-foreground" />
+                         </button>
+                       </TooltipTrigger>
+                       <TooltipContent className="max-w-xs bg-popover border shadow-lg text-popover-foreground">
+                         <p className="text-sm">
+                           {habitData.habitTask && habitData.habitTask.trim() 
+                             ? habitData.habitTask 
+                             : "Szczegóły nawyku będą dostępne po jego wylosowaniu z koła fortuny."}
+                         </p>
+                       </TooltipContent>
+                     </Tooltip>
+                  )}
+                  
+                  <Button
+                    onClick={() => setShowHabitWheel(true)}
+                    variant="outline"
+                    size="sm"
+                    disabled={habitChangeBlocked || isPastWeek}
+                    className="shrink-0"
+                    type="button"
+                    aria-label="Zakręć kołem fortuny nawyków"
+                  >
+                    <RotateCw className="w-4 h-4" />
+                    <span className="ml-1 hidden sm:inline">Losuj</span>
+                  </Button>
+               </div>
             </div>
              {!isHabitSaved ? (
                <Button
