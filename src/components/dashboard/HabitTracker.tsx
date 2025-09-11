@@ -20,6 +20,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 interface HabitData {
   habitName: string;
+  habitTask?: string; // Add optional task description
   days: number[]; // 0 = unmarked, 1 = completed, 2 = not completed
   reflection: string;
   weeklyScore: number;
@@ -35,6 +36,7 @@ interface HabitTrackerProps {
 export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: HabitTrackerProps) => {
   const [habitData, setHabitData] = useState<HabitData>({
     habitName: '',
+    habitTask: '',
     days: new Array(7).fill(0), // 0 = unmarked, 1 = completed, 2 = not completed
     reflection: '',
     weeklyScore: 0
@@ -201,6 +203,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
         console.log('Found existing habit data:', data);
         setHabitData({
           habitName: data.habit_name || '',
+          habitTask: '', // Temporary - since we don't have this field in DB yet
           days: data.days || new Array(7).fill(0),
           reflection: data.reflection || '',
           weeklyScore: data.weekly_score || 0
@@ -480,17 +483,18 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     setHabitData(prev => ({ ...prev, habitName: name }));
   };
 
-  const handleHabitWheelSelection = (selectedHabit: string) => {
+  const handleHabitWheelSelection = (selectedHabit: { name: string; task: string }) => {
     // Calculate the exact week key for this selection to prevent overwriting past weeks
     const targetWeekKey = getISOWeekKey(selectedDate);
     
-    updateHabitName(selectedHabit);
+    updateHabitName(selectedHabit.name);
+    setHabitData(prev => ({ ...prev, habitTask: selectedHabit.task }));
     // Save with the specific week key computed at spin time
     // eslint-disable-next-line @typescript-eslint/no-floating-promises
-    handleSaveHabit(selectedHabit, targetWeekKey);
+    handleSaveHabit(selectedHabit.name, targetWeekKey);
     toast({
       title: "Nawyk wylosowany!",
-      description: `Wybrano: ${selectedHabit}. Zapisano jako nawyk tygodnia.`,
+      description: `Wybrano: ${selectedHabit.name}. Zapisano jako nawyk tygodnia.`,
     });
   };
 
@@ -704,7 +708,7 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-3">
             <div className="flex items-center space-x-2 flex-1">
-              <div className="flex-1">
+              <div className="flex-1 flex items-center space-x-2">
                 {habitChangeBlocked ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -730,6 +734,20 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                      className="modern-input text-base sm:text-lg py-3 px-4"
                      disabled={isHabitSaved || habitChangeBlocked || isPastWeek}
                    />
+                 )}
+                 
+                 {/* Tooltip z opisem nawyku */}
+                 {habitData.habitTask && habitData.habitTask.trim() && (
+                   <Tooltip>
+                     <TooltipTrigger asChild>
+                       <button className="p-2 hover:bg-primary/10 rounded-full transition-colors">
+                         <Info className="h-4 w-4 text-primary" />
+                       </button>
+                     </TooltipTrigger>
+                     <TooltipContent className="max-w-xs bg-white border shadow-lg">
+                       <p className="text-sm text-gray-700">{habitData.habitTask}</p>
+                     </TooltipContent>
+                   </Tooltip>
                  )}
               </div>
                <Button

@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 interface HabitWheelDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onHabitSelected: (habit: string) => void;
+  onHabitSelected: (habit: { name: string; task: string }) => void;
   userId: string;
 }
 
@@ -105,7 +105,10 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
         task: event.data.task || ''
       });
     } else if (event.data?.type === 'habit-wheel:habit-confirmed') {
-      onHabitSelected(event.data.habit);
+      onHabitSelected({
+        name: event.data.habit,
+        task: event.data.task || ''
+      });
       onOpenChange(false);
       setSelectedHabit(null);
     }
