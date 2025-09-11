@@ -20,7 +20,7 @@ export const ResetPasswordForm = ({ onSwitchToLogin }: ResetPasswordFormProps) =
     setLoading(true);
 
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `https://jeden-nawyk.zdrowo-ogarnieci.pl/auth/callback`,
+      redirectTo: `${window.location.origin}/auth/callback?force_reset=true`,
     });
 
     if (error) {
