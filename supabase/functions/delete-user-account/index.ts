@@ -27,17 +27,23 @@ Deno.serve(async (req) => {
     // Extract the JWT token
     const token = authHeader.replace('Bearer ', '')
     
-    // Create regular Supabase client to verify the JWT
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_PUBLISHABLE_KEY') ?? ''
-    )
+    // Decode JWT to get user id (sub) without creating a regular client
+    const decodeJwt = (t: string) => {
+      const parts = t.split('.')
+      if (parts.length < 2) throw new Error('Invalid JWT structure')
+      const payload = parts[1]
+      const normalized = payload.replace(/-/g, '+').replace(/_/g, '/').padEnd(Math.ceil(payload.length / 4) * 4, '=')
+      const json = atob(normalized)
+      return JSON.parse(json)
+    }
 
-    // Verify the user's JWT token
-    const { data: { user }, error: userError } = await supabase.auth.getUser(token)
-    
-    if (userError || !user) {
-      console.error('JWT verification failed:', userError)
+    let userId: string
+    try {
+      const payload = decodeJwt(token)
+      userId = payload.sub as string
+      if (!userId) throw new Error('Token missing sub')
+    } catch (e) {
+      console.error('JWT decode failed:', e)
       return new Response(
         JSON.stringify({ error: 'Invalid or expired token' }),
         { 
@@ -47,14 +53,19 @@ Deno.serve(async (req) => {
       )
     }
 
-    const userId = user.id
     console.log('Deleting account for user:', userId)
 
     // Create admin client with service_role key
-    const supabaseAdmin = createClient(
-      Deno.env.get('SUPABASE_URL') ?? '',
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-    )
+    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
+    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+    if (!supabaseUrl || !serviceRoleKey) {
+      console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY')
+      return new Response(
+        JSON.stringify({ error: 'Server misconfiguration' }),
+        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      )
+    }
+    const supabaseAdmin = createClient(supabaseUrl, serviceRoleKey)
 
     // Delete user data in order (foreign key dependencies)
     console.log('Deleting badge_rewards...')
