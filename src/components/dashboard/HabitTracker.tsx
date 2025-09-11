@@ -115,6 +115,8 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     nieświadomy_zjadacz: 'unconscious_eater',
     ogarniety_odzywiacz: 'organized_nutritionist',
     ogarnięty_odżywiacz: 'organized_nutritionist',
+    ogarniety_odzywiacze: 'organized_nutritionist',
+    ogarnięty_odżywiacze: 'organized_nutritionist',
     perfekcjonista_dietetyczny: 'dietary_perfectionist',
     wieczny_odchudzacz: 'eternal_dieter',
   };
