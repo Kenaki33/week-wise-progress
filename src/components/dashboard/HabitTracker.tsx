@@ -88,6 +88,85 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
     loadUserCreationDate();
   }, [userId]);
 
+  // Personality to wheel file mapping (duplicated for local use)
+  const personalityWheelMap = {
+    carefree_gourmand: 'carefree_gourmand.html',
+    express_consumer: 'express_consumer.html',
+    emotional_snacker: 'emotional_snacker.html',
+    unconscious_eater: 'unconscious_eater.html',
+    organized_nutritionist: 'organized_nutritionist.html',
+    dietary_perfectionist: 'dietary_perfectionist.html',
+    eternal_dieter: 'eternal_dieter.html',
+  } as const;
+
+  const personalitySynonyms: Record<string, keyof typeof personalityWheelMap> = {
+    carefree_gourmand: 'carefree_gourmand',
+    express_consumer: 'express_consumer',
+    emotional_snacker: 'emotional_snacker',
+    unconscious_eater: 'unconscious_eater',
+    organized_nutritionist: 'organized_nutritionist',
+    dietary_perfectionist: 'dietary_perfectionist',
+    eternal_dieter: 'eternal_dieter',
+    beztroski_lasuch: 'carefree_gourmand',
+    beztroski_łasuch: 'carefree_gourmand',
+    ekspresowy_konsument: 'express_consumer',
+    emocjonalny_podjadacz: 'emotional_snacker',
+    nieswiadomy_zjadacz: 'unconscious_eater',
+    nieświadomy_zjadacz: 'unconscious_eater',
+    ogarniety_odzywiacz: 'organized_nutritionist',
+    ogarnięty_odżywiacz: 'organized_nutritionist',
+    perfekcjonista_dietetyczny: 'dietary_perfectionist',
+    wieczny_odchudzacz: 'eternal_dieter',
+  };
+
+  const normalizePersonality = (value?: string | null): keyof typeof personalityWheelMap => {
+    if (!value) return 'carefree_gourmand';
+    const key = value.trim().toLowerCase().replace(/\s+/g, '_');
+    return personalitySynonyms[key] ?? (personalityWheelMap[key as keyof typeof personalityWheelMap] ? (key as keyof typeof personalityWheelMap) : 'carefree_gourmand');
+  };
+
+  useEffect(() => {
+    const maybeFetchTask = async () => {
+      if (!userId) return;
+      if (!habitData.habitName || !habitData.habitName.trim()) return;
+      if (habitData.habitTask && habitData.habitTask.trim()) return;
+
+      try {
+        const { data: prof } = await supabase
+          .from('profiles')
+          .select('nutrition_personality')
+          .eq('user_id', userId)
+          .single();
+
+        const personality = normalizePersonality(prof?.nutrition_personality as string | null);
+        const file = personalityWheelMap[personality];
+        const url = `${import.meta.env.BASE_URL}wheels/${file}`;
+        const html = await fetch(url).then(r => (r.ok ? r.text() : ''));
+
+        // Extract habits list and find matching task
+        const regex = /\{\s*name:\s*\"([^\"]+)\",\s*task:\s*\"([^\"]+)\"\s*\}/g;
+        let match: RegExpExecArray | null;
+        let foundTask: string | undefined;
+        while ((match = regex.exec(html)) !== null) {
+          const name = match[1];
+          const task = match[2];
+          if (name === habitData.habitName) {
+            foundTask = task;
+            break;
+          }
+        }
+        if (foundTask) {
+          setHabitData(prev => ({ ...prev, habitTask: foundTask }));
+        }
+      } catch (e) {
+        console.error('Failed to fetch habit description:', e);
+      }
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-floating-promises
+    maybeFetchTask();
+  }, [habitData.habitName, userId]);
+
   // Check if habit change is blocked due to low previous week completion
   useEffect(() => {
     if (!userId || !userCreatedAt) return;
@@ -738,16 +817,16 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                  
                  {/* Tooltip z opisem nawyku */}
                  {habitData.habitTask && habitData.habitTask.trim() && (
-                   <Tooltip>
-                     <TooltipTrigger asChild>
-                       <button className="p-2 hover:bg-primary/10 rounded-full transition-colors">
-                         <Info className="h-4 w-4 text-primary" />
-                       </button>
-                     </TooltipTrigger>
-                     <TooltipContent className="max-w-xs bg-white border shadow-lg">
-                       <p className="text-sm text-gray-700">{habitData.habitTask}</p>
-                     </TooltipContent>
-                   </Tooltip>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <button className="p-2 hover:bg-accent rounded-full transition-colors">
+                          <Info className="h-4 w-4 text-muted-foreground" />
+                        </button>
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-xs bg-popover border shadow-lg text-popover-foreground">
+                        <p className="text-sm">{habitData.habitTask}</p>
+                      </TooltipContent>
+                    </Tooltip>
                  )}
               </div>
                <Button

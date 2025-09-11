@@ -100,11 +100,6 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
 
   const handleMessage = (event: MessageEvent) => {
     if (event.data?.type === 'habit-wheel:selected') {
-      setSelectedHabit({
-        name: event.data.habit,
-        task: event.data.task || ''
-      });
-    } else if (event.data?.type === 'habit-wheel:habit-confirmed') {
       onHabitSelected({
         name: event.data.habit,
         task: event.data.task || ''
@@ -176,24 +171,24 @@ export function HabitWheelDialog({ open, onOpenChange, onHabitSelected, userId }
             <div className="absolute top-4 left-4 z-10 bg-white/95 backdrop-blur-sm rounded-lg p-3 shadow-lg max-w-md">
               <div className="flex items-start gap-2">
                 <div className="flex-1">
-                  <h4 className="font-semibold text-gray-900 mb-1">{selectedHabit.name}</h4>
+                  <h4 className="font-semibold text-foreground mb-1">{selectedHabit.name}</h4>
                   <div className="flex items-center gap-2">
-                    <span className="text-sm text-gray-600">Szczegóły nawyku</span>
+                    <span className="text-sm text-muted-foreground">Szczegóły nawyku</span>
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <button className="p-1 hover:bg-gray-100 rounded-full transition-colors">
-                          <Info className="h-4 w-4 text-gray-500" />
+                        <button className="p-1 hover:bg-accent rounded-full transition-colors">
+                          <Info className="h-4 w-4 text-muted-foreground" />
                         </button>
                       </TooltipTrigger>
-                      <TooltipContent className="max-w-xs bg-white border shadow-lg">
-                        <p className="text-sm text-gray-700">{selectedHabit.task}</p>
+                      <TooltipContent className="max-w-xs bg-popover border shadow-lg text-popover-foreground">
+                        <p className="text-sm">{selectedHabit.task}</p>
                       </TooltipContent>
                     </Tooltip>
                   </div>
                 </div>
                 <button
                   onClick={() => setSelectedHabit(null)}
-                  className="text-gray-400 hover:text-gray-600 transition-colors"
+                  className="text-muted-foreground hover:text-foreground transition-colors"
                 >
                   ×
                 </button>
