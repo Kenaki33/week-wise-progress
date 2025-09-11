@@ -820,23 +820,23 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
               
               {/* Icons row - below input on mobile, inline on desktop */}
                <div className="flex items-center space-x-2 justify-center md:justify-start">
-                  {/* Tooltip z opisem nawyku - pokazuj gdy nawyk jest zapisany */}
-                  {isHabitSaved && (
-                     <Tooltip>
-                       <TooltipTrigger asChild>
-                         <button className="p-2 hover:bg-accent rounded-full transition-colors">
-                           <Info className="h-4 w-4 text-muted-foreground" />
-                         </button>
-                       </TooltipTrigger>
-                       <TooltipContent className="max-w-xs bg-popover border shadow-lg text-popover-foreground">
-                         <p className="text-sm">
-                           {habitData.habitTask && habitData.habitTask.trim() 
-                             ? habitData.habitTask 
-                             : "Szczegóły nawyku będą dostępne po jego wylosowaniu z koła fortuny."}
-                         </p>
-                       </TooltipContent>
-                     </Tooltip>
-                  )}
+                   {/* Popover z opisem nawyku - pokazuj gdy nawyk jest zapisany */}
+                   {isHabitSaved && (
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button className="p-2 hover:bg-accent rounded-full transition-colors">
+                            <Info className="h-4 w-4 text-muted-foreground" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="max-w-xs bg-popover border shadow-lg text-popover-foreground" side="bottom" align="center">
+                          <p className="text-sm">
+                            {habitData.habitTask && habitData.habitTask.trim() 
+                              ? habitData.habitTask 
+                              : "Szczegóły nawyku będą dostępne po jego wylosowaniu z koła fortuny."}
+                          </p>
+                        </PopoverContent>
+                      </Popover>
+                   )}
                   
                   <Button
                     onClick={() => setShowHabitWheel(true)}
