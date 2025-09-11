@@ -82,7 +82,7 @@ export const RegisterForm = ({ onSwitchToLogin }: RegisterFormProps) => {
 
     setLoading(true);
 
-    const redirectUrl = `${window.location.origin}/`;
+    const redirectUrl = `https://jeden-nawyk.zdrowo-ogarnieci.pl/auth/callback`;
     
     const { error } = await supabase.auth.signUp({
       email,
