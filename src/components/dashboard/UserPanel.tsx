@@ -270,57 +270,39 @@ export const UserPanel = ({ user }: UserPanelProps) => {
     setLoading(true);
 
     try {
-      // Delete user's badge rewards data
-      const { error: badgeRewardsError } = await supabase
-        .from('badge_rewards')
-        .delete()
-        .eq('user_id', user.id);
+      // Call the Edge Function to delete the account and all data
+      const { data, error } = await supabase.functions.invoke('delete-user-account', {
+        body: {}
+      });
 
-      if (badgeRewardsError) {
-        console.error('Error deleting badge rewards:', badgeRewardsError);
-      }
-
-      // Delete user's habits data
-      const { error: habitsError } = await supabase
-        .from('habits')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (habitsError) {
-        console.error('Error deleting habits:', habitsError);
-      }
-
-      // Delete user's profile data
-      const { error: profileError } = await supabase
-        .from('profiles')
-        .delete()
-        .eq('user_id', user.id);
-
-      if (profileError) {
-        console.error('Error deleting profile:', profileError);
-      }
-
-      // Sign out the user (this is what we can do without admin permissions)
-      const { error: signOutError } = await supabase.auth.signOut();
-
-      if (signOutError) {
+      if (error) {
+        console.error('Error calling delete-user-account function:', error);
         toast({
           title: "Błąd",
-          description: "Nie udało się wylogować. Spróbuj ponownie później.",
+          description: "Nie udało się usunąć konta. Spróbuj ponownie później.",
           variant: "destructive",
         });
-      } else {
+      } else if (data?.success) {
         toast({
           title: "Sukces",
-          description: "Dane konta zostały usunięte i zostałeś wylogowany",
+          description: "Konto zostało całkowicie usunięte",
         });
-        // User will be automatically logged out and redirected
+        
+        // Sign out the user locally (the account is already deleted on the server)
+        await supabase.auth.signOut();
+      } else {
+        console.error('Unexpected response from delete-user-account function:', data);
+        toast({
+          title: "Błąd",
+          description: "Wystąpił nieoczekiwany błąd podczas usuwania konta",
+          variant: "destructive",
+        });
       }
     } catch (error) {
       console.error('Error during account deletion:', error);
       toast({
         title: "Błąd",
-        description: "Wystąpił błąd podczas usuwania danych konta",
+        description: "Wystąpił błąd podczas usuwania konta",
         variant: "destructive",
       });
     }
