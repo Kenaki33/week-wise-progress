@@ -786,8 +786,8 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
         </CardHeader>
         <CardContent>
           <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex items-center space-x-2 flex-1">
-              <div className="flex-1 flex items-center space-x-2">
+            <div className="flex flex-col md:flex-row md:items-center space-y-2 md:space-y-0 md:space-x-2 flex-1">
+              <div className="flex-1">
                 {habitChangeBlocked ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -814,7 +814,10 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                      disabled={isHabitSaved || habitChangeBlocked || isPastWeek}
                    />
                  )}
-                 
+              </div>
+              
+              {/* Icons row - below input on mobile, inline on desktop */}
+              <div className="flex items-center space-x-2 justify-center md:justify-start">
                  {/* Tooltip z opisem nawyku */}
                  {habitData.habitTask && habitData.habitTask.trim() && (
                     <Tooltip>
@@ -828,19 +831,20 @@ export const HabitTracker = ({ weekKey, selectedDate, userId, onDataChange }: Ha
                       </TooltipContent>
                     </Tooltip>
                  )}
+                 
+                 <Button
+                   onClick={() => setShowHabitWheel(true)}
+                   variant="outline"
+                   size="sm"
+                   disabled={habitChangeBlocked || isPastWeek}
+                   className="shrink-0"
+                   type="button"
+                   aria-label="Zakręć kołem fortuny nawyków"
+                 >
+                   <RotateCw className="w-4 h-4" />
+                   <span className="ml-1 hidden sm:inline">Losuj</span>
+                 </Button>
               </div>
-               <Button
-                 onClick={() => setShowHabitWheel(true)}
-                 variant="outline"
-                 size="sm"
-                 disabled={habitChangeBlocked || isPastWeek}
-                 className="shrink-0"
-                 type="button"
-                 aria-label="Zakręć kołem fortuny nawyków"
-               >
-                 <RotateCw className="w-4 h-4" />
-                 <span className="ml-1 hidden sm:inline">Losuj</span>
-               </Button>
             </div>
              {!isHabitSaved ? (
                <Button
