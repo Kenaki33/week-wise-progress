@@ -21,6 +21,16 @@ const AuthCallback = () => {
   useEffect(() => {
     const handleAuthCallback = async () => {
       try {
+        // Debug: Log all URL parameters
+        console.log('AuthCallback URL parameters:', {
+          type: searchParams.get('type'),
+          access_token: searchParams.get('access_token'),
+          refresh_token: searchParams.get('refresh_token'),
+          error: searchParams.get('error'),
+          error_description: searchParams.get('error_description'),
+          allParams: Object.fromEntries(searchParams.entries())
+        });
+        
         // Check if this is a password recovery flow
         const type = searchParams.get('type');
         

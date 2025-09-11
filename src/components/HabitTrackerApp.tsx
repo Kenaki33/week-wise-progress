@@ -9,10 +9,6 @@ export const HabitTrackerApp = () => {
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if user came from password reset link
-  const urlParams = new URLSearchParams(window.location.search);
-  const forceReset = urlParams.get('force_reset') === 'true';
-
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
@@ -46,13 +42,6 @@ export const HabitTrackerApp = () => {
         </div>
       </div>
     );
-  }
-
-  // Force password reset flow if coming from reset email
-  if (forceReset) {
-    window.history.replaceState({}, '', '/auth/callback' + window.location.search);
-    window.location.reload();
-    return null;
   }
 
   if (!user) {
