@@ -2,158 +2,158 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Design System inspired by zdrowo-ogarnieci.pl - Elegant Green Theme with Dark/Light Mode */
+/* Design System dopasowany do zdrowo-ogarnieci.pl - off-white + czerń + złoto */
 
 @layer base {
   :root {
-    /* Light mode - dokładnie jak na screenie */
-    --background: 0 0% 98%;
-    --foreground: 220 15% 25%;
-    --card: 0 0% 100%;
-    --card-foreground: 220 15% 25%;
+    /* Light mode - off-white #fdfcf8, czerń #1a1a1a, złoto #d4a72c */
+    --background: 45 50% 98%;          /* #fdfcf8 - off-white */
+    --foreground: 0 0% 10%;            /* #1a1a1a - czerń */
+    --card: 0 0% 100%;                 /* białe karty na off-white tle */
+    --card-foreground: 0 0% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 220 15% 25%;
+    --popover-foreground: 0 0% 10%;
     
-    /* Primary - gradient pomarańczowy jak w oryginale */
-    --primary: 28 100% 52%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 28 100% 48%;
-    --primary-light: 28 100% 95%;
+    /* Primary - złoty #d4a72c */
+    --primary: 44 68% 50%;             /* #d4a72c - złoty */
+    --primary-foreground: 0 0% 10%;    /* czarny tekst na złotym */
+    --primary-hover: 41 75% 41%;       /* #b88a1c - ciemniejsze złoto */
+    --primary-light: 47 88% 65%;       /* #f5cf5b - jaśniejsze złoto */
     
-    /* Secondary colors */
-    --secondary: 220 15% 96%;
-    --secondary-foreground: 220 15% 25%;
+    /* Secondary colors - subtelny beż */
+    --secondary: 45 30% 94%;
+    --secondary-foreground: 0 0% 10%;
     
     /* Muted colors */
-    --muted: 220 15% 95%;
-    --muted-foreground: 220 10% 50%;
+    --muted: 45 25% 92%;
+    --muted-foreground: 0 0% 40%;
     
-    /* Accent colors */
-    --accent: 220 15% 94%;
-    --accent-foreground: 220 15% 25%;
+    /* Accent - delikatny złoty wash */
+    --accent: 44 60% 92%;
+    --accent-foreground: 0 0% 10%;
     
     /* Status colors */
-    --destructive: 0 84% 60%;
+    --destructive: 0 70% 50%;
     --destructive-foreground: 0 0% 100%;
     
     /* Border and input colors */
-    --border: 220 15% 88%;
-    --input: 220 15% 94%;
-    --ring: 28 100% 52%;
-    --radius: 12px;
+    --border: 45 20% 88%;
+    --input: 45 25% 94%;
+    --ring: 44 68% 50%;
+    --radius: 8px;
     
-    /* Header Colors */
-    --header: 220 15% 25%;
-    --header-foreground: 0 0% 100%;
+    /* Header Colors - czarny header w stylu strony */
+    --header: 0 0% 10%;
+    --header-foreground: 45 50% 98%;
     
     /* Success & Warning */
-    --success: 142 69% 58%;
+    --success: 142 50% 45%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 69% 95%;
+    --success-light: 142 40% 92%;
     
-    --warning: 28 100% 52%;
-    --warning-foreground: 0 0% 100%;
-    --warning-light: 28 100% 95%;
+    --warning: 44 68% 50%;
+    --warning-foreground: 0 0% 10%;
+    --warning-light: 44 80% 92%;
     
     /* Points display colors - light mode */
-    --points-positive: 142 70% 45%;
-    --points-positive-bg: 142 70% 95%;
-    --points-negative: 0 70% 50%;
-    --points-negative-bg: 0 70% 95%;
+    --points-positive: 142 60% 40%;
+    --points-positive-bg: 142 40% 94%;
+    --points-negative: 0 65% 50%;
+    --points-negative-bg: 0 60% 95%;
     
     /* Calendar Colors */
-    --calendar-selected: 28 100% 52%;
-    --calendar-hover: 220 15% 92%;
-    --calendar-today: 28 100% 52%;
+    --calendar-selected: 44 68% 50%;
+    --calendar-hover: 45 25% 92%;
+    --calendar-today: 44 68% 50%;
     
-    /* Nowoczesne gradienty i efekty */
-    --gradient-primary: linear-gradient(135deg, hsl(28 100% 52%), hsl(35 100% 58%));
-    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(220 15% 99%));
-    --gradient-hero: linear-gradient(135deg, hsl(28 100% 52% / 0.1), hsl(35 100% 58% / 0.05));
-    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.8), hsl(220 15% 98% / 0.9));
+    /* Gradienty i efekty - złote */
+    --gradient-primary: linear-gradient(135deg, hsl(44 68% 50%), hsl(47 88% 65%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 100%), hsl(45 50% 99%));
+    --gradient-hero: linear-gradient(135deg, hsl(44 68% 50% / 0.08), hsl(47 88% 65% / 0.04));
+    --gradient-glass: linear-gradient(135deg, hsl(0 0% 100% / 0.85), hsl(45 50% 99% / 0.9));
     
-    /* Nowoczesne cienie */
-    --shadow-soft: 0 4px 20px hsla(220 15% 25% / 0.08);
-    --shadow-medium: 0 8px 32px hsla(220 15% 25% / 0.12);
-    --shadow-hover: 0 12px 40px hsla(220 15% 25% / 0.15);
-    --shadow-focus: 0 0 0 3px hsla(28 100% 52% / 0.2);
-    --shadow-glow: 0 0 40px hsla(28 100% 52% / 0.3);
-    --shadow-colored: 0 8px 32px hsla(28 100% 52% / 0.2);
+    /* Cienie - łagodne, ciepłe */
+    --shadow-soft: 0 4px 20px hsla(0 0% 10% / 0.06);
+    --shadow-medium: 0 8px 32px hsla(0 0% 10% / 0.10);
+    --shadow-hover: 0 12px 40px hsla(0 0% 10% / 0.13);
+    --shadow-focus: 0 0 0 3px hsla(44 68% 50% / 0.25);
+    --shadow-glow: 0 0 40px hsla(44 68% 50% / 0.25);
+    --shadow-colored: 0 8px 32px hsla(44 68% 50% / 0.18);
   }
 
   .dark {
-    /* Dark mode - ciepły fioletowo-niebieski jak na screenie */
-    --background: 248 39% 23%;
-    --foreground: 0 0% 95%;
-    --card: 248 39% 27%;
-    --card-foreground: 0 0% 95%;
-    --popover: 248 39% 27%;
-    --popover-foreground: 0 0% 95%;
+    /* Dark mode - czarne tło #1a1a1a, złote akcenty */
+    --background: 0 0% 10%;            /* #1a1a1a - czarny */
+    --foreground: 45 50% 98%;          /* #fdfcf8 - off-white tekst */
+    --card: 0 0% 13%;                  /* nieco jaśniejszy czarny dla kart */
+    --card-foreground: 45 50% 98%;
+    --popover: 0 0% 13%;
+    --popover-foreground: 45 50% 98%;
     
-    /* Primary - ten sam pomarańczowy gradient */
-    --primary: 28 100% 52%;
-    --primary-foreground: 0 0% 100%;
-    --primary-hover: 28 100% 58%;
-    --primary-light: 28 100% 15%;
+    /* Primary - to samo złoto */
+    --primary: 44 68% 50%;
+    --primary-foreground: 0 0% 10%;
+    --primary-hover: 47 88% 65%;       /* w dark mode jaśniejsze złoto na hover */
+    --primary-light: 44 30% 20%;
     
     /* Secondary colors */
-    --secondary: 248 39% 20%;
-    --secondary-foreground: 0 0% 95%;
+    --secondary: 0 0% 16%;
+    --secondary-foreground: 45 50% 98%;
     
     /* Muted colors */
-    --muted: 248 39% 20%;
-    --muted-foreground: 220 10% 70%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 45 10% 70%;
     
     /* Accent colors */
-    --accent: 248 39% 20%;
-    --accent-foreground: 0 0% 95%;
+    --accent: 0 0% 18%;
+    --accent-foreground: 45 50% 98%;
     
     /* Status colors */
-    --destructive: 0 84% 60%;
+    --destructive: 0 70% 55%;
     --destructive-foreground: 0 0% 100%;
     
     /* Border and input colors */
-    --border: 248 39% 32%;
-    --input: 248 39% 20%;
-    --ring: 28 100% 52%;
+    --border: 0 0% 22%;
+    --input: 0 0% 16%;
+    --ring: 44 68% 50%;
     
     /* Header Colors */
-    --header: 0 0% 95%;
-    --header-foreground: 248 39% 23%;
+    --header: 45 50% 98%;
+    --header-foreground: 0 0% 10%;
     
     /* Success & Warning */
-    --success: 142 69% 58%;
+    --success: 142 50% 50%;
     --success-foreground: 0 0% 100%;
-    --success-light: 142 69% 15%;
+    --success-light: 142 30% 18%;
     
-    --warning: 28 100% 52%;
-    --warning-foreground: 0 0% 100%;
-    --warning-light: 28 100% 15%;
+    --warning: 44 68% 50%;
+    --warning-foreground: 0 0% 10%;
+    --warning-light: 44 30% 18%;
     
     /* Points display colors - high contrast for dark mode */
-    --points-positive: 142 100% 70%;
-    --points-positive-bg: 142 100% 15%;
-    --points-negative: 0 100% 75%;
-    --points-negative-bg: 0 100% 15%;
+    --points-positive: 142 60% 60%;
+    --points-positive-bg: 142 30% 18%;
+    --points-negative: 0 70% 65%;
+    --points-negative-bg: 0 30% 18%;
     
     /* Calendar Colors */
-    --calendar-selected: 28 100% 52%;
-    --calendar-hover: 248 39% 32%;
-    --calendar-today: 28 100% 52%;
+    --calendar-selected: 44 68% 50%;
+    --calendar-hover: 0 0% 22%;
+    --calendar-today: 44 68% 50%;
     
-    /* Nowoczesne dark mode gradienty i efekty */
-    --gradient-primary: linear-gradient(135deg, hsl(28 100% 52%), hsl(35 100% 58%));
-    --gradient-card: linear-gradient(135deg, hsl(248 39% 27%), hsl(248 39% 30%));
-    --gradient-hero: linear-gradient(135deg, hsl(28 100% 52% / 0.15), hsl(35 100% 58% / 0.08));
-    --gradient-glass: linear-gradient(135deg, hsl(248 39% 27% / 0.9), hsl(248 39% 30% / 0.8));
+    /* Dark mode gradienty */
+    --gradient-primary: linear-gradient(135deg, hsl(44 68% 50%), hsl(47 88% 65%));
+    --gradient-card: linear-gradient(135deg, hsl(0 0% 13%), hsl(0 0% 16%));
+    --gradient-hero: linear-gradient(135deg, hsl(44 68% 50% / 0.12), hsl(47 88% 65% / 0.06));
+    --gradient-glass: linear-gradient(135deg, hsl(0 0% 13% / 0.9), hsl(0 0% 16% / 0.85));
     
-    /* Nowoczesne dark mode cienie */
-    --shadow-soft: 0 4px 24px hsla(248 39% 10% / 0.4);
-    --shadow-medium: 0 8px 40px hsla(248 39% 10% / 0.5);
-    --shadow-hover: 0 12px 48px hsla(248 39% 10% / 0.6);
-    --shadow-focus: 0 0 0 3px hsla(28 100% 52% / 0.4);
-    --shadow-glow: 0 0 60px hsla(28 100% 52% / 0.4);
-    --shadow-colored: 0 8px 40px hsla(28 100% 52% / 0.3);
+    /* Dark mode cienie */
+    --shadow-soft: 0 4px 24px hsla(0 0% 0% / 0.4);
+    --shadow-medium: 0 8px 40px hsla(0 0% 0% / 0.5);
+    --shadow-hover: 0 12px 48px hsla(0 0% 0% / 0.6);
+    --shadow-focus: 0 0 0 3px hsla(44 68% 50% / 0.4);
+    --shadow-glow: 0 0 60px hsla(44 68% 50% / 0.35);
+    --shadow-colored: 0 8px 40px hsla(44 68% 50% / 0.25);
   }
 }
 
@@ -184,6 +184,15 @@
   
   ::-webkit-scrollbar-thumb:hover {
     @apply bg-primary/50;
+  }
+
+  /* Eyebrow label - jak na stronie zdrowo-ogarnieci.pl */
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    color: hsl(var(--primary));
   }
 }
 
@@ -299,7 +308,24 @@
   .btn-gradient:hover {
     transform: translateY(-1px);
     box-shadow: var(--shadow-hover);
-    filter: brightness(1.1);
+    filter: brightness(1.05);
+  }
+
+  /* Czarny przycisk ze złotym tekstem - jak na stronie */
+  .btn-dark {
+    background: hsl(0 0% 10%);
+    color: hsl(44 68% 50%);
+    border: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    border-radius: var(--radius);
+    font-weight: 600;
+    padding: 0.75rem 1.5rem;
+  }
+
+  .btn-dark:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-medium);
+    background: hsl(0 0% 15%);
   }
   
   /* Facebook gradient button */
@@ -372,8 +398,8 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: radial-gradient(circle at 30% 20%, hsl(28 100% 52% / 0.1) 0%, transparent 50%),
-                radial-gradient(circle at 70% 80%, hsl(35 100% 58% / 0.08) 0%, transparent 50%);
+    background: radial-gradient(circle at 30% 20%, hsl(44 68% 50% / 0.08) 0%, transparent 50%),
+                radial-gradient(circle at 70% 80%, hsl(47 88% 65% / 0.06) 0%, transparent 50%);
     pointer-events: none;
   }
   
