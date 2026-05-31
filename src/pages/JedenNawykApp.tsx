@@ -1,0 +1,289 @@
+// ============================================================
+// Jeden Nawyk - nowa apka (pod /app, rownolegle do starej apki pod /)
+// Krok 1: Piramida (czyta zapisany audyt z bazy) + Profil (wylogowanie).
+// Tydzien i Nawyki - kolejny krok.
+// ============================================================
+
+import { useState, useEffect, useMemo, type CSSProperties } from "react";
+import { useNavigate } from "react-router-dom";
+import { BookOpen, Layers, Triangle, User as UserIcon, TrendingUp, TrendingDown, LogOut } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { getLatestAudits, type AuditRow } from "@/lib/jeden-nawyk/db";
+
+const G = {
+  bg: "#fdfcf8", bgWarm: "#f7f3e8", ink: "#1a1a1a", gold: "#d4a72c",
+  goldDeep: "#b88a1c", muted: "#888780", border: "#ebe8de", green: "#2a7a3b", red: "#c33",
+};
+const SERIF = "Georgia, 'Times New Roman', serif";
+const SANS = "ui-sans-serif, system-ui, -apple-system, sans-serif";
+
+const PYRAMID_META = [
+  { id: "tozsamosc", name: "Tożsamość", dims: [
+    { id: "narracja", name: "Wewnętrzna narracja" },
+    { id: "spojnosc", name: "Spójność wartości z działaniem" },
+  ]},
+  { id: "odzywianie", name: "Odżywianie", dims: [
+    { id: "swiadomosc", name: "Świadomość tego, co jem" },
+    { id: "regularnosc", name: "Regularność i rytm posiłków" },
+    { id: "relacja", name: "Relacja z jedzeniem" },
+  ]},
+  { id: "aktywnosc", name: "Aktywność fizyczna", dims: [
+    { id: "sila", name: "Siła i masa mięśniowa" },
+    { id: "wydolnosc", name: "Wydolność i kondycja" },
+    { id: "mobilnosc", name: "Mobilność i jakość ruchu" },
+  ]},
+  { id: "regeneracja", name: "Regeneracja", dims: [
+    { id: "sen", name: "Sen - jakość i ilość" },
+    { id: "stres", name: "Zarządzanie stresem" },
+  ]},
+  { id: "optymalizacja", name: "Optymalizacja", dims: [
+    { id: "badania", name: "Badania i monitorowanie" },
+    { id: "suplementacja", name: "Suplementacja i protokoły" },
+  ]},
+];
+
+type Tab = "tydzien" | "nawyki" | "piramida" | "profil";
+
+export default function JedenNawykApp() {
+  const navigate = useNavigate();
+  const [checking, setChecking] = useState(true);
+  const [email, setEmail] = useState<string>("");
+  const [tab, setTab] = useState<Tab>("piramida");
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const { data } = await supabase.auth.getUser();
+      if (!active) return;
+      if (!data.user) { navigate("/", { replace: true }); return; }
+      setEmail(data.user.email ?? "");
+      setChecking(false);
+    })();
+    return () => { active = false; };
+  }, [navigate]);
+
+  if (checking) {
+    return (
+      <div style={{ background: G.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: SERIF, fontStyle: "italic", color: G.muted }}>
+        Wczytywanie...
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ background: G.bg, minHeight: "100vh", fontFamily: SANS, color: G.ink, maxWidth: 480, margin: "0 auto", paddingBottom: 72 }}>
+      <header style={{ background: G.ink, color: G.bg, borderBottom: `2px solid ${G.gold}`, padding: "13px 20px", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ fontFamily: SERIF, fontSize: 19, fontStyle: "italic", fontWeight: 500 }}>Jeden <span style={{ color: G.gold }}>Nawyk.</span></div>
+          <div style={{ fontSize: 11, color: "rgba(253,252,248,0.5)" }}>{TAB_LABEL[tab]}</div>
+        </div>
+      </header>
+
+      <main style={{ padding: "24px 20px 40px" }}>
+        {tab === "piramida" && <Piramida navigate={navigate} />}
+        {tab === "profil" && <Profil email={email} navigate={navigate} />}
+        {tab === "tydzien" && <Placeholder title="Tydzień" desc="Tu będzie Twój aktualny nawyk z siatką dni i punktacją. Budujemy go w następnym kroku." />}
+        {tab === "nawyki" && <Placeholder title="Nawyki" desc="Tu będzie pula nawyków i drzewo ścieżek Piramidy. Budujemy go w następnym kroku." />}
+      </main>
+
+      {/* DOLNA NAWIGACJA */}
+      <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, maxWidth: 480, margin: "0 auto", background: G.bg, borderTop: `1px solid ${G.border}`, display: "flex", zIndex: 50 }}>
+        {NAV.map(({ id, icon: Icon, label }) => {
+          const on = tab === id;
+          return (
+            <button key={id} onClick={() => setTab(id)}
+              style={{ flex: 1, background: "transparent", border: "none", padding: "10px 0 12px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: on ? G.ink : G.muted, fontFamily: SANS }}>
+              <Icon size={20} strokeWidth={on ? 2.4 : 1.8} />
+              <span style={{ fontSize: 10, fontWeight: on ? 700 : 500, letterSpacing: "0.04em" }}>{label}</span>
+            </button>
+          );
+        })}
+      </nav>
+    </div>
+  );
+}
+
+const NAV: { id: Tab; icon: typeof BookOpen; label: string }[] = [
+  { id: "tydzien", icon: BookOpen, label: "Tydzień" },
+  { id: "nawyki", icon: Layers, label: "Nawyki" },
+  { id: "piramida", icon: Triangle, label: "Piramida" },
+  { id: "profil", icon: UserIcon, label: "Profil" },
+];
+const TAB_LABEL: Record<Tab, string> = { tydzien: "Tydzień", nawyki: "Nawyki", piramida: "Piramida", profil: "Profil" };
+
+const eyebrow: CSSProperties = { fontSize: 10, letterSpacing: "0.28em", color: G.goldDeep, textTransform: "uppercase", fontWeight: 700, marginBottom: 10 };
+
+function Delta({ d }: { d: number }) {
+  if (Math.abs(d) < 0.05) return <span style={{ fontSize: 11, color: G.muted, fontWeight: 600 }}>=</span>;
+  const pos = d > 0;
+  return (
+    <span style={{ display: "inline-flex", alignItems: "center", gap: 2, fontSize: 11, fontWeight: 700, color: pos ? G.green : G.red }}>
+      {pos ? <TrendingUp size={12} /> : <TrendingDown size={12} />}{pos ? "+" : ""}{d.toFixed(1)}
+    </span>
+  );
+}
+
+function Piramida({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
+  const [loading, setLoading] = useState(true);
+  const [audits, setAudits] = useState<AuditRow[]>([]);
+  const [err, setErr] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      try {
+        const a = await getLatestAudits(2);
+        if (active) { setAudits(a); setLoading(false); }
+      } catch (e) {
+        console.error(e);
+        if (active) { setErr(true); setLoading(false); }
+      }
+    })();
+    return () => { active = false; };
+  }, []);
+
+  const current = audits[0];
+  const prev = audits[1];
+
+  const radar = useMemo(() => {
+    const size = 260, cx = size / 2, cy = size / 2, R = 78, n = 5, a0 = -Math.PI / 2;
+    const ring = (rr: number, i: number): [number, number] => {
+      const a = a0 + i * ((Math.PI * 2) / n);
+      return [cx + Math.cos(a) * rr, cy + Math.sin(a) * rr];
+    };
+    const pt = (val: number, i: number): [number, number] => {
+      const a = a0 + i * ((Math.PI * 2) / n); const r = (R * val) / 10;
+      return [cx + Math.cos(a) * r, cy + Math.sin(a) * r];
+    };
+    const rings = [1, 2, 3, 4, 5].map((k) => PYRAMID_META.map((_l, i) => ring((R * k) / 5, i)).map((p) => p.join(",")).join(" "));
+    const vals = PYRAMID_META.map((l) => (current ? Number(current.levelScores[l.id] ?? 0) : 0));
+    const cur = vals.map((v, i) => pt(v, i));
+    const axes = PYRAMID_META.map((_l, i) => ring(R, i));
+    const labels = PYRAMID_META.map((l, i) => {
+      const a = a0 + i * ((Math.PI * 2) / n);
+      return {
+        x: cx + Math.cos(a) * (R + 22), y: cy + Math.sin(a) * (R + 22),
+        name: l.name === "Aktywność fizyczna" ? "Aktywność" : l.name,
+        anchor: (Math.cos(a) > 0.3 ? "start" : Math.cos(a) < -0.3 ? "end" : "middle") as "start" | "end" | "middle",
+      };
+    });
+    return { size, cx, cy, rings, cur, axes, labels };
+  }, [current]);
+
+  if (loading) return <div style={{ fontFamily: SERIF, fontStyle: "italic", color: G.muted, textAlign: "center", padding: "40px 0" }}>Wczytywanie wyników...</div>;
+
+  if (err) return (
+    <div style={{ textAlign: "center", padding: "30px 0" }}>
+      <div style={{ fontFamily: SERIF, fontSize: 18, marginBottom: 8 }}>Nie udało się wczytać audytu.</div>
+      <div style={{ fontSize: 13, color: G.muted }}>Odśwież stronę za chwilę.</div>
+    </div>
+  );
+
+  if (!current) return (
+    <div style={{ textAlign: "center", padding: "30px 0" }}>
+      <div style={eyebrow}>Twoja Piramida</div>
+      <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, marginBottom: 14 }}>Nie masz jeszcze audytu.</div>
+      <button onClick={() => navigate("/onboarding")} style={{ background: G.ink, color: G.gold, border: "none", padding: "13px 26px", fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer", fontFamily: SANS }}>Zrób audyt</button>
+    </div>
+  );
+
+  const totalDelta = prev ? current.total - prev.total : null;
+
+  return (
+    <div>
+      <div style={eyebrow}>Twoja Piramida</div>
+      <div style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 500, lineHeight: 1.12, marginBottom: 18 }}>
+        Co <span style={{ fontStyle: "italic", color: G.goldDeep }}>zmierzyłeś</span>.
+      </div>
+
+      <div style={{ textAlign: "center", padding: "18px 0", borderTop: `1px solid ${G.ink}`, borderBottom: `1px solid ${G.ink}`, marginBottom: 22 }}>
+        <div style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: G.muted, marginBottom: 4 }}>Wynik ogólny</div>
+        <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 8 }}>
+          <span style={{ fontFamily: SERIF, fontSize: 52, fontWeight: 600, lineHeight: 1 }}>{current.total.toFixed(1)}</span>
+          <span style={{ fontSize: 18, color: G.muted }}>/ 10</span>
+          {totalDelta !== null && <Delta d={totalDelta} />}
+        </div>
+      </div>
+
+      <div style={eyebrow}>Kształt Piramidy</div>
+      <svg viewBox={`0 0 ${radar.size} ${radar.size}`} style={{ width: "100%", maxWidth: 320, display: "block", margin: "0 auto 24px" }}>
+        {radar.rings.map((pts, i) => <polygon key={i} points={pts} fill="none" stroke={G.border} strokeWidth="1" />)}
+        {radar.axes.map((p, i) => <line key={i} x1={radar.cx} y1={radar.cy} x2={p[0]} y2={p[1]} stroke={G.border} strokeWidth="1" />)}
+        <polygon points={radar.cur.map((p) => p.join(",")).join(" ")} fill="rgba(212,167,44,0.18)" stroke={G.gold} strokeWidth="2.5" />
+        {radar.cur.map((p, i) => <circle key={i} cx={p[0]} cy={p[1]} r="4" fill={G.gold} />)}
+        {radar.labels.map((l, i) => <text key={i} x={l.x} y={l.y} textAnchor={l.anchor} dominantBaseline="middle" fontSize="10" fontWeight="600" fill="#5f5e5a" fontFamily={SANS}>{l.name}</text>)}
+      </svg>
+
+      <div style={eyebrow}>Szczegółowy rozkład</div>
+      {PYRAMID_META.map((lvl, li) => {
+        const lvlScore = Number(current.levelScores[lvl.id] ?? 0);
+        const lvlPrev = prev ? Number(prev.levelScores[lvl.id] ?? 0) : null;
+        return (
+          <div key={lvl.id} style={{ borderTop: `1px solid ${G.border}`, padding: "16px 0" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 12 }}>
+              <div style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 500 }}>0{li + 1} · {lvl.name}</div>
+              <div style={{ display: "flex", alignItems: "baseline", gap: 8 }}>
+                <span style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600 }}>{lvlScore.toFixed(1)}</span>
+                {lvlPrev !== null && <Delta d={lvlScore - lvlPrev} />}
+              </div>
+            </div>
+            {lvl.dims.map((d) => {
+              const s = Number(current.dimensionScores[d.id] ?? 0);
+              return (
+                <div key={d.id} style={{ marginBottom: 10 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 4 }}>
+                    <span style={{ fontSize: 13, color: "#5f5e5a" }}>{d.name}</span>
+                    <span style={{ fontSize: 13, fontWeight: 700 }}>{s.toFixed(1)}</span>
+                  </div>
+                  <div style={{ height: 6, background: G.border, borderRadius: 999 }}>
+                    <div style={{ height: "100%", width: (s / 10 * 100) + "%", background: G.ink, borderRadius: 999 }} />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        );
+      })}
+
+      <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 12, color: G.muted, marginTop: 18, textAlign: "center" }}>
+        Pomiar z {new Date(current.createdAt).toLocaleDateString("pl-PL")}. Kolejny audyt za 90 dni.
+      </div>
+    </div>
+  );
+}
+
+function Profil({ email, navigate }: { email: string; navigate: ReturnType<typeof useNavigate> }) {
+  const [out, setOut] = useState(false);
+  const logout = async () => {
+    if (out) return;
+    setOut(true);
+    await supabase.auth.signOut();
+    navigate("/", { replace: true });
+  };
+  return (
+    <div>
+      <div style={eyebrow}>Profil</div>
+      <div style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 500, marginBottom: 20 }}>Twoje konto.</div>
+      <div style={{ border: `1px solid ${G.border}`, padding: "16px 18px", marginBottom: 18 }}>
+        <div style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: G.muted, marginBottom: 4 }}>Zalogowany jako</div>
+        <div style={{ fontSize: 15, color: G.ink }}>{email || "-"}</div>
+      </div>
+      <button onClick={logout} disabled={out}
+        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", background: "transparent", color: G.ink, border: `1px solid ${G.ink}`, padding: 14, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 700, cursor: out ? "wait" : "pointer", fontFamily: SANS }}>
+        <LogOut size={15} /> {out ? "Wylogowuję..." : "Wyloguj"}
+      </button>
+    </div>
+  );
+}
+
+function Placeholder({ title, desc }: { title: string; desc: string }) {
+  return (
+    <div>
+      <div style={eyebrow}>{title}</div>
+      <div style={{ border: `1px solid ${G.border}`, background: G.bgWarm, padding: "30px 22px", textAlign: "center" }}>
+        <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, marginBottom: 10 }}>{title} - wkrótce</div>
+        <div style={{ fontSize: 14, color: G.muted, lineHeight: 1.5 }}>{desc}</div>
+      </div>
+    </div>
+  );
+}
