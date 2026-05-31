@@ -185,7 +185,7 @@ function mapWeek(r: any): WeekRow {
 
 /** Wszystkie nawyki danego tygodnia (glowny + utrzymaniowe). */
 export async function getWeek(weekKey: string): Promise<WeekRow[]> {
-  const { data, error } = await db.from("habits").select("*").eq("week_key", weekKey);
+  const { data, error } = await db.from("habit_weeks").select("*").eq("week_key", weekKey);
   if (error) throw error;
   return (data ?? []).map(mapWeek);
 }
@@ -193,7 +193,7 @@ export async function getWeek(weekKey: string): Promise<WeekRow[]> {
 /** Historia jednego nawyku (po habit_pool_id) - do heatmap i logiki odblokowan. */
 export async function getHabitHistory(habitPoolId: string): Promise<WeekRow[]> {
   const { data, error } = await db
-    .from("habits")
+    .from("habit_weeks")
     .select("*")
     .eq("habit_pool_id", habitPoolId)
     .order("week_key", { ascending: true });
@@ -204,7 +204,7 @@ export async function getHabitHistory(habitPoolId: string): Promise<WeekRow[]> {
 export async function upsertWeek(w: WeekRow): Promise<void> {
   const userId = await getUserId();
   if (!userId) throw new Error("Brak zalogowanego uzytkownika.");
-  const { error } = await db.from("habits").upsert(
+  const { error } = await db.from("habit_weeks").upsert(
     {
       user_id: userId,
       week_key: w.weekKey,
