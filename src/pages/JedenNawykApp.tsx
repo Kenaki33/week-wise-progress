@@ -6,7 +6,7 @@
 
 import { useState, useEffect, useMemo, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Layers, Triangle, User as UserIcon, TrendingUp, TrendingDown, LogOut } from "lucide-react";
+import { BookOpen, Layers, Triangle, User as UserIcon, TrendingUp, TrendingDown, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getLatestAudits, type AuditRow } from "@/lib/jeden-nawyk/db";
 
@@ -126,14 +126,15 @@ function Delta({ d }: { d: number }) {
 function Piramida({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
   const [loading, setLoading] = useState(true);
   const [audits, setAudits] = useState<AuditRow[]>([]);
+  const [idx, setIdx] = useState(0); // 0 = najnowszy pomiar
   const [err, setErr] = useState(false);
 
   useEffect(() => {
     let active = true;
     (async () => {
       try {
-        const a = await getLatestAudits(2);
-        if (active) { setAudits(a); setLoading(false); }
+        const a = await getLatestAudits(100);
+        if (active) { setAudits(a); setIdx(0); setLoading(false); }
       } catch (e) {
         console.error(e);
         if (active) { setErr(true); setLoading(false); }
@@ -142,8 +143,10 @@ function Piramida({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
     return () => { active = false; };
   }, []);
 
-  const current = audits[0];
-  const prev = audits[1];
+  const current = audits[idx];
+  const prev = audits[idx + 1]; // chronologicznie wczesniejszy pomiar (delta liczona wzgledem niego)
+  const canOlder = idx < audits.length - 1;
+  const canNewer = idx > 0;
 
   const radar = useMemo(() => {
     const size = 260, cx = size / 2, cy = size / 2, R = 78, n = 5, a0 = -Math.PI / 2;
@@ -196,6 +199,24 @@ function Piramida({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
         Co <span style={{ fontStyle: "italic", color: G.goldDeep }}>zmierzyłeś</span>.
       </div>
 
+      {/* NAWIGACJA MIEDZY POMIARAMI */}
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10, marginBottom: 16 }}>
+        <button onClick={() => canOlder && setIdx(idx + 1)} disabled={!canOlder} aria-label="Wcześniejszy pomiar"
+          style={{ background: "transparent", border: `1px solid ${canOlder ? G.ink : G.border}`, color: canOlder ? G.ink : G.border, borderRadius: 999, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: canOlder ? "pointer" : "not-allowed", flexShrink: 0 }}>
+          <ChevronLeft size={18} />
+        </button>
+        <div style={{ textAlign: "center", lineHeight: 1.3 }}>
+          <div style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: G.muted }}>
+            Pomiar {audits.length - idx} z {audits.length}{idx === 0 ? " · najnowszy" : ""}
+          </div>
+          <div style={{ fontFamily: SERIF, fontSize: 15, fontWeight: 600 }}>{new Date(current.createdAt).toLocaleDateString("pl-PL")}</div>
+        </div>
+        <button onClick={() => canNewer && setIdx(idx - 1)} disabled={!canNewer} aria-label="Kolejny pomiar"
+          style={{ background: "transparent", border: `1px solid ${canNewer ? G.ink : G.border}`, color: canNewer ? G.ink : G.border, borderRadius: 999, width: 38, height: 38, display: "flex", alignItems: "center", justifyContent: "center", cursor: canNewer ? "pointer" : "not-allowed", flexShrink: 0 }}>
+          <ChevronRight size={18} />
+        </button>
+      </div>
+
       <div style={{ textAlign: "center", padding: "18px 0", borderTop: `1px solid ${G.ink}`, borderBottom: `1px solid ${G.ink}`, marginBottom: 22 }}>
         <div style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: G.muted, marginBottom: 4 }}>Wynik ogólny</div>
         <div style={{ display: "flex", alignItems: "baseline", justifyContent: "center", gap: 8 }}>
@@ -246,7 +267,7 @@ function Piramida({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
       })}
 
       <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 12, color: G.muted, marginTop: 18, textAlign: "center" }}>
-        Pomiar z {new Date(current.createdAt).toLocaleDateString("pl-PL")}. Kolejny audyt za 90 dni.
+        {idx === 0 ? "To Twój najnowszy pomiar. Kolejny audyt za 90 dni." : "Pomiar archiwalny. Strzałką w prawo wrócisz do najnowszego."}
       </div>
     </div>
   );
