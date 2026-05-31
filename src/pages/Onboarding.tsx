@@ -238,7 +238,7 @@ export default function Onboarding() {
           reflection: null,
         });
       }
-      navigate("/", { replace: true });
+      navigate("/app", { replace: true });
     } catch (e) {
       console.error(e);
       toast.error("Nie udało się zapisać audytu. Spróbuj jeszcze raz.");
