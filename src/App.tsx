@@ -8,6 +8,7 @@ import NotFound from "./pages/NotFound";
 import AuthCallback from "./pages/AuthCallback";
 import ResetPasswordCallback from "./pages/ResetPasswordCallback";
 import Onboarding from "./pages/Onboarding";
+import JedenNawykApp from "./pages/JedenNawykApp";
 const queryClient = new QueryClient();
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -18,6 +19,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/onboarding" element={<Onboarding />} />
+          <Route path="/app" element={<JedenNawykApp />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/auth/callback/reset-password" element={<ResetPasswordCallback />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
