@@ -32,7 +32,7 @@ const PERSONALITY_LABELS: Record<string, string> = {
 
 interface Row { userId: string; nickname: string; personality: string | null; monthly: number; total: number; }
 
-export default function Ranking() {
+export default function Ranking({ active }: { active: boolean }) {
   const [loading, setLoading] = useState(true);
   const [rows, setRows] = useState<Row[]>([]);
   const [me, setMe] = useState<string | null>(null);
@@ -40,11 +40,12 @@ export default function Ranking() {
   const [err, setErr] = useState(false);
 
   useEffect(() => {
-    let active = true;
+    if (!(active || loading)) return;
+    let alive = true;
     (async () => {
       try {
         const [weeks, profiles, uid] = await Promise.all([getRankingWeeks(), getAllProfiles(), getUserId()]);
-        if (!active) return;
+        if (!alive) return;
         const now = new Date();
         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
 
@@ -71,13 +72,15 @@ export default function Ranking() {
         setRows(list);
         setMe(uid);
         setLoading(false);
+        setErr(false);
       } catch (e) {
         console.error(e);
-        if (active) { setErr(true); setLoading(false); }
+        if (alive) { setErr(true); setLoading(false); }
       }
     })();
-    return () => { active = false; };
-  }, []);
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
 
   const filtered = useMemo(
     () => (filter === "all" ? rows : rows.filter((r) => r.personality === filter)),
