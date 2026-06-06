@@ -6,12 +6,13 @@
 
 import { useState, useEffect, useMemo, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Layers, Triangle, User as UserIcon, TrendingUp, TrendingDown, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
+import { BookOpen, Layers, Triangle, User as UserIcon, TrendingUp, TrendingDown, LogOut, ChevronLeft, ChevronRight, Trophy } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getLatestAudits, type AuditRow } from "@/lib/jeden-nawyk/db";
 import Tydzien from "@/components/jeden-nawyk/Tydzien";
 import Nawyki from "@/components/jeden-nawyk/Nawyki";
+import Ranking from "@/components/jeden-nawyk/Ranking";
 
 const G = {
   bg: "#fdfcf8", bgWarm: "#f7f3e8", ink: "#1a1a1a", gold: "#d4a72c",
@@ -45,7 +46,7 @@ const PYRAMID_META = [
   ]},
 ];
 
-type Tab = "tydzien" | "nawyki" | "piramida" | "profil";
+type Tab = "tydzien" | "nawyki" | "piramida" | "ranking" | "profil";
 
 // Prosty hook: czy szeroki ekran (desktop)
 function useIsDesktop(): boolean {
@@ -118,6 +119,7 @@ export default function JedenNawykApp() {
         {tab === "piramida" && <Piramida navigate={navigate} />}
         {tab === "tydzien" && <Tydzien />}
         {tab === "nawyki" && <Nawyki />}
+        {tab === "ranking" && <Ranking />}
         {tab === "profil" && <Profil email={email} navigate={navigate} />}
       </main>
 
@@ -144,9 +146,10 @@ const NAV: { id: Tab; icon: typeof BookOpen; label: string }[] = [
   { id: "tydzien", icon: BookOpen, label: "Tydzień" },
   { id: "nawyki", icon: Layers, label: "Nawyki" },
   { id: "piramida", icon: Triangle, label: "Piramida" },
+  { id: "ranking", icon: Trophy, label: "Ranking" },
   { id: "profil", icon: UserIcon, label: "Profil" },
 ];
-const TAB_LABEL: Record<Tab, string> = { tydzien: "Tydzień", nawyki: "Nawyki", piramida: "Piramida", profil: "Profil" };
+const TAB_LABEL: Record<Tab, string> = { tydzien: "Tydzień", nawyki: "Nawyki", piramida: "Piramida", ranking: "Ranking", profil: "Profil" };
 
 const eyebrow: CSSProperties = { fontSize: 10, letterSpacing: "0.28em", color: G.goldDeep, textTransform: "uppercase", fontWeight: 700, marginBottom: 10 };
 
