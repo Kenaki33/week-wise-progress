@@ -68,7 +68,7 @@ export default function JedenNawykApp() {
   const isDesktop = useIsDesktop();
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState<string>("");
-  const [tab, setTab] = useState<Tab>("piramida");
+  const [tab, setTab] = useState<Tab>("tydzien");
 
   useEffect(() => {
     let active = true;
