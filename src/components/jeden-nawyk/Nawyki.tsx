@@ -23,7 +23,7 @@ const eyebrow: CSSProperties = { fontSize: 10, letterSpacing: "0.28em", color: G
 
 type StepState = "mastered" | "active" | "available" | "locked";
 
-export default function Nawyki({ onChanged }: { onChanged?: () => void }) {
+export default function Nawyki({ active }: { active: boolean }) {
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [masteredMap, setMasteredMap] = useState<Record<string, MasteredRow>>({});
@@ -31,7 +31,6 @@ export default function Nawyki({ onChanged }: { onChanged?: () => void }) {
   const [busy, setBusy] = useState(false);
 
   const load = async () => {
-    setLoading(true);
     try {
       const [id, mastered] = await Promise.all([getActiveHabitId(), getMastered()]);
       setActiveId(id);
@@ -46,7 +45,7 @@ export default function Nawyki({ onChanged }: { onChanged?: () => void }) {
     }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, []);
+  useEffect(() => { if (active || loading) load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [active]);
 
   const setMain = async (h: PoolHabit) => {
     if (busy) return;
@@ -58,7 +57,6 @@ export default function Nawyki({ onChanged }: { onChanged?: () => void }) {
         weeklyTarget: h.weeklyTarget, weeklyScore: null, passed: null, isMaintenance: false, isCustom: false, reflection: null,
       });
       toast.success("Ustawiono jako główny nawyk. Zobacz zakładkę Tydzień.");
-      onChanged?.();
       await load();
     } catch (e) { console.error(e); toast.error("Nie udało się ustawić."); }
     finally { setBusy(false); }
@@ -70,7 +68,6 @@ export default function Nawyki({ onChanged }: { onChanged?: () => void }) {
     try {
       await upsertMastered(path.id, i, "declared");
       toast.success("Opanowane z marszu. Odblokowano kolejny krok.");
-      onChanged?.();
       await load();
     } catch (e) { console.error(e); toast.error("Nie udało się zapisać."); }
     finally { setBusy(false); }
