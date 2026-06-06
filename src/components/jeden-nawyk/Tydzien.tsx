@@ -35,7 +35,7 @@ function weekRangeLabel(date: Date): string {
   return `${s.getDate()} ${MONTHS_LONG[s.getMonth()]} - ${e.getDate()} ${MONTHS_LONG[e.getMonth()]}`;
 }
 
-export default function Tydzien() {
+export default function Tydzien({ active }: { active: boolean }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -53,7 +53,6 @@ export default function Tydzien() {
   const todayIdx = scoringTodayIndex(new Date());
 
   const load = async () => {
-    setLoading(true);
     try {
       const vd = new Date(); vd.setDate(vd.getDate() + weekOffset * 7);
       const vWk = weekKey(vd);
@@ -107,7 +106,7 @@ export default function Tydzien() {
     }
   };
 
-  useEffect(() => { load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [weekOffset]);
+  useEffect(() => { if (active || loading) load(); /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [active, weekOffset]);
 
   const saveMain = async (newDays: number[]) => {
     if (!habit || !activeId) return;
