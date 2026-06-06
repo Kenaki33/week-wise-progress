@@ -8,6 +8,7 @@ import { useState, useEffect, useMemo, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
 import { BookOpen, Layers, Triangle, User as UserIcon, TrendingUp, TrendingDown, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 import { getLatestAudits, type AuditRow } from "@/lib/jeden-nawyk/db";
 import Tydzien from "@/components/jeden-nawyk/Tydzien";
 import Nawyki from "@/components/jeden-nawyk/Nawyki";
@@ -311,24 +312,95 @@ function Piramida({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
 
 function Profil({ email, navigate }: { email: string; navigate: ReturnType<typeof useNavigate> }) {
   const [out, setOut] = useState(false);
+  const [pw1, setPw1] = useState("");
+  const [pw2, setPw2] = useState("");
+  const [savingPw, setSavingPw] = useState(false);
+  const [confirmDel, setConfirmDel] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+
   const logout = async () => {
     if (out) return;
     setOut(true);
     await supabase.auth.signOut();
     navigate("/", { replace: true });
   };
+
+  const changePw = async () => {
+    if (savingPw) return;
+    if (pw1.length < 8) { toast.error("Hasło musi mieć min. 8 znaków."); return; }
+    if (pw1 !== pw2) { toast.error("Hasła nie są takie same."); return; }
+    setSavingPw(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: pw1 });
+      if (error) throw error;
+      setPw1(""); setPw2("");
+      toast.success("Hasło zostało zmienione.");
+    } catch (e) { console.error(e); toast.error("Nie udało się zmienić hasła."); }
+    finally { setSavingPw(false); }
+  };
+
+  const deleteAccount = async () => {
+    if (deleting) return;
+    setDeleting(true);
+    try {
+      const { error } = await supabase.functions.invoke("delete-account", { method: "POST" });
+      if (error) throw error;
+      await supabase.auth.signOut();
+      toast.success("Konto zostało usunięte.");
+      navigate("/", { replace: true });
+    } catch (e) { console.error(e); toast.error("Nie udało się usunąć konta. Spróbuj ponownie."); setDeleting(false); }
+  };
+
+  const input: CSSProperties = { width: "100%", padding: "11px 13px", fontSize: 14, border: `1px solid ${G.border}`, background: G.bg, outline: "none", color: G.ink, fontFamily: SANS, marginBottom: 8, boxSizing: "border-box" };
+  const sectionLabel: CSSProperties = { ...eyebrow, marginTop: 26, marginBottom: 10 };
+
   return (
     <div>
       <div style={eyebrow}>Profil</div>
       <div style={{ fontFamily: SERIF, fontSize: 28, fontWeight: 500, marginBottom: 20 }}>Twoje konto.</div>
-      <div style={{ border: `1px solid ${G.border}`, padding: "16px 18px", marginBottom: 18 }}>
+
+      <div style={{ border: `1px solid ${G.border}`, padding: "16px 18px" }}>
         <div style={{ fontSize: 10, letterSpacing: "0.14em", textTransform: "uppercase", color: G.muted, marginBottom: 4 }}>Zalogowany jako</div>
         <div style={{ fontSize: 15, color: G.ink }}>{email || "-"}</div>
       </div>
+
+      <div style={sectionLabel}>Zmiana hasła</div>
+      <input type="password" placeholder="Nowe hasło (min. 8 znaków)" value={pw1} onChange={(e) => setPw1(e.target.value)} style={input} />
+      <input type="password" placeholder="Powtórz nowe hasło" value={pw2} onChange={(e) => setPw2(e.target.value)} style={input} />
+      <button onClick={changePw} disabled={savingPw || !pw1 || !pw2}
+        style={{ width: "100%", background: G.ink, color: G.gold, border: "none", padding: 13, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 700, cursor: savingPw ? "wait" : "pointer", fontFamily: SANS, opacity: (!pw1 || !pw2) ? 0.5 : 1 }}>
+        {savingPw ? "Zapisuję..." : "Zmień hasło"}
+      </button>
+
+      <div style={sectionLabel}>Sesja</div>
       <button onClick={logout} disabled={out}
         style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", background: "transparent", color: G.ink, border: `1px solid ${G.ink}`, padding: 14, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 700, cursor: out ? "wait" : "pointer", fontFamily: SANS }}>
         <LogOut size={15} /> {out ? "Wylogowuję..." : "Wyloguj"}
       </button>
+
+      <div style={{ ...sectionLabel, color: G.red }}>Strefa niebezpieczna</div>
+      {!confirmDel ? (
+        <button onClick={() => setConfirmDel(true)}
+          style={{ width: "100%", background: "transparent", color: G.red, border: `1px solid ${G.red}`, padding: 13, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer", fontFamily: SANS }}>
+          Usuń konto
+        </button>
+      ) : (
+        <div style={{ border: `1px solid ${G.red}`, padding: 16 }}>
+          <div style={{ fontSize: 13, color: G.ink, lineHeight: 1.5, marginBottom: 12 }}>
+            Na pewno? To trwale usunie Twoje konto i wszystkie dane (audyty, nawyki, postęp). Tego nie da się cofnąć.
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            <button onClick={deleteAccount} disabled={deleting}
+              style={{ flex: 1, background: G.red, color: "#fff", border: "none", padding: 12, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, cursor: deleting ? "wait" : "pointer", fontFamily: SANS }}>
+              {deleting ? "Usuwam..." : "Tak, usuń trwale"}
+            </button>
+            <button onClick={() => setConfirmDel(false)} disabled={deleting}
+              style={{ flex: 1, background: "transparent", color: G.ink, border: `1px solid ${G.ink}`, padding: 12, fontSize: 11, letterSpacing: "0.12em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer", fontFamily: SANS }}>
+              Anuluj
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
