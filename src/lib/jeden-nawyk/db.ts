@@ -223,3 +223,44 @@ export async function upsertWeek(w: WeekRow): Promise<void> {
   );
   if (error) throw error;
 }
+
+// ------------------------------------------------------------
+// RANKING - dane wszystkich uzytkownikow
+// ------------------------------------------------------------
+export interface RankWeek {
+  userId: string;
+  weekKey: string;
+  days: number[];
+  weeklyTarget: number;
+  isMaintenance: boolean;
+}
+
+/** Bezpieczne dane tygodni wszystkich userow (przez funkcje SECURITY DEFINER). */
+export async function getRankingWeeks(): Promise<RankWeek[]> {
+  const { data, error } = await db.rpc("ranking_weeks");
+  if (error) throw error;
+  return (data ?? []).map((r: any) => ({
+    userId: r.user_id,
+    weekKey: r.week_key,
+    days: r.days ?? [0, 0, 0, 0, 0, 0, 0],
+    weeklyTarget: r.weekly_target ?? 7,
+    isMaintenance: r.is_maintenance ?? false,
+  }));
+}
+
+export interface ProfileRow {
+  userId: string;
+  nickname: string | null;
+  personality: string | null;
+}
+
+/** Profile wszystkich userow (do nicku i osobowosci w rankingu). */
+export async function getAllProfiles(): Promise<ProfileRow[]> {
+  const { data, error } = await db.from("profiles").select("user_id, nickname, nutrition_personality");
+  if (error) throw error;
+  return (data ?? []).map((r: any) => ({
+    userId: r.user_id,
+    nickname: r.nickname ?? null,
+    personality: r.nutrition_personality ?? null,
+  }));
+}
