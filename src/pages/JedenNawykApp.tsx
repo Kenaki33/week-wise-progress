@@ -116,11 +116,11 @@ export default function JedenNawykApp() {
       </header>
 
       <main style={{ padding: isDesktop ? "32px 28px 48px" : "24px 20px 40px" }}>
-        {tab === "piramida" && <Piramida navigate={navigate} />}
-        {tab === "tydzien" && <Tydzien />}
-        {tab === "nawyki" && <Nawyki />}
-        {tab === "ranking" && <Ranking />}
-        {tab === "profil" && <Profil email={email} navigate={navigate} />}
+        <div style={{ display: tab === "piramida" ? "block" : "none" }}><Piramida navigate={navigate} active={tab === "piramida"} /></div>
+        <div style={{ display: tab === "tydzien" ? "block" : "none" }}><Tydzien active={tab === "tydzien"} /></div>
+        <div style={{ display: tab === "nawyki" ? "block" : "none" }}><Nawyki active={tab === "nawyki"} /></div>
+        <div style={{ display: tab === "ranking" ? "block" : "none" }}><Ranking active={tab === "ranking"} /></div>
+        <div style={{ display: tab === "profil" ? "block" : "none" }}><Profil email={email} navigate={navigate} /></div>
       </main>
 
       {/* DOLNA NAWIGACJA - tylko na telefonie */}
@@ -163,25 +163,27 @@ function Delta({ d }: { d: number }) {
   );
 }
 
-function Piramida({ navigate }: { navigate: ReturnType<typeof useNavigate> }) {
+function Piramida({ navigate, active }: { navigate: ReturnType<typeof useNavigate>; active: boolean }) {
   const [loading, setLoading] = useState(true);
   const [audits, setAudits] = useState<AuditRow[]>([]);
   const [idx, setIdx] = useState(0); // 0 = najnowszy pomiar
   const [err, setErr] = useState(false);
 
   useEffect(() => {
-    let active = true;
+    if (!(active || loading)) return;
+    let alive = true;
     (async () => {
       try {
         const a = await getLatestAudits(100);
-        if (active) { setAudits(a); setIdx(0); setLoading(false); }
+        if (alive) { setAudits(a); setIdx(0); setLoading(false); setErr(false); }
       } catch (e) {
         console.error(e);
-        if (active) { setErr(true); setLoading(false); }
+        if (alive) { setErr(true); setLoading(false); }
       }
     })();
-    return () => { active = false; };
-  }, []);
+    return () => { alive = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [active]);
 
   const current = audits[idx];
   const prev = audits[idx + 1]; // chronologicznie wczesniejszy pomiar (delta liczona wzgledem niego)
