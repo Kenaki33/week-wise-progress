@@ -189,23 +189,24 @@ export default function Tydzien({ onChanged }: { onChanged?: () => void }) {
       <div style={{ display: "flex", gap: 6, marginBottom: 16 }}>
         {DAY_LABELS.map((lab, i) => {
           const st = days[i];
+          const fut = i > todayIdx; // dzien w przyszlosci - zablokowany
           return (
             <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}>
               <span style={{ fontSize: 10, color: i === todayIdx ? G.ink : G.muted, fontWeight: i === todayIdx ? 700 : 400 }}>{lab}</span>
               {isDaily ? (
                 <>
-                  <button onClick={() => toggleDay((d) => saveMain(d), days, i, 1)}
-                    style={{ width: "100%", aspectRatio: "1/1", border: "none", borderRadius: 5, cursor: "pointer", background: st === DAY.DONE ? G.green : G.bgWarm, color: st === DAY.DONE ? "#fff" : G.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <button onClick={() => !fut && toggleDay((d) => saveMain(d), days, i, 1)} disabled={fut}
+                    style={{ width: "100%", aspectRatio: "1/1", border: "none", borderRadius: 5, cursor: fut ? "not-allowed" : "pointer", opacity: fut ? 0.4 : 1, background: st === DAY.DONE ? G.green : G.bgWarm, color: st === DAY.DONE ? "#fff" : G.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <Check size={14} strokeWidth={3} />
                   </button>
-                  <button onClick={() => toggleDay((d) => saveMain(d), days, i, 2)}
-                    style={{ width: "100%", aspectRatio: "1/1", border: "none", borderRadius: 5, cursor: "pointer", background: st === DAY.SKIP ? G.red : G.bgWarm, color: st === DAY.SKIP ? "#fff" : G.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <button onClick={() => !fut && toggleDay((d) => saveMain(d), days, i, 2)} disabled={fut}
+                    style={{ width: "100%", aspectRatio: "1/1", border: "none", borderRadius: 5, cursor: fut ? "not-allowed" : "pointer", opacity: fut ? 0.4 : 1, background: st === DAY.SKIP ? G.red : G.bgWarm, color: st === DAY.SKIP ? "#fff" : G.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
                     <X size={14} strokeWidth={3} />
                   </button>
                 </>
               ) : (
-                <button onClick={() => toggleFreq((d) => saveMain(d), days, i)}
-                  style={{ width: "100%", aspectRatio: "1/1.6", border: "none", borderRadius: 5, cursor: "pointer", background: st === DAY.DONE ? G.gold : G.bgWarm, color: st === DAY.DONE ? G.ink : G.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <button onClick={() => !fut && toggleFreq((d) => saveMain(d), days, i)} disabled={fut}
+                  style={{ width: "100%", aspectRatio: "1/1.6", border: "none", borderRadius: 5, cursor: fut ? "not-allowed" : "pointer", opacity: fut ? 0.4 : 1, background: st === DAY.DONE ? G.gold : G.bgWarm, color: st === DAY.DONE ? G.ink : G.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {st === DAY.DONE ? <Check size={16} strokeWidth={3} /> : ""}
                 </button>
               )}
