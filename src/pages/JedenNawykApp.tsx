@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { BookOpen, Layers, Triangle, User as UserIcon, TrendingUp, TrendingDown, LogOut, ChevronLeft, ChevronRight } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { getLatestAudits, type AuditRow } from "@/lib/jeden-nawyk/db";
+import Tydzien from "@/components/jeden-nawyk/Tydzien";
+import Nawyki from "@/components/jeden-nawyk/Nawyki";
 
 const G = {
   bg: "#fdfcf8", bgWarm: "#f7f3e8", ink: "#1a1a1a", gold: "#d4a72c",
@@ -44,8 +46,24 @@ const PYRAMID_META = [
 
 type Tab = "tydzien" | "nawyki" | "piramida" | "profil";
 
+// Prosty hook: czy szeroki ekran (desktop)
+function useIsDesktop(): boolean {
+  const [desktop, setDesktop] = useState<boolean>(() =>
+    typeof window !== "undefined" ? window.matchMedia("(min-width: 768px)").matches : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia("(min-width: 768px)");
+    const onChange = () => setDesktop(mq.matches);
+    onChange();
+    mq.addEventListener("change", onChange);
+    return () => mq.removeEventListener("change", onChange);
+  }, []);
+  return desktop;
+}
+
 export default function JedenNawykApp() {
   const navigate = useNavigate();
+  const isDesktop = useIsDesktop();
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState<string>("");
   const [tab, setTab] = useState<Tab>("piramida");
@@ -70,35 +88,53 @@ export default function JedenNawykApp() {
     );
   }
 
+  const maxW = isDesktop ? 780 : 480;
+
   return (
-    <div style={{ background: G.bg, minHeight: "100vh", fontFamily: SANS, color: G.ink, maxWidth: 480, margin: "0 auto", paddingBottom: 72 }}>
-      <header style={{ background: G.ink, color: G.bg, borderBottom: `2px solid ${G.gold}`, padding: "13px 20px", position: "sticky", top: 0, zIndex: 50 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+    <div style={{ background: G.bg, minHeight: "100vh", fontFamily: SANS, color: G.ink, maxWidth: maxW, margin: "0 auto", paddingBottom: isDesktop ? 40 : 76 }}>
+      <header style={{ background: G.ink, color: G.bg, borderBottom: `2px solid ${G.gold}`, padding: isDesktop ? "14px 28px" : "13px 20px", position: "sticky", top: 0, zIndex: 50 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
           <div style={{ fontFamily: SERIF, fontSize: 19, fontStyle: "italic", fontWeight: 500 }}>Jeden <span style={{ color: G.gold }}>Nawyk.</span></div>
-          <div style={{ fontSize: 11, color: "rgba(253,252,248,0.5)" }}>{TAB_LABEL[tab]}</div>
+          {isDesktop ? (
+            <nav style={{ display: "flex", gap: 4 }}>
+              {NAV.map(({ id, icon: Icon, label }) => {
+                const on = tab === id;
+                return (
+                  <button key={id} onClick={() => setTab(id)}
+                    style={{ display: "flex", alignItems: "center", gap: 7, background: on ? G.gold : "transparent", color: on ? G.ink : "rgba(253,252,248,0.7)", border: "none", padding: "8px 14px", borderRadius: 7, cursor: "pointer", fontFamily: SANS, fontSize: 13, fontWeight: on ? 700 : 500 }}>
+                    <Icon size={16} strokeWidth={on ? 2.4 : 1.8} />{label}
+                  </button>
+                );
+              })}
+            </nav>
+          ) : (
+            <div style={{ fontSize: 11, color: "rgba(253,252,248,0.5)" }}>{TAB_LABEL[tab]}</div>
+          )}
         </div>
       </header>
 
-      <main style={{ padding: "24px 20px 40px" }}>
+      <main style={{ padding: isDesktop ? "32px 28px 48px" : "24px 20px 40px" }}>
         {tab === "piramida" && <Piramida navigate={navigate} />}
+        {tab === "tydzien" && <Tydzien />}
+        {tab === "nawyki" && <Nawyki />}
         {tab === "profil" && <Profil email={email} navigate={navigate} />}
-        {tab === "tydzien" && <Placeholder title="Tydzień" desc="Tu będzie Twój aktualny nawyk z siatką dni i punktacją. Budujemy go w następnym kroku." />}
-        {tab === "nawyki" && <Placeholder title="Nawyki" desc="Tu będzie pula nawyków i drzewo ścieżek Piramidy. Budujemy go w następnym kroku." />}
       </main>
 
-      {/* DOLNA NAWIGACJA */}
-      <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, maxWidth: 480, margin: "0 auto", background: G.bg, borderTop: `1px solid ${G.border}`, display: "flex", zIndex: 50 }}>
-        {NAV.map(({ id, icon: Icon, label }) => {
-          const on = tab === id;
-          return (
-            <button key={id} onClick={() => setTab(id)}
-              style={{ flex: 1, background: "transparent", border: "none", padding: "10px 0 12px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: on ? G.ink : G.muted, fontFamily: SANS }}>
-              <Icon size={20} strokeWidth={on ? 2.4 : 1.8} />
-              <span style={{ fontSize: 10, fontWeight: on ? 700 : 500, letterSpacing: "0.04em" }}>{label}</span>
-            </button>
-          );
-        })}
-      </nav>
+      {/* DOLNA NAWIGACJA - tylko na telefonie */}
+      {!isDesktop && (
+        <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, maxWidth: 480, margin: "0 auto", background: G.bg, borderTop: `1px solid ${G.border}`, display: "flex", zIndex: 50 }}>
+          {NAV.map(({ id, icon: Icon, label }) => {
+            const on = tab === id;
+            return (
+              <button key={id} onClick={() => setTab(id)}
+                style={{ flex: 1, background: "transparent", border: "none", padding: "10px 0 12px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: on ? G.ink : G.muted, fontFamily: SANS }}>
+                <Icon size={20} strokeWidth={on ? 2.4 : 1.8} />
+                <span style={{ fontSize: 10, fontWeight: on ? 700 : 500, letterSpacing: "0.04em" }}>{label}</span>
+              </button>
+            );
+          })}
+        </nav>
+      )}
     </div>
   );
 }
@@ -293,18 +329,6 @@ function Profil({ email, navigate }: { email: string; navigate: ReturnType<typeo
         style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, width: "100%", background: "transparent", color: G.ink, border: `1px solid ${G.ink}`, padding: 14, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 700, cursor: out ? "wait" : "pointer", fontFamily: SANS }}>
         <LogOut size={15} /> {out ? "Wylogowuję..." : "Wyloguj"}
       </button>
-    </div>
-  );
-}
-
-function Placeholder({ title, desc }: { title: string; desc: string }) {
-  return (
-    <div>
-      <div style={eyebrow}>{title}</div>
-      <div style={{ border: `1px solid ${G.border}`, background: G.bgWarm, padding: "30px 22px", textAlign: "center" }}>
-        <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, marginBottom: 10 }}>{title} - wkrótce</div>
-        <div style={{ fontSize: 14, color: G.muted, lineHeight: 1.5 }}>{desc}</div>
-      </div>
     </div>
   );
 }
