@@ -480,6 +480,15 @@ function Profil({ email, navigate }: { email: string; navigate: ReturnType<typeo
           </div>
         </div>
       )}
+
+      <div style={{ marginTop: 36, paddingTop: 20, borderTop: `1px solid ${G.border}`, textAlign: "center" }}>
+        <div style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "8px 16px", marginBottom: 12 }}>
+          <a href="/terms-of-service.html" style={{ fontSize: 12, color: G.goldDeep, textDecoration: "none", fontWeight: 600 }}>Regulamin</a>
+          <a href="/privacy-policy.html" style={{ fontSize: 12, color: G.goldDeep, textDecoration: "none", fontWeight: 600 }}>Polityka prywatności</a>
+          <a href="https://zdrowo-ogarnieci.pl" target="_blank" rel="noopener noreferrer" style={{ fontSize: 12, color: G.goldDeep, textDecoration: "none", fontWeight: 600 }}>zdrowo-ogarnieci.pl</a>
+        </div>
+        <div style={{ fontSize: 11, color: G.muted }}>Jeden Nawyk · Patryk Ogar</div>
+      </div>
     </div>
   );
 }
