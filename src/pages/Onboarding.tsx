@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { recommendHabit, type DimensionId } from "@/lib/jeden-nawyk/habitPool";
-import { saveAudit, setActiveHabitId, upsertWeek, getUserId, hasAudit } from "@/lib/jeden-nawyk/db";
+import { saveAudit, setActiveHabitId, upsertWeek, getUserId, hasAudit, hasHealthConsent, recordHealthConsent } from "@/lib/jeden-nawyk/db";
 import { weekKey } from "@/lib/jeden-nawyk/dates";
 
 const G = {
@@ -122,6 +122,7 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
   const [hasPrior, setHasPrior] = useState(false);
+  const [consent, setConsent] = useState(false);
 
   // Brama: bez zalogowania nie ma onboardingu.
   useEffect(() => {
@@ -131,8 +132,8 @@ export default function Onboarding() {
       if (!active) return;
       if (!uid) { navigate("/", { replace: true }); return; }
       try {
-        const prior = await hasAudit();
-        if (active) setHasPrior(prior);
+        const [prior, consented] = await Promise.all([hasAudit(), hasHealthConsent()]);
+        if (active) { setHasPrior(prior); setConsent(consented); }
       } catch (e) { console.error(e); }
       if (active) setChecking(false);
     })();
@@ -228,6 +229,7 @@ export default function Onboarding() {
         transformacja: answers["transformacja"] ?? null,
         zmiana: answers["zmiana"] ?? null,
       };
+      await recordHealthConsent();
       await saveAudit({
         dimensionScores: scores.dim,
         levelScores: scores.lvl,
@@ -299,7 +301,14 @@ export default function Onboarding() {
                 </div>
               ))}
             </div>
-            <button onClick={() => setStep(1)} style={{ ...primaryBtn(false), width: "100%", padding: 15 }}>Sprawdź się →</button>
+            <label style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: 18, cursor: "pointer" }}>
+              <input type="checkbox" checked={consent} onChange={(e) => setConsent(e.target.checked)}
+                style={{ width: 18, height: 18, marginTop: 2, accentColor: G.goldDeep, flexShrink: 0, cursor: "pointer" }} />
+              <span style={{ fontSize: 13, lineHeight: 1.5, color: "#5f5e5a" }}>
+                Akceptuję <a href="/terms-of-service.html" target="_blank" rel="noopener noreferrer" style={{ color: G.goldDeep, fontWeight: 600 }}>Regulamin</a> i <a href="/privacy-policy.html" target="_blank" rel="noopener noreferrer" style={{ color: G.goldDeep, fontWeight: 600 }}>Politykę Prywatności</a> oraz wyrażam zgodę na przetwarzanie moich danych dotyczących zdrowia w celu działania audytu.
+              </span>
+            </label>
+            <button onClick={() => { if (consent) setStep(1); }} disabled={!consent} style={{ ...primaryBtn(!consent), width: "100%", padding: 15 }}>Sprawdź się →</button>
             <div style={{ textAlign: "center", fontSize: 12, color: G.muted, marginTop: 12 }}>Około 8 minut</div>
           </div>
         )}
