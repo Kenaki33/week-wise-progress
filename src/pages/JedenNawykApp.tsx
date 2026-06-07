@@ -332,6 +332,38 @@ function Piramida({ navigate, active }: { navigate: ReturnType<typeof useNavigat
         );
       })}
 
+      {(() => {
+        const c = (current.context ?? {}) as Record<string, unknown>;
+        const txt = (v: unknown) => (typeof v === "string" ? v.trim() : "");
+        const sam = c.samopoczucie;
+        const samNum = typeof sam === "number" ? sam : (typeof sam === "string" && sam.trim() !== "" ? Number(sam) : null);
+        const hasSam = samNum !== null && !Number.isNaN(samNum);
+        const fields = [
+          { label: "Cel na 90 dni", value: txt(c.cel) },
+          { label: "Jestem osobą, która...", value: txt(c.slowo) },
+          { label: "Chcę być osobą, która...", value: txt(c.transformacja) },
+          { label: "Co zmieniło się od poprzedniego pomiaru", value: txt(c.zmiana) },
+        ].filter((f) => f.value.length > 0);
+        if (!hasSam && fields.length === 0) return null;
+        return (
+          <div style={{ marginTop: 28 }}>
+            <div style={eyebrow}>Twój kontekst z tego pomiaru</div>
+            {hasSam && (
+              <div style={{ borderTop: `1px solid ${G.border}`, padding: "16px 0", display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                <span style={{ fontSize: 13, color: "#5f5e5a" }}>Samopoczucie w dniu pomiaru</span>
+                <span style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 600 }}>{Math.round(Number(samNum))}<span style={{ fontSize: 13, color: G.muted, fontWeight: 400 }}> / 10</span></span>
+              </div>
+            )}
+            {fields.map((f, i) => (
+              <div key={i} style={{ borderTop: `1px solid ${G.border}`, padding: "16px 0" }}>
+                <div style={{ fontSize: 11, letterSpacing: "0.1em", textTransform: "uppercase", color: G.gold, fontWeight: 700, marginBottom: 6 }}>{f.label}</div>
+                <div style={{ fontFamily: SERIF, fontSize: 16, lineHeight: 1.5, color: G.ink }}>{f.value}</div>
+              </div>
+            ))}
+          </div>
+        );
+      })()}
+
       <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 12, color: G.muted, marginTop: 18, textAlign: "center" }}>
         {idx === 0
           ? (daysSince >= 90 ? "Minęło 90 dni od ostatniego pomiaru - dobry moment na nowy." : `To Twój najnowszy pomiar. Pełny kolejny audyt za ${daysTo90} dni.`)
