@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { recommendHabit, type DimensionId } from "@/lib/jeden-nawyk/habitPool";
-import { saveAudit, setActiveHabitId, upsertWeek, getUserId } from "@/lib/jeden-nawyk/db";
+import { saveAudit, setActiveHabitId, upsertWeek, getUserId, hasAudit } from "@/lib/jeden-nawyk/db";
 import { weekKey } from "@/lib/jeden-nawyk/dates";
 
 const G = {
@@ -104,13 +104,14 @@ const CONTEXT: CtxItem[] = [
   { id: "transformacja", type: "text", label: "Za 90 dni chcę być osobą, która...", helper: "Jedno zdanie, konkretne, nie ogólne." },
 ];
 
+// Pytanie pojawiajace sie dopiero od drugiego pomiaru (gdy istnieje wczesniejszy audyt).
+const CTX_ZMIANA: CtxItem = { id: "zmiana", type: "text", label: "Co zmieniło się od poprzedniego pomiaru?", helper: "Jedno zdanie - co poszło do przodu, a co stanęło." };
+
 interface FlatDim extends AuditDim { levelId: string; levelName: string; levelIdx: number; }
 const DIMS: FlatDim[] = [];
 LEVELS.forEach((lvl, li) => lvl.dims.forEach((d) => DIMS.push({ ...d, levelId: lvl.id, levelName: lvl.name, levelIdx: li })));
 
 const TOTAL_DIM = DIMS.length;        // 12
-const TOTAL_CTX = CONTEXT.length;     // 4
-const TOTAL_STEPS = 1 + TOTAL_DIM + TOTAL_CTX; // intro + dims + ctx (krok wyniku = TOTAL_STEPS)
 
 type Answers = Record<string, number | string>;
 
@@ -120,6 +121,7 @@ export default function Onboarding() {
   const [saving, setSaving] = useState(false);
   const [step, setStep] = useState(0);
   const [answers, setAnswers] = useState<Answers>({});
+  const [hasPrior, setHasPrior] = useState(false);
 
   // Brama: bez zalogowania nie ma onboardingu.
   useEffect(() => {
@@ -128,7 +130,11 @@ export default function Onboarding() {
       const uid = await getUserId();
       if (!active) return;
       if (!uid) { navigate("/", { replace: true }); return; }
-      setChecking(false);
+      try {
+        const prior = await hasAudit();
+        if (active) setHasPrior(prior);
+      } catch (e) { console.error(e); }
+      if (active) setChecking(false);
     })();
     return () => { active = false; };
   }, [navigate]);
@@ -154,6 +160,11 @@ export default function Onboarding() {
   const lowestDim = DIMS.find((d) => d.id === recommendation.dimensionId) ?? DIMS[0];
   const lowestScore = scores.dim[recommendation.dimensionId] ?? 0;
 
+  // Lista kontekstu: bazowe 4 pytania, a od drugiego pomiaru dochodzi piate ("co sie zmienilo").
+  const CTX = hasPrior ? [...CONTEXT, CTX_ZMIANA] : CONTEXT;
+  const TOTAL_CTX = CTX.length;
+  const TOTAL_STEPS = 1 + TOTAL_DIM + TOTAL_CTX;
+
   const isIntro = step === 0;
   const isDim = step >= 1 && step <= TOTAL_DIM;
   const isCtx = step > TOTAL_DIM && step <= TOTAL_DIM + TOTAL_CTX;
@@ -161,7 +172,7 @@ export default function Onboarding() {
   const pct = Math.round((step / TOTAL_STEPS) * 100);
 
   const dim = isDim ? DIMS[step - 1] : null;
-  const ctx = isCtx ? CONTEXT[step - TOTAL_DIM - 1] : null;
+  const ctx = isCtx ? CTX[step - TOTAL_DIM - 1] : null;
   const dimDone = dim ? dim.q.every((_q, i) => answers[dim.id + "_" + i] !== undefined) : false;
   const ctxDone = ctx ? (ctx.type === "scale" ? answers[ctx.id] !== undefined : String(answers[ctx.id] ?? "").trim().length > 0) : false;
 
@@ -215,6 +226,7 @@ export default function Onboarding() {
         cel: answers["cel"] ?? null,
         slowo: answers["slowo"] ?? null,
         transformacja: answers["transformacja"] ?? null,
+        zmiana: answers["zmiana"] ?? null,
       };
       await saveAudit({
         dimensionScores: scores.dim,
