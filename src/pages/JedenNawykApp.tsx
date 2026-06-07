@@ -93,8 +93,8 @@ export default function JedenNawykApp() {
   const maxW = isDesktop ? 780 : 480;
 
   return (
-    <div style={{ background: G.bg, minHeight: "100vh", fontFamily: SANS, color: G.ink, maxWidth: maxW, margin: "0 auto", paddingBottom: isDesktop ? 40 : 76 }}>
-      <header style={{ background: G.ink, color: G.bg, borderBottom: `2px solid ${G.gold}`, padding: isDesktop ? "14px 28px" : "13px 20px", position: "sticky", top: 0, zIndex: 50 }}>
+    <div style={{ background: G.bg, minHeight: "100vh", fontFamily: SANS, color: G.ink, maxWidth: maxW, margin: "0 auto", paddingBottom: isDesktop ? 40 : "calc(84px + env(safe-area-inset-bottom))" }}>
+      <header style={{ background: G.ink, color: G.bg, borderBottom: `2px solid ${G.gold}`, padding: isDesktop ? "14px 28px" : "calc(13px + env(safe-area-inset-top)) 20px 13px", position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 16 }}>
           <div style={{ fontFamily: SERIF, fontSize: 19, fontStyle: "italic", fontWeight: 500 }}>Jeden <span style={{ color: G.gold }}>Nawyk.</span></div>
           {isDesktop ? (
@@ -125,7 +125,7 @@ export default function JedenNawykApp() {
 
       {/* DOLNA NAWIGACJA - tylko na telefonie */}
       {!isDesktop && (
-        <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, maxWidth: 480, margin: "0 auto", background: G.bg, borderTop: `1px solid ${G.border}`, display: "flex", zIndex: 50 }}>
+        <nav style={{ position: "fixed", bottom: 0, left: 0, right: 0, maxWidth: 480, margin: "0 auto", background: G.bg, borderTop: `1px solid ${G.border}`, display: "flex", zIndex: 50, paddingBottom: "env(safe-area-inset-bottom)" }}>
           {NAV.map(({ id, icon: Icon, label }) => {
             const on = tab === id;
             return (
@@ -269,7 +269,7 @@ function Piramida({ navigate, active }: { navigate: ReturnType<typeof useNavigat
       </div>
 
       <div style={eyebrow}>Kształt Piramidy</div>
-      <svg viewBox={`0 0 ${radar.size} ${radar.size}`} style={{ width: "100%", maxWidth: 320, display: "block", margin: "0 auto 24px" }}>
+      <svg viewBox={`-72 0 ${radar.size + 144} ${radar.size}`} style={{ width: "100%", maxWidth: 340, display: "block", margin: "0 auto 24px" }}>
         {radar.rings.map((pts, i) => <polygon key={i} points={pts} fill="none" stroke={G.border} strokeWidth="1" />)}
         {radar.axes.map((p, i) => <line key={i} x1={radar.cx} y1={radar.cy} x2={p[0]} y2={p[1]} stroke={G.border} strokeWidth="1" />)}
         <polygon points={radar.cur.map((p) => p.join(",")).join(" ")} fill="rgba(212,167,44,0.18)" stroke={G.gold} strokeWidth="2.5" />
