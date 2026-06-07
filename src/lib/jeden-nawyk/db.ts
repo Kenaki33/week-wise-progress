@@ -264,3 +264,38 @@ export async function getAllProfiles(): Promise<ProfileRow[]> {
     personality: r.nutrition_personality ?? null,
   }));
 }
+
+// ------------------------------------------------------------
+// ADMIN - podglad danych konkretnej osoby (tylko dla is_admin)
+// ------------------------------------------------------------
+
+/** Czy zalogowany uzytkownik jest adminem (profiles.is_admin). */
+export async function getIsAdmin(): Promise<boolean> {
+  const userId = await getUserId();
+  if (!userId) return false;
+  try {
+    const { data, error } = await db
+      .from("profiles")
+      .select("is_admin")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) return false;
+    return data?.is_admin === true;
+  } catch {
+    return false;
+  }
+}
+
+/** Pomiary wskazanej osoby (przez funkcje SECURITY DEFINER z kontrola admina). */
+export async function adminGetAudits(targetUserId: string): Promise<AuditRow[]> {
+  const { data, error } = await db.rpc("admin_get_audits", { target: targetUserId });
+  if (error) throw error;
+  return (data ?? []).map(mapAudit);
+}
+
+/** Tygodnie nawykow wskazanej osoby (przez funkcje SECURITY DEFINER z kontrola admina). */
+export async function adminGetWeeks(targetUserId: string): Promise<WeekRow[]> {
+  const { data, error } = await db.rpc("admin_get_weeks", { target: targetUserId });
+  if (error) throw error;
+  return (data ?? []).map(mapWeek);
+}
