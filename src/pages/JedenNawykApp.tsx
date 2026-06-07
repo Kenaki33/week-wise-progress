@@ -69,6 +69,7 @@ export default function JedenNawykApp() {
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState<string>("");
   const [tab, setTab] = useState<Tab>("tydzien");
+  const [pyramidDue, setPyramidDue] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -78,6 +79,13 @@ export default function JedenNawykApp() {
       if (!data.user) { navigate("/", { replace: true }); return; }
       setEmail(data.user.email ?? "");
       setChecking(false);
+      try {
+        const audits = await getLatestAudits(1);
+        if (active && audits[0]) {
+          const days = Math.floor((Date.now() - new Date(audits[0].createdAt).getTime()) / 86400000);
+          setPyramidDue(days >= 90);
+        }
+      } catch (e) { console.error(e); }
     })();
     return () => { active = false; };
   }, [navigate]);
@@ -104,7 +112,10 @@ export default function JedenNawykApp() {
                 return (
                   <button key={id} onClick={() => setTab(id)}
                     style={{ display: "flex", alignItems: "center", gap: 7, background: on ? G.gold : "transparent", color: on ? G.ink : "rgba(253,252,248,0.7)", border: "none", padding: "8px 14px", borderRadius: 7, cursor: "pointer", fontFamily: SANS, fontSize: 13, fontWeight: on ? 700 : 500 }}>
-                    <Icon size={16} strokeWidth={on ? 2.4 : 1.8} />{label}
+                    <span style={{ position: "relative", display: "inline-flex" }}>
+                      <Icon size={16} strokeWidth={on ? 2.4 : 1.8} />
+                      {id === "piramida" && pyramidDue && <PyramidBadge />}
+                    </span>{label}
                   </button>
                 );
               })}
@@ -131,7 +142,10 @@ export default function JedenNawykApp() {
             return (
               <button key={id} onClick={() => setTab(id)}
                 style={{ flex: 1, background: "transparent", border: "none", padding: "10px 0 12px", cursor: "pointer", display: "flex", flexDirection: "column", alignItems: "center", gap: 4, color: on ? G.ink : G.muted, fontFamily: SANS }}>
-                <Icon size={20} strokeWidth={on ? 2.4 : 1.8} />
+                <span style={{ position: "relative", display: "inline-flex" }}>
+                  <Icon size={20} strokeWidth={on ? 2.4 : 1.8} />
+                  {id === "piramida" && pyramidDue && <PyramidBadge />}
+                </span>
                 <span style={{ fontSize: 10, fontWeight: on ? 700 : 500, letterSpacing: "0.04em" }}>{label}</span>
               </button>
             );
@@ -139,6 +153,12 @@ export default function JedenNawykApp() {
         </nav>
       )}
     </div>
+  );
+}
+
+function PyramidBadge() {
+  return (
+    <span style={{ position: "absolute", top: -6, right: -8, minWidth: 15, height: 15, padding: "0 3px", boxSizing: "border-box", background: "#c33", color: "#fff", borderRadius: 999, fontSize: 10, fontWeight: 800, lineHeight: "15px", textAlign: "center", border: "1.5px solid #fdfcf8" }}>!</span>
   );
 }
 
@@ -233,6 +253,10 @@ function Piramida({ navigate, active }: { navigate: ReturnType<typeof useNavigat
   );
 
   const totalDelta = prev ? current.total - prev.total : null;
+  const daysSince = Math.floor((Date.now() - new Date(current.createdAt).getTime()) / 86400000);
+  const canRetest = daysSince >= 30;
+  const daysToRetest = Math.max(0, 30 - daysSince);
+  const daysTo90 = Math.max(0, 90 - daysSince);
 
   return (
     <div>
@@ -309,8 +333,26 @@ function Piramida({ navigate, active }: { navigate: ReturnType<typeof useNavigat
       })}
 
       <div style={{ fontFamily: SERIF, fontStyle: "italic", fontSize: 12, color: G.muted, marginTop: 18, textAlign: "center" }}>
-        {idx === 0 ? "To Twój najnowszy pomiar. Kolejny audyt za 90 dni." : "Pomiar archiwalny. Strzałką w prawo wrócisz do najnowszego."}
+        {idx === 0
+          ? (daysSince >= 90 ? "Minęło 90 dni od ostatniego pomiaru - dobry moment na nowy." : `To Twój najnowszy pomiar. Pełny kolejny audyt za ${daysTo90} dni.`)
+          : "Pomiar archiwalny. Strzałką w prawo wrócisz do najnowszego."}
       </div>
+
+      {idx === 0 && (
+        <div style={{ marginTop: 16 }}>
+          <button onClick={() => navigate("/onboarding")} disabled={!canRetest}
+            style={{ width: "100%", background: canRetest ? G.ink : "transparent", color: canRetest ? G.gold : G.muted, border: canRetest ? "none" : `1px solid ${G.border}`, padding: 14, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 700, cursor: canRetest ? "pointer" : "not-allowed", fontFamily: SANS }}>
+            {daysSince >= 90 ? "Wykonaj nowy pomiar" : "Wykonaj test wcześniej"}
+          </button>
+          <div style={{ textAlign: "center", fontSize: 11, color: G.muted, marginTop: 8, lineHeight: 1.4 }}>
+            {!canRetest
+              ? `Dostępne za ${daysToRetest} dni (najwcześniej 30 dni po poprzednim pomiarze).`
+              : daysSince >= 90
+                ? "Czas na kolejny pomiar."
+                : "Pełny cykl to 90 dni, ale możesz powtórzyć wcześniej."}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
