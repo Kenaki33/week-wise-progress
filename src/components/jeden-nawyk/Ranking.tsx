@@ -6,11 +6,13 @@
 // ============================================================
 
 import { useState, useEffect, useMemo, type CSSProperties } from "react";
+import { ChevronRight } from "lucide-react";
 import {
-  getRankingWeeks, getAllProfiles, getUserId, type RankWeek, type ProfileRow,
+  getRankingWeeks, getAllProfiles, getUserId, getIsAdmin, type RankWeek, type ProfileRow,
 } from "@/lib/jeden-nawyk/db";
 import { liveWeekScore, weekMonthKey } from "@/lib/jeden-nawyk/scoring";
 import { weekStartFromKey, scoringTodayIndex } from "@/lib/jeden-nawyk/dates";
+import AdminUserView from "@/components/jeden-nawyk/AdminUserView";
 
 const G = {
   bg: "#fdfcf8", bgWarm: "#f7f3e8", ink: "#1a1a1a", gold: "#d4a72c",
@@ -38,13 +40,15 @@ export default function Ranking({ active }: { active: boolean }) {
   const [me, setMe] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>("all");
   const [err, setErr] = useState(false);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [selected, setSelected] = useState<{ userId: string; nickname: string } | null>(null);
 
   useEffect(() => {
     if (!(active || loading)) return;
     let alive = true;
     (async () => {
       try {
-        const [weeks, profiles, uid] = await Promise.all([getRankingWeeks(), getAllProfiles(), getUserId()]);
+        const [weeks, profiles, uid, admin] = await Promise.all([getRankingWeeks(), getAllProfiles(), getUserId(), getIsAdmin()]);
         if (!alive) return;
         const now = new Date();
         const currentMonth = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}`;
@@ -71,6 +75,7 @@ export default function Ranking({ active }: { active: boolean }) {
 
         setRows(list);
         setMe(uid);
+        setIsAdmin(admin);
         setLoading(false);
         setErr(false);
       } catch (e) {
@@ -94,6 +99,8 @@ export default function Ranking({ active }: { active: boolean }) {
 
   const scoreColor = (n: number) => (n > 0 ? G.green : n < 0 ? G.red : G.muted);
 
+  if (selected) return <AdminUserView userId={selected.userId} nickname={selected.nickname} onClose={() => setSelected(null)} />;
+
   if (loading) return <div style={{ fontFamily: SERIF, fontStyle: "italic", color: G.muted, textAlign: "center", padding: "40px 0" }}>Wczytywanie rankingu...</div>;
   if (err) return (
     <div style={{ textAlign: "center", padding: "30px 0" }}>
@@ -106,7 +113,8 @@ export default function Ranking({ active }: { active: boolean }) {
     const mine = r.userId === me;
     const medal = pos === 1 ? "#d4a72c" : pos === 2 ? "#b8b8b8" : pos === 3 ? "#c08850" : null;
     return (
-      <div style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 12px", borderTop: `1px solid ${G.border}`, background: mine ? "rgba(212,167,44,0.1)" : "transparent" }}>
+      <div onClick={isAdmin ? () => setSelected({ userId: r.userId, nickname: r.nickname }) : undefined}
+        style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 12px", borderTop: `1px solid ${G.border}`, background: mine ? "rgba(212,167,44,0.1)" : "transparent", cursor: isAdmin ? "pointer" : "default" }}>
         <div style={{ width: 28, textAlign: "center", flexShrink: 0 }}>
           <span style={{ fontFamily: SERIF, fontSize: 17, fontWeight: 700, color: medal ?? G.ink }}>{pos}</span>
         </div>
@@ -120,6 +128,7 @@ export default function Ranking({ active }: { active: boolean }) {
           <div style={{ fontFamily: SERIF, fontSize: 18, fontWeight: 700, color: scoreColor(r.monthly), lineHeight: 1 }}>{r.monthly >= 0 ? "+" : ""}{r.monthly}</div>
           <div style={{ fontSize: 9, color: G.muted, marginTop: 2 }}>łącznie {r.total >= 0 ? "+" : ""}{r.total}</div>
         </div>
+        {isAdmin && <ChevronRight size={16} color={G.muted} style={{ flexShrink: 0, marginLeft: 2 }} />}
       </div>
     );
   };
