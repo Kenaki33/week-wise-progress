@@ -1,24 +1,40 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pl">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Mój Tracker Nawyków</title>
-    <meta name="description" content="Aplikacja do śledzenia tygodniowych nawyków" />
-    <meta name="author" content="Lovable" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Jeden Nawyk</title>
+    <meta name="description" content="Twój system zdrowia - jeden nawyk naraz." />
+    <meta name="author" content="Patryk Ogar" />
+    <link rel="icon" type="image/png" href="/icon-192.png" />
 
-    <meta property="og:title" content="Mój Tracker Nawyków" />
-    <meta property="og:description" content="Aplikacja do śledzenia tygodniowych nawyków" />
+    <meta property="og:title" content="Jeden Nawyk" />
+    <meta property="og:description" content="Twój system zdrowia - jeden nawyk naraz." />
     <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-
+    <meta property="og:url" content="https://jeden-nawyk.zdrowo-ogarnieci.pl" />
+    <meta property="og:image" content="https://jeden-nawyk.zdrowo-ogarnieci.pl/og-image.png" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+    <meta name="twitter:title" content="Jeden Nawyk" />
+    <meta name="twitter:description" content="Twój system zdrowia - jeden nawyk naraz." />
+    <meta name="twitter:image" content="https://jeden-nawyk.zdrowo-ogarnieci.pl/og-image.png" />
 
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#1a1a1a" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Jeden Nawyk" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+  </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <script>
+      if ("serviceWorker" in navigator) {
+        window.addEventListener("load", function () {
+          navigator.serviceWorker.register("/sw.js");
+        });
+      }
+    </script>
   </body>
 </html>
