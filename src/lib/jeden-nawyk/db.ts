@@ -299,3 +299,39 @@ export async function adminGetWeeks(targetUserId: string): Promise<WeekRow[]> {
   if (error) throw error;
   return (data ?? []).map(mapWeek);
 }
+
+// ------------------------------------------------------------
+// ZGODA NA DANE ZDROWOTNE (profiles.health_consent_at)
+// ------------------------------------------------------------
+
+/** Czy uzytkownik wyrazil juz zgode na przetwarzanie danych zdrowotnych. */
+export async function hasHealthConsent(): Promise<boolean> {
+  const userId = await getUserId();
+  if (!userId) return false;
+  try {
+    const { data, error } = await db
+      .from("profiles")
+      .select("health_consent_at")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (error) return false;
+    return !!data?.health_consent_at;
+  } catch {
+    return false;
+  }
+}
+
+/** Zapisuje moment zgody (tylko raz - zachowuje pierwsza date). */
+export async function recordHealthConsent(): Promise<void> {
+  const userId = await getUserId();
+  if (!userId) return;
+  try {
+    await db
+      .from("profiles")
+      .update({ health_consent_at: new Date().toISOString() })
+      .eq("user_id", userId)
+      .is("health_consent_at", null);
+  } catch (e) {
+    console.error(e);
+  }
+}
