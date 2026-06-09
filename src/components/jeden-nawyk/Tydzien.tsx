@@ -9,9 +9,9 @@ import { Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import {
   getActiveHabitId, setActiveHabitId, getWeek, getHabitHistory,
-  getMastered, upsertWeek, upsertMastered, type MasteredRow,
+  getMastered, upsertWeek, upsertMastered, getLatestAudits, type MasteredRow,
 } from "@/lib/jeden-nawyk/db";
-import { getHabit, getPath, getPathOfHabit, type PoolHabit } from "@/lib/jeden-nawyk/habitPool";
+import { getHabit, getPath, getPathOfHabit, recommendHabit, type PoolHabit, type DimensionId } from "@/lib/jeden-nawyk/habitPool";
 import {
   DAY, liveWeekScore, weekVerdict, weekPassed, doneCount, isUnlocked,
 } from "@/lib/jeden-nawyk/scoring";
@@ -35,7 +35,7 @@ function weekRangeLabel(date: Date): string {
   return `${s.getDate()} ${MONTHS_LONG[s.getMonth()]} - ${e.getDate()} ${MONTHS_LONG[e.getMonth()]}`;
 }
 
-export default function Tydzien({ active }: { active: boolean }) {
+export default function Tydzien({ active, onGoToHabits }: { active: boolean; onGoToHabits: () => void }) {
   const [weekOffset, setWeekOffset] = useState(0);
   const [loading, setLoading] = useState(true);
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -46,6 +46,8 @@ export default function Tydzien({ active }: { active: boolean }) {
   const [maint, setMaint] = useState<MaintItem[]>([]);
   const [hist, setHist] = useState<HistRow[]>([]);
   const [busy, setBusy] = useState(false);
+  const [suggested, setSuggested] = useState<PoolHabit | null>(null);
+  const [suggestedPath, setSuggestedPath] = useState("");
 
   const isCurrent = weekOffset === 0;
   const viewedDate = (() => { const d = new Date(); d.setDate(d.getDate() + weekOffset * 7); return d; })();
@@ -77,7 +79,20 @@ export default function Tydzien({ active }: { active: boolean }) {
               .map((r) => weekPassed(doneCount(r.days), r.weeklyTarget));
             setUnlocked(flags.length > 0 && isUnlocked(h.weeklyTarget, flags));
           } else setUnlocked(false);
-        } else { setHabit(null); setUnlocked(false); }
+        } else {
+          setHabit(null); setUnlocked(false);
+          try {
+            const audits = await getLatestAudits(1);
+            if (audits[0]) {
+              const rec = recommendHabit(audits[0].dimensionScores as Record<DimensionId, number>);
+              const mr = mastered.find((m) => m.pathId === rec.path.id);
+              const nextIdx = mr ? mr.levelIdx + 1 : 0;
+              const sug = rec.path.habits[nextIdx] ?? null;
+              setSuggested(sug);
+              setSuggestedPath(sug ? rec.path.name : "");
+            } else { setSuggested(null); setSuggestedPath(""); }
+          } catch { setSuggested(null); setSuggestedPath(""); }
+        }
 
         const items: MaintItem[] = [];
         mastered.forEach((m: MasteredRow) => {
@@ -153,21 +168,25 @@ export default function Tydzien({ active }: { active: boolean }) {
     setBusy(true);
     try {
       await upsertMastered(p.id, stepIdx, "earned");
-      const next = p.habits[stepIdx + 1];
-      if (next) {
-        await setActiveHabitId(next.id);
-        await upsertWeek({
-          weekKey: curWk, habitPoolId: next.id, habitName: next.text, days: [0, 0, 0, 0, 0, 0, 0],
-          weeklyTarget: next.weeklyTarget, weeklyScore: null, passed: null,
-          isMaintenance: false, isCustom: false, reflection: null,
-        });
-        toast.success("Opanowane! Odblokowano kolejny krok w ścieżce.");
-      } else {
-        await setActiveHabitId(null);
-        toast.success("Ukończyłeś całą ścieżkę! Wybierz nową w zakładce Nawyki.");
-      }
+      await setActiveHabitId(null);
+      toast.success("Opanowane! Wybierz nawyk na nowy tydzień.");
       await load();
     } catch (e) { console.error(e); toast.error("Nie udało się zapisać."); }
+    finally { setBusy(false); }
+  };
+
+  const startSuggested = async () => {
+    if (!suggested || busy) return;
+    setBusy(true);
+    try {
+      await setActiveHabitId(suggested.id);
+      await upsertWeek({
+        weekKey: curWk, habitPoolId: suggested.id, habitName: suggested.text, days: [0, 0, 0, 0, 0, 0, 0],
+        weeklyTarget: suggested.weeklyTarget, weeklyScore: null, passed: null,
+        isMaintenance: false, isCustom: false, reflection: null,
+      });
+      await load();
+    } catch (e) { console.error(e); toast.error("Nie udało się ustawić nawyku."); }
     finally { setBusy(false); }
   };
 
@@ -236,15 +255,39 @@ export default function Tydzien({ active }: { active: boolean }) {
     );
   }
 
-  // WIDOK BIEZACY - brak aktywnego nawyku
+  // WIDOK BIEZACY - brak aktywnego nawyku: sugestia + wolny wybor
   if (!habit) {
     return (
       <div>
         {nav}
-        <div style={{ border: `1px solid ${G.border}`, background: G.bgWarm, padding: "30px 22px", textAlign: "center" }}>
-          <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, marginBottom: 10 }}>Nie masz aktywnego nawyku</div>
-          <div style={{ fontSize: 14, color: G.muted, lineHeight: 1.5 }}>Przejdź do zakładki <strong>Nawyki</strong> i wybierz, nad czym chcesz teraz pracować.</div>
+        <div style={eyebrow}>Nowy tydzień</div>
+        <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 500, marginBottom: 6 }}>Wybierz nawyk na ten tydzień</div>
+        <div style={{ fontSize: 13, color: G.muted, lineHeight: 1.5, marginBottom: 20 }}>
+          Na podstawie Twojego audytu podpowiadamy poniższy nawyk. Możesz go przyjąć albo wybrać dowolny inny.
         </div>
+
+        {suggested ? (
+          <div style={{ border: `1px solid ${G.border}`, background: G.bgWarm, padding: "18px 18px", marginBottom: 14 }}>
+            <div style={{ fontSize: 10, letterSpacing: "0.2em", textTransform: "uppercase", color: G.goldDeep, fontWeight: 700, marginBottom: 10 }}>Sugestia z Twoich wyników</div>
+            <div style={{ ...eyebrow, marginBottom: 6 }}>{suggestedPath}</div>
+            <div style={{ fontFamily: SERIF, fontSize: 20, fontWeight: 500, lineHeight: 1.3, marginBottom: 4 }}>{suggested.text}</div>
+            <div style={{ fontSize: 12, color: G.muted, marginBottom: 16 }}>Cel: {suggested.weeklyTarget === 7 ? "codziennie" : `${suggested.weeklyTarget}× w tygodniu`}</div>
+            <button onClick={startSuggested} disabled={busy}
+              style={{ width: "100%", background: G.ink, color: G.gold, border: "none", padding: 14, fontSize: 11, letterSpacing: "0.16em", textTransform: "uppercase", fontWeight: 700, cursor: busy ? "wait" : "pointer", fontFamily: SANS }}>
+              {busy ? "Zapisuję..." : "Zacznij ten nawyk"}
+            </button>
+          </div>
+        ) : (
+          <div style={{ border: `1px solid ${G.border}`, background: G.bgWarm, padding: "20px 18px", marginBottom: 14, fontSize: 14, color: G.muted, lineHeight: 1.5 }}>
+            Wykonaj audyt w zakładce Piramida, aby dostać dopasowaną sugestię, albo wybierz nawyk samodzielnie.
+          </div>
+        )}
+
+        <button onClick={onGoToHabits}
+          style={{ width: "100%", background: "transparent", color: G.ink, border: `1px solid ${G.ink}`, padding: 13, fontSize: 11, letterSpacing: "0.14em", textTransform: "uppercase", fontWeight: 700, cursor: "pointer", fontFamily: SANS }}>
+          Wybierz inny nawyk
+        </button>
+
         {maint.length > 0 && <Maintenance maint={maint} todayIdx={todayIdx} onTick={saveMaint} />}
       </div>
     );
