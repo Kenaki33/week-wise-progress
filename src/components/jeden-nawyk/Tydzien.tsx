@@ -9,13 +9,13 @@ import { Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import {
   getActiveHabitId, setActiveHabitId, getWeek, getHabitHistory,
-  getMastered, upsertWeek, upsertMastered, getLatestAudits, type MasteredRow,
+  getMastered, upsertWeek, upsertMastered, getLatestAudits, getMyWeeks, type MasteredRow,
 } from "@/lib/jeden-nawyk/db";
 import { getHabit, getPath, getPathOfHabit, recommendHabit, type PoolHabit, type DimensionId } from "@/lib/jeden-nawyk/habitPool";
 import {
-  DAY, liveWeekScore, weekVerdict, weekPassed, doneCount, isUnlocked,
+  DAY, liveWeekScore, weekPassed, doneCount, isUnlocked,
 } from "@/lib/jeden-nawyk/scoring";
-import { weekKey, weekStart, scoringTodayIndex, DAY_LABELS, MONTHS_LONG } from "@/lib/jeden-nawyk/dates";
+import { weekKey, weekStart, weekStartFromKey, scoringTodayIndex, DAY_LABELS, MONTHS_LONG } from "@/lib/jeden-nawyk/dates";
 
 const G = {
   bg: "#fdfcf8", bgWarm: "#f7f3e8", ink: "#1a1a1a", gold: "#d4a72c",
@@ -24,6 +24,7 @@ const G = {
 const SERIF = "Georgia, 'Times New Roman', serif";
 const SANS = "ui-sans-serif, system-ui, -apple-system, sans-serif";
 const eyebrow: CSSProperties = { fontSize: 10, letterSpacing: "0.28em", color: G.goldDeep, textTransform: "uppercase", fontWeight: 700, marginBottom: 10 };
+const HELP_LINK = "https://wa.me/48607142846?text=" + encodeURIComponent("Cześć Patryk, idzie mi ciężko z nawykami. Możesz coś podpowiedzieć?");
 
 interface MaintItem { habit: PoolHabit; pathName: string; days: number[]; source: "earned" | "declared"; }
 interface HistRow { name: string; days: number[]; weeklyTarget: number; score: number; isMaintenance: boolean; }
@@ -48,6 +49,7 @@ export default function Tydzien({ active, onGoToHabits }: { active: boolean; onG
   const [busy, setBusy] = useState(false);
   const [suggested, setSuggested] = useState<PoolHabit | null>(null);
   const [suggestedPath, setSuggestedPath] = useState("");
+  const [negCount, setNegCount] = useState(0);
 
   const isCurrent = weekOffset === 0;
   const viewedDate = (() => { const d = new Date(); d.setDate(d.getDate() + weekOffset * 7); return d; })();
@@ -113,6 +115,20 @@ export default function Tydzien({ active, onGoToHabits }: { active: boolean; onG
         rows.sort((a, b) => Number(a.isMaintenance) - Number(b.isMaintenance));
         setHist(rows);
       }
+
+      // Liczba zamknietych tygodni na minusie (do komunikatu o kontakcie).
+      try {
+        const allWeeks = await getMyWeeks();
+        const byWk: Record<string, number> = {};
+        allWeeks.forEach((w) => {
+          const ti = scoringTodayIndex(weekStartFromKey(w.weekKey));
+          if (ti < 7) return; // tylko zamkniete tygodnie
+          let sc = liveWeekScore({ days: w.days as (0 | 1 | 2)[], weeklyTarget: w.weeklyTarget, todayIndex: ti });
+          if (w.isMaintenance) sc = Math.round(sc / 3);
+          byWk[w.weekKey] = (byWk[w.weekKey] ?? 0) + sc;
+        });
+        setNegCount(Object.values(byWk).filter((v) => v < 0).length);
+      } catch (e) { console.error(e); }
     } catch (e) {
       console.error(e);
       toast.error("Nie udało się wczytać tygodnia.");
@@ -231,6 +247,16 @@ export default function Tydzien({ active, onGoToHabits }: { active: boolean; onG
               <div style={{ fontSize: 10, letterSpacing: "0.18em", textTransform: "uppercase", color: G.muted, marginBottom: 4 }}>Punkty w tym tygodniu</div>
               <div style={{ fontFamily: SERIF, fontSize: 44, fontWeight: 700, lineHeight: 1, color: weekTotal >= 0 ? G.ink : G.red }}>{weekTotal >= 0 ? "+" : ""}{weekTotal}</div>
             </div>
+            {weekTotal < 0 && (
+              <div style={{ background: G.bgWarm, border: `1px solid ${G.border}`, borderRadius: 10, padding: "14px 16px", marginBottom: 18 }}>
+                <div style={{ fontSize: 13.5, color: G.ink, lineHeight: 1.5 }}>Te punkty odrobisz w kolejnych tygodniach. Wróć do nawyku i odbij się.</div>
+                {negCount >= 2 && (
+                  <div style={{ fontSize: 13, color: G.muted, lineHeight: 1.5, marginTop: 10 }}>
+                    Idzie ciężko nie pierwszy raz? <a href={HELP_LINK} target="_blank" rel="noopener noreferrer" style={{ color: G.goldDeep, fontWeight: 600 }}>Napisz do mnie</a>, coś podpowiem.
+                  </div>
+                )}
+              </div>
+            )}
             {hist.map((r, idx) => (
               <div key={idx} style={{ borderTop: `1px solid ${G.border}`, padding: "14px 0" }}>
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 10, marginBottom: 8 }}>
@@ -298,7 +324,8 @@ export default function Tydzien({ active, onGoToHabits }: { active: boolean; onG
   const done = doneCount(days);
   const ratio = Math.min(done, habit.weeklyTarget) / habit.weeklyTarget;
   const score = liveWeekScore({ days: days as (0 | 1 | 2)[], weeklyTarget: habit.weeklyTarget, todayIndex: todayIdx });
-  const verdict = weekVerdict({ days: days as (0 | 1 | 2)[], weeklyTarget: habit.weeklyTarget, todayIndex: todayIdx });
+  const goalReached = done >= habit.weeklyTarget;
+  const weekOngoing = todayIdx < 6;
 
   return (
     <div>
@@ -338,22 +365,36 @@ export default function Tydzien({ active, onGoToHabits }: { active: boolean; onG
         })}
       </div>
 
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", borderTop: `1px solid ${G.border}`, borderBottom: `1px solid ${G.border}`, padding: "14px 0", marginBottom: 8 }}>
-        <div>
-          <div style={{ fontFamily: SERIF, fontSize: 30, fontWeight: 700, lineHeight: 1 }}>{score >= 0 ? "+" : ""}{score}</div>
-          <div style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: G.muted, marginTop: 4 }}>punkty · {done}/{habit.weeklyTarget}</div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          {verdict === "full" && <div style={{ fontSize: 12, color: G.green, fontWeight: 700 }}>✓ pełny cel · +77</div>}
-          {verdict === "passed" && <div style={{ fontSize: 12, color: G.green, fontWeight: 700 }}>✓ tydzień zaliczony</div>}
-          {verdict === "failed" && <div style={{ fontSize: 11, color: G.red }}>{Math.round(ratio * 100)}% · niezaliczony</div>}
-          {verdict === "in-progress" && <div style={{ fontSize: 11, color: G.muted }}>{Math.round(ratio * 100)}% celu</div>}
-        </div>
+      <div style={{ borderTop: `1px solid ${G.border}`, borderBottom: `1px solid ${G.border}`, padding: "16px 0", marginBottom: 8 }}>
+        {goalReached ? (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+              <div>
+                <div style={{ fontSize: 12, color: G.green, fontWeight: 700, marginBottom: 4 }}>Cel tygodnia osiągnięty ✓</div>
+                <div style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: G.muted }}>{done}/{habit.weeklyTarget} wykonane</div>
+              </div>
+              <div style={{ textAlign: "right" }}>
+                <div style={{ fontFamily: SERIF, fontSize: 30, fontWeight: 700, lineHeight: 1, color: G.green }}>{score >= 0 ? "+" : ""}{score}</div>
+                <div style={{ fontSize: 10, color: G.muted, marginTop: 4 }}>punkty</div>
+              </div>
+            </div>
+            {weekOngoing && <div style={{ fontSize: 12, color: G.muted, marginTop: 12, lineHeight: 1.5 }}>Tydzień jeszcze trwa - możesz uzbierać więcej punktów.</div>}
+          </div>
+        ) : (
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 9 }}>
+              <div style={{ fontSize: 10, letterSpacing: "0.12em", textTransform: "uppercase", color: G.muted }}>Postęp do celu</div>
+              <div style={{ fontFamily: SERIF, fontSize: 22, fontWeight: 700 }}>{done}<span style={{ fontSize: 13, color: G.muted, fontWeight: 400 }}> / {habit.weeklyTarget}</span></div>
+            </div>
+            <div style={{ height: 7, background: G.border, borderRadius: 999, overflow: "hidden" }}>
+              <div style={{ height: "100%", width: `${ratio * 100}%`, background: G.ink, borderRadius: 999, transition: "width 0.3s" }} />
+            </div>
+            <div style={{ fontSize: 12, color: G.muted, marginTop: 10 }}>Do celu brakuje {Math.max(0, habit.weeklyTarget - done)}.</div>
+          </div>
+        )}
       </div>
       <div style={{ fontSize: 11, color: G.muted, lineHeight: 1.5, marginBottom: 22 }}>
-        {isDaily
-          ? "✓ dodaje, ✕ odejmuje. Puste pole jest neutralne dopóki dzień trwa. Czy tydzień zaliczony (próg 67%) zobaczysz po jego zamknięciu."
-          : "Liczy się liczba wykonań w tygodniu. Niedobór odejmie punkty po zamknięciu tygodnia."}
+        Liczy się cały tydzień. Punkty i wynik zobaczysz po jego zamknięciu (próg zaliczenia: 67%).
       </div>
 
       {unlocked && (
