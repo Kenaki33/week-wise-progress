@@ -201,6 +201,18 @@ export async function getHabitHistory(habitPoolId: string): Promise<WeekRow[]> {
   return (data ?? []).map(mapWeek);
 }
 
+/** Wszystkie tygodnie zalogowanego uzytkownika (do liczenia np. ujemnych tygodni). */
+export async function getMyWeeks(): Promise<WeekRow[]> {
+  const userId = await getUserId();
+  if (!userId) return [];
+  const { data, error } = await db
+    .from("habit_weeks")
+    .select("*")
+    .eq("user_id", userId);
+  if (error) throw error;
+  return (data ?? []).map(mapWeek);
+}
+
 export async function upsertWeek(w: WeekRow): Promise<void> {
   const userId = await getUserId();
   if (!userId) throw new Error("Brak zalogowanego uzytkownika.");
@@ -268,7 +280,6 @@ export async function getAllProfiles(): Promise<ProfileRow[]> {
 // ------------------------------------------------------------
 // ADMIN - podglad danych konkretnej osoby (tylko dla is_admin)
 // ------------------------------------------------------------
-
 /** Czy zalogowany uzytkownik jest adminem (profiles.is_admin). */
 export async function getIsAdmin(): Promise<boolean> {
   const userId = await getUserId();
