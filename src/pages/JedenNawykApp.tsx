@@ -6,11 +6,12 @@
 
 import { useState, useEffect, useMemo, type CSSProperties } from "react";
 import { useNavigate } from "react-router-dom";
-import { BookOpen, Layers, Triangle, User as UserIcon, TrendingUp, TrendingDown, LogOut, ChevronLeft, ChevronRight, Trophy } from "lucide-react";
+import { BookOpen, Layers, Triangle, User as UserIcon, TrendingUp, TrendingDown, LogOut, ChevronLeft, ChevronRight, Trophy, Sun } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { getLatestAudits, type AuditRow } from "@/lib/jeden-nawyk/db";
 import Tydzien from "@/components/jeden-nawyk/Tydzien";
+import Dzisiaj from "@/components/jeden-nawyk/Dzisiaj";
 import Nawyki from "@/components/jeden-nawyk/Nawyki";
 import Ranking from "@/components/jeden-nawyk/Ranking";
 
@@ -46,7 +47,7 @@ const PYRAMID_META = [
   ]},
 ];
 
-type Tab = "tydzien" | "nawyki" | "piramida" | "ranking" | "profil";
+type Tab = "dzis" | "tydzien" | "nawyki" | "piramida" | "ranking" | "profil";
 
 // Prosty hook: czy szeroki ekran (desktop)
 function useIsDesktop(): boolean {
@@ -68,7 +69,7 @@ export default function JedenNawykApp() {
   const isDesktop = useIsDesktop();
   const [checking, setChecking] = useState(true);
   const [email, setEmail] = useState<string>("");
-  const [tab, setTab] = useState<Tab>("tydzien");
+  const [tab, setTab] = useState<Tab>("dzis");
   const [pyramidDue, setPyramidDue] = useState(false);
 
   useEffect(() => {
@@ -127,6 +128,7 @@ export default function JedenNawykApp() {
       </header>
 
       <main style={{ padding: isDesktop ? "32px 28px 48px" : "24px 20px 40px" }}>
+        <div style={{ display: tab === "dzis" ? "block" : "none" }}><Dzisiaj active={tab === "dzis"} onGoToWeek={() => setTab("tydzien")} /></div>
         <div style={{ display: tab === "piramida" ? "block" : "none" }}><Piramida navigate={navigate} active={tab === "piramida"} /></div>
         <div style={{ display: tab === "tydzien" ? "block" : "none" }}><Tydzien active={tab === "tydzien"} onGoToHabits={() => setTab("nawyki")} /></div>
         <div style={{ display: tab === "nawyki" ? "block" : "none" }}><Nawyki active={tab === "nawyki"} /></div>
@@ -163,13 +165,13 @@ function PyramidBadge() {
 }
 
 const NAV: { id: Tab; icon: typeof BookOpen; label: string }[] = [
-  { id: "tydzien", icon: BookOpen, label: "Tydzień" },
+  { id: "dzis", icon: Sun, label: "Dziś" },
   { id: "nawyki", icon: Layers, label: "Nawyki" },
   { id: "piramida", icon: Triangle, label: "Piramida" },
   { id: "ranking", icon: Trophy, label: "Ranking" },
   { id: "profil", icon: UserIcon, label: "Profil" },
 ];
-const TAB_LABEL: Record<Tab, string> = { tydzien: "Tydzień", nawyki: "Nawyki", piramida: "Piramida", ranking: "Ranking", profil: "Profil" };
+const TAB_LABEL: Record<Tab, string> = { dzis: "Dziś", tydzien: "Tydzień", nawyki: "Nawyki", piramida: "Piramida", ranking: "Ranking", profil: "Profil" };
 
 const eyebrow: CSSProperties = { fontSize: 10, letterSpacing: "0.28em", color: G.goldDeep, textTransform: "uppercase", fontWeight: 700, marginBottom: 10 };
 
