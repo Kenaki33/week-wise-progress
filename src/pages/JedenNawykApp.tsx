@@ -128,7 +128,7 @@ export default function JedenNawykApp() {
 
       <main style={{ padding: isDesktop ? "32px 28px 48px" : "24px 20px 40px" }}>
         <div style={{ display: tab === "piramida" ? "block" : "none" }}><Piramida navigate={navigate} active={tab === "piramida"} /></div>
-        <div style={{ display: tab === "tydzien" ? "block" : "none" }}><Tydzien active={tab === "tydzien"} /></div>
+        <div style={{ display: tab === "tydzien" ? "block" : "none" }}><Tydzien active={tab === "tydzien"} onGoToHabits={() => setTab("nawyki")} /></div>
         <div style={{ display: tab === "nawyki" ? "block" : "none" }}><Nawyki active={tab === "nawyki"} /></div>
         <div style={{ display: tab === "ranking" ? "block" : "none" }}><Ranking active={tab === "ranking"} /></div>
         <div style={{ display: tab === "profil" ? "block" : "none" }}><Profil email={email} navigate={navigate} /></div>
