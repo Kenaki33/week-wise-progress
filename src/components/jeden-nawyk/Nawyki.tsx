@@ -8,7 +8,7 @@ import { useState, useEffect, type CSSProperties } from "react";
 import { Check, Lock, ChevronDown, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import {
-  getActiveHabitId, setActiveHabitId, getMastered, upsertMastered, upsertWeek, type MasteredRow,
+  getActiveHabitId, getMastered, upsertMastered, switchMainHabit, type MasteredRow,
 } from "@/lib/jeden-nawyk/db";
 import { POOL, DIFFICULTY_LABEL, type PoolHabit, type PoolPath } from "@/lib/jeden-nawyk/habitPool";
 import { weekKey } from "@/lib/jeden-nawyk/dates";
@@ -51,11 +51,7 @@ export default function Nawyki({ active }: { active: boolean }) {
     if (busy) return;
     setBusy(true);
     try {
-      await setActiveHabitId(h.id);
-      await upsertWeek({
-        weekKey: weekKey(new Date()), habitPoolId: h.id, habitName: h.text, days: [0, 0, 0, 0, 0, 0, 0],
-        weeklyTarget: h.weeklyTarget, weeklyScore: null, passed: null, isMaintenance: false, isCustom: false, reflection: null,
-      });
+      await switchMainHabit(weekKey(new Date()), { id: h.id, text: h.text, weeklyTarget: h.weeklyTarget });
       toast.success("Ustawiono jako główny nawyk. Zobacz zakładkę Tydzień.");
       await load();
     } catch (e) { console.error(e); toast.error("Nie udało się ustawić."); }
