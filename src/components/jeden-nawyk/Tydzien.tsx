@@ -9,7 +9,7 @@ import { Check, X, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import {
   getActiveHabitId, setActiveHabitId, getWeek, getHabitHistory,
-  getMastered, upsertWeek, upsertMastered, getLatestAudits, getMyWeeks, type MasteredRow,
+  getMastered, upsertWeek, upsertMastered, getLatestAudits, getMyWeeks, switchMainHabit, type MasteredRow,
 } from "@/lib/jeden-nawyk/db";
 import { getHabit, getPath, getPathOfHabit, recommendHabit, type PoolHabit, type DimensionId } from "@/lib/jeden-nawyk/habitPool";
 import {
@@ -195,12 +195,7 @@ export default function Tydzien({ active, onGoToHabits }: { active: boolean; onG
     if (!suggested || busy) return;
     setBusy(true);
     try {
-      await setActiveHabitId(suggested.id);
-      await upsertWeek({
-        weekKey: curWk, habitPoolId: suggested.id, habitName: suggested.text, days: [0, 0, 0, 0, 0, 0, 0],
-        weeklyTarget: suggested.weeklyTarget, weeklyScore: null, passed: null,
-        isMaintenance: false, isCustom: false, reflection: null,
-      });
+      await switchMainHabit(curWk, { id: suggested.id, text: suggested.text, weeklyTarget: suggested.weeklyTarget });
       await load();
     } catch (e) { console.error(e); toast.error("Nie udało się ustawić nawyku."); }
     finally { setBusy(false); }
