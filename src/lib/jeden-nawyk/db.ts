@@ -213,6 +213,38 @@ export async function getMyWeeks(): Promise<WeekRow[]> {
   return (data ?? []).map(mapWeek);
 }
 
+/**
+ * Zmiana nawyku glownego na dany tydzien.
+ * Kasuje INNE nawyki glowne (nie-utrzymaniowe) tego tygodnia, zeby nie
+ * naliczaly sie punkty za porzucony nawyk. Postep biezacego nawyku zachowuje.
+ */
+export async function switchMainHabit(weekKey: string, habit: { id: string; text: string; weeklyTarget: number }): Promise<void> {
+  const userId = await getUserId();
+  if (!userId) return;
+  await db
+    .from("habit_weeks")
+    .delete()
+    .eq("user_id", userId)
+    .eq("week_key", weekKey)
+    .eq("is_maintenance", false)
+    .neq("habit_pool_id", habit.id);
+  await setActiveHabitId(habit.id);
+  const { data } = await db
+    .from("habit_weeks")
+    .select("id")
+    .eq("user_id", userId)
+    .eq("week_key", weekKey)
+    .eq("habit_pool_id", habit.id)
+    .maybeSingle();
+  if (!data) {
+    await upsertWeek({
+      weekKey, habitPoolId: habit.id, habitName: habit.text, days: [0, 0, 0, 0, 0, 0, 0],
+      weeklyTarget: habit.weeklyTarget, weeklyScore: null, passed: null,
+      isMaintenance: false, isCustom: false, reflection: null,
+    });
+  }
+}
+
 export async function upsertWeek(w: WeekRow): Promise<void> {
   const userId = await getUserId();
   if (!userId) throw new Error("Brak zalogowanego uzytkownika.");
