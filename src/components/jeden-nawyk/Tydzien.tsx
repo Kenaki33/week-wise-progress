@@ -415,38 +415,43 @@ export default function Tydzien({ active, onGoToHabits }: { active: boolean; onG
 
 function Maintenance({ maint, todayIdx, onTick }: { maint: MaintItem[]; todayIdx: number; onTick: (item: MaintItem, days: number[]) => void }) {
   const ti = todayIdx >= 7 ? 6 : todayIdx;
-  const setToday = (item: MaintItem, target: 1 | 2) => {
+  const cycle = (item: MaintItem, i: number) => {
+    if (i > ti) return;
     const copy = [...item.days];
-    copy[ti] = copy[ti] === target ? DAY.EMPTY : target;
+    const cur = copy[i];
+    copy[i] = cur === DAY.EMPTY ? DAY.DONE : cur === DAY.DONE ? DAY.SKIP : DAY.EMPTY;
     onTick(item, copy);
   };
   return (
     <div style={{ marginTop: 8 }}>
       <div style={eyebrow}>Utrzymanie</div>
       <div style={{ fontSize: 11, color: G.muted, marginBottom: 14, lineHeight: 1.5 }}>
-        Opanowane nawyki - zaznacz, czy dziś je trzymasz. Punkty liczą się na 1/3 stawki.
+        Opanowane nawyki - zaznacz dni, w które je trzymasz (kolejne tapnięcia zmieniają stan). Punkty liczą się na 1/3 stawki.
       </div>
-      {maint.map((m) => {
-        const st = m.days[ti];
-        return (
-          <div key={m.habit.id} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderTop: `1px solid ${G.border}` }}>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div style={{ fontSize: 13.5, color: G.ink, lineHeight: 1.35 }}>{m.habit.text}</div>
-              <div style={{ fontSize: 10, color: G.muted, marginTop: 2 }}>
-                {m.pathName}{m.source === "declared" ? " · opanowany z marszu" : ""}
-              </div>
-            </div>
-            <button onClick={() => setToday(m, 1)} aria-label="Zrobione"
-              style={{ width: 34, height: 34, borderRadius: 6, border: "none", cursor: "pointer", background: st === DAY.DONE ? G.green : G.bgWarm, color: st === DAY.DONE ? "#fff" : G.muted, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <Check size={15} strokeWidth={3} />
-            </button>
-            <button onClick={() => setToday(m, 2)} aria-label="Nie zrobione"
-              style={{ width: 34, height: 34, borderRadius: 6, border: "none", cursor: "pointer", background: st === DAY.SKIP ? G.red : G.bgWarm, color: st === DAY.SKIP ? "#fff" : G.muted, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-              <X size={15} strokeWidth={3} />
-            </button>
+      {maint.map((m) => (
+        <div key={m.habit.id} style={{ padding: "12px 0", borderTop: `1px solid ${G.border}` }}>
+          <div style={{ fontSize: 13.5, color: G.ink, lineHeight: 1.35 }}>{m.habit.text}</div>
+          <div style={{ fontSize: 10, color: G.muted, marginTop: 2, marginBottom: 8 }}>
+            {m.pathName}{m.source === "declared" ? " · opanowany z marszu" : ""}
           </div>
-        );
-      })}
+          <div style={{ display: "flex", gap: 4 }}>
+            {DAY_LABELS.map((lab, i) => {
+              const st = m.days[i];
+              const fut = i > ti;
+              const isToday = i === ti;
+              return (
+                <div key={i} style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 3 }}>
+                  <span style={{ fontSize: 9, color: isToday ? G.ink : G.muted, fontWeight: isToday ? 700 : 400 }}>{lab}</span>
+                  <button onClick={() => cycle(m, i)} disabled={fut} aria-label={lab}
+                    style={{ width: "100%", aspectRatio: "1/1", border: st === DAY.EMPTY ? `1px solid ${G.border}` : "none", borderRadius: 5, cursor: fut ? "not-allowed" : "pointer", opacity: fut ? 0.4 : 1, background: st === DAY.DONE ? G.green : st === DAY.SKIP ? G.red : "transparent", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
+                    {st === DAY.DONE ? <Check size={12} strokeWidth={3} /> : st === DAY.SKIP ? <X size={12} strokeWidth={3} /> : ""}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
