@@ -9,7 +9,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { recommendHabit, type DimensionId } from "@/lib/jeden-nawyk/habitPool";
-import { saveAudit, setActiveHabitId, upsertWeek, getUserId, hasAudit, hasHealthConsent, recordHealthConsent } from "@/lib/jeden-nawyk/db";
+import { saveAudit, switchMainHabit, getUserId, hasAudit, hasHealthConsent, recordHealthConsent } from "@/lib/jeden-nawyk/db";
 import { weekKey } from "@/lib/jeden-nawyk/dates";
 
 const G = {
@@ -238,19 +238,7 @@ export default function Onboarding() {
       });
       if (useRecommended) {
         const h = recommendation.habit;
-        await setActiveHabitId(h.id);
-        await upsertWeek({
-          weekKey: weekKey(new Date()),
-          habitPoolId: h.id,
-          habitName: h.text,
-          days: [0, 0, 0, 0, 0, 0, 0],
-          weeklyTarget: h.weeklyTarget,
-          weeklyScore: null,
-          passed: null,
-          isMaintenance: false,
-          isCustom: false,
-          reflection: null,
-        });
+        await switchMainHabit(weekKey(new Date()), { id: h.id, text: h.text, weeklyTarget: h.weeklyTarget });
       }
       navigate("/app", { replace: true });
     } catch (e) {
